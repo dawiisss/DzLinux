@@ -20,6 +20,7 @@ No more guessing paths or writing bash wrappers. DzLinux automatically scans you
 
 ### 📡 Smart A2S Server Querying
 Connect directly to global DayZ aggregators and local servers. Retrieve real-time player counts, server latency, time-of-day cycles, active mods, and specific server rule flags instantly. Add your favorite servers to a custom list for instant redeployment.
+> **🚀 Upcoming Feature:** An online **Server Portal** allowing community and private server owners to register and submit their own servers directly to the public list is currently in development.
 
 ### 🧩 Mod Management
 * **Workshop Validation:** Automatically cross-references a target server's required mods list against your local Steam Workshop directory, highlighting missing or outdated mods *before* you attempt to join.
