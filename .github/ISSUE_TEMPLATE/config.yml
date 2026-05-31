@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Bohemia Interactive DayZ Support
+    url: https://support.dayz.com/
+    about: For reporting official DayZ game-specific bugs, server issues, or account questions unrelated to the DzLinux launcher.
