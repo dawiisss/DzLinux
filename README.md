@@ -21,9 +21,9 @@ No more guessing paths or writing bash wrappers. DzLinux automatically scans you
 ### 📡 Smart A2S Server Querying
 Connect directly to global DayZ aggregators and local servers. Retrieve real-time player counts, server latency, time-of-day cycles, active mods, and specific server rule flags instantly. Add your favorite servers to a custom list for instant redeployment.
 
-### 🧩 Next-Gen Mod Management
+### 🧩 Mod Management
 * **Workshop Validation:** Automatically cross-references a target server's required mods list against your local Steam Workshop directory, highlighting missing or outdated mods *before* you attempt to join.
-* **Mod Loadouts:** Create, save, and toggle named loadouts of your local mods. Swap profiles instantly when moving between heavily modded hardcore survival servers and vanilla-plus networks.
+* **Mod Loadouts:** Create, save, and toggle named loadouts of your local mods.
 
 ### 🚀 One-Click Performance Optimizations
 Inject advanced launch arguments directly through a simple toggle interface:
