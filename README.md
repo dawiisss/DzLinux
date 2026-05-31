@@ -41,10 +41,10 @@ DzLinux requires no installation and is fully portable. Choose your preferred di
 ### Method 1: AppImage (Recommended)
 The AppImage format is a single, self-contained executable that runs on almost any modern Linux distribution (Ubuntu, Fedora, Arch, Debian, etc.).
 
-1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest) and download `DzLinux-1.0.1-linux-x64.AppImage`.
+1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest) and download `DzLinux-1.0.3.AppImage`.
 2. Give the file executable permissions via your terminal:
    ```bash
-   chmod +x DzLinux-1.0.1-linux-x64.AppImage
+   chmod +x DzLinux-1.0.3.AppImage
    ```
    *(Or right-click the file in your file manager, open **Properties** -> **Permissions**, and check **Allow executing file as program**).*
 3. Double-click the file to launch the the app.
