@@ -54,10 +54,10 @@ We recommend using Gear Lever or any other AppImage management app.
 ### Method 2: Portable Archive (.tar.gz)
 If you prefer standard directory structures or like to keep your game utilities in a dedicated folder (e.g., `~/Games/`):
 
-1. Download `DzLinux-1.0.1-linux-x64.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+1. Download `dzlinux-1.0.3.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
 2. Extract the archive:
    ```bash
-   tar -xzf DzLinux-1.0.1-linux-x64.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.0.3.tar.gz -C ~/Games/
    ```
 3. Navigate to the extracted folder and run the binary:
    ```bash
