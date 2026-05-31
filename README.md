@@ -6,6 +6,7 @@ Welcome to the official public distribution and issue tracking repository for **
 
 > [!NOTE]
 > This repository is used exclusively for distributing compiled binaries (AppImages and tarball packages) and hosting the public bug/issue tracker. The core application codebase is closed-source and maintained in a private repository.
+<img width="1398" height="801" alt="DzLinuxServerList" src="https://github.com/user-attachments/assets/359fefab-c006-497f-9f47-86b8433b28c6" />
 
 ---
 
