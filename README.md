@@ -1,4 +1,4 @@
-# 🎯 DzLinux-Releases
+# 🎯 DzLinux
 
 Welcome to the official public distribution and issue tracking repository for **DzLinux**! 
 
