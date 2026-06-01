@@ -65,6 +65,59 @@ If you prefer standard directory structures or like to keep your game utilities 
    ./dzlinux
    ```
 
+### Method 3: Debian Package (.deb) — Ubuntu, Debian, Pop!_OS, Mint
+
+1. Download `dzlinux_1.0.5_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+2. Install via the terminal:
+   ```bash
+   sudo dpkg -i dzlinux_1.0.5_amd64.deb
+   sudo apt install -f
+   ```
+   *(Or double-click the .deb file in your file manager to open with your package installer.)*
+3. Launch from your app menu or run `dzlinux` in the terminal.
+
+### Method 4: RPM Package (.rpm) — Fedora, RHEL, openSUSE
+
+1. Download `dzlinux-1.0.5.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+2. Install via the terminal:
+   ```bash
+   sudo rpm -i dzlinux-1.0.5.x86_64.rpm
+   ```
+3. Launch from your app menu or run `dzlinux` in the terminal.
+
+### 📡 Updates
+
+- **AppImage** — The built-in auto-updater handles downloads and installs automatically.
+- **tar.gz / .deb / .rpm** — Updates are manual. The app will notify you when a new version is available with a link to the [Releases page](https://github.com/dawiisss/DzLinux-Releases/releases/latest). Re-download the package for your format and install it to update.
+
+---
+
+## 📋 Requirements
+
+The application will launch without any of these installed, but certain features will be unavailable if the corresponding dependency is missing.
+
+### Required for full functionality
+| Dependency | Purpose | Effect if missing |
+|---|---|---|
+| **Steam client** | Game launching, Workshop mod management via native API | Launching via "Steam Default" method fails; Proton direct mode still works |
+| `ping` (iputils) | Server latency measurement via ICMP | Servers display "TIMEOUT" instead of ping ms until GameDig responds |
+
+### Optional enhancements
+| Dependency | Purpose |
+|---|---|
+| **GameMode** (`gamemode`) | CPU governor optimization at game launch |
+| **MangoHud** (`mangohud`) | On-screen performance overlay (fps, temps, RAM) |
+| **Proton / GE-Proton** | Custom Proton launch mode (auto-detected from Steam if installed) |
+
+Install optional dependencies via your package manager:
+```bash
+# Ubuntu / Debian
+sudo apt install gamemode mangohud
+
+# Fedora
+sudo dnf install gamemode mangohud
+```
+
 ---
 
 ## ⚙️ Configuration Guide
