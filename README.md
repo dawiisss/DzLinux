@@ -95,7 +95,6 @@ Have an idea for a performance toggle, layout improvement, or mod-management fea
 * **Application License:** DzLinux is distributed as a proprietary, closed-source application. All rights reserved.
 * **Privacy & Telemetry:** DzLinux does not collect, store, or transmit any personal data, analytics, or telemetry. All server queries are done directly from your machine to the public game databases, and your configuration settings remain completely local.
 * **Open Source Acknowledgments:** DzLinux is built on top of incredible open-source libraries (including Electron, Axios, GameDig, and Steamworks.js). A full list of dependencies, their licenses, and source repositories can be found inside the application's **About / Info** pop-up or in the bundled `acknowledgments.txt` file distributed with every release package.
-* **Data Sourcing:** Live server lists, query indicators, and mod dependencies are retrieved via the public **BattleMetrics API**. We are incredibly grateful for their robust web services that power part of the server querying for the application.
 
 ---
 
