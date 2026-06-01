@@ -6,7 +6,7 @@ Welcome to the official public distribution and issue tracking repository for **
 
 > [!NOTE]
 > This repository is used exclusively for distributing compiled binaries (AppImages and tarball packages) and hosting the public bug/issue tracker. The core application codebase is closed-source and maintained in a private repository.
-<img width="1395" height="772" alt="Screenshot_20260531_192937" src="https://github.com/user-attachments/assets/0ce84aaf-dc20-4521-b9d9-073f5c513afa" />
+<img width="1398" height="799" alt="Screenshot_20260601_144012" src="https://github.com/user-attachments/assets/2cf4259d-75d8-4e8c-bc6a-ad703add5614" />
 
 ---
 
@@ -41,10 +41,10 @@ DzLinux requires no installation and is fully portable. Choose your preferred di
 ### Method 1: AppImage (Recommended)
 The AppImage format is a single, self-contained executable that runs on almost any modern Linux distribution (Ubuntu, Fedora, Arch, Debian, etc.).
 
-1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest) and download `DzLinux-1.0.4.AppImage`.
+1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest) and download `DzLinux-1.0.5.AppImage`.
 2. Give the file executable permissions via your terminal:
    ```bash
-   chmod +x DzLinux-1.0.4.AppImage
+   chmod +x DzLinux-1.0.5.AppImage
    ```
    *(Or right-click the file in your file manager, open **Properties** -> **Permissions**, and check **Allow executing file as program**).*
 3. Double-click the file to launch the the app.
@@ -54,10 +54,10 @@ We recommend using Gear Lever or any other AppImage management app.
 ### Method 2: Portable Archive (.tar.gz)
 If you prefer standard directory structures or like to keep your game utilities in a dedicated folder (e.g., `~/Games/`):
 
-1. Download `dzlinux-1.0.4.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+1. Download `dzlinux-1.0.5.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
 2. Extract the archive:
    ```bash
-   tar -xzf dzlinux-1.0.4.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.0.5.tar.gz -C ~/Games/
    ```
 3. Navigate to the extracted folder and run the binary:
    ```bash
