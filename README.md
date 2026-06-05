@@ -36,28 +36,36 @@ Inject advanced launch arguments directly through a simple toggle interface:
 
 ## 📦 Installation & Setup
 
-DzLinux requires no installation and is fully portable. Choose your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases).
+DzLinux requires no installation and is fully portable. You can use our automated install script, or manually download your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases).
 
-### Method 1: AppImage (Recommended)
+### Method 1: Automated Install Script (Recommended)
+The easiest way to install DzLinux is using our automated install script. It will detect your Linux distribution and automatically download and install the correct format (.deb, .rpm, or AppImage) for your system.
+
+Run the following command in your terminal:
+```bash
+curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux-releases/main/install.sh | bash
+```
+
+### Method 2: AppImage (Portable)
 The AppImage format is a single, self-contained executable that runs on almost any modern Linux distribution (Ubuntu, Fedora, Arch, Debian, etc.).
 
-1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest) and download `DzLinux-1.0.5.AppImage`.
+1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest) and download `DzLinux-1.0.6.AppImage`.
 2. Give the file executable permissions via your terminal:
    ```bash
-   chmod +x DzLinux-1.0.5.AppImage
+   chmod +x DzLinux-1.0.6.AppImage
    ```
    *(Or right-click the file in your file manager, open **Properties** -> **Permissions**, and check **Allow executing file as program**).*
-3. Double-click the file to launch the the app.
+3. Double-click the file to launch the app.
 
 We recommend using Gear Lever or any other AppImage management app.
 
-### Method 2: Portable Archive (.tar.gz)
+### Method 3: Portable Archive (.tar.gz)
 If you prefer standard directory structures or like to keep your game utilities in a dedicated folder (e.g., `~/Games/`):
 
-1. Download `dzlinux-1.0.5.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+1. Download `dzlinux-1.0.6.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
 2. Extract the archive:
    ```bash
-   tar -xzf dzlinux-1.0.5.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.0.6.tar.gz -C ~/Games/
    ```
 3. Navigate to the extracted folder and run the binary:
    ```bash
@@ -65,23 +73,23 @@ If you prefer standard directory structures or like to keep your game utilities 
    ./dzlinux
    ```
 
-### Method 3: Debian Package (.deb) — Ubuntu, Debian, Pop!_OS, Mint
+### Method 4: Debian Package (.deb) — Ubuntu, Debian, Pop!_OS, Mint
 
-1. Download `dzlinux_1.0.5_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+1. Download `dzlinux_1.0.6_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
 2. Install via the terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.0.5_amd64.deb
+   sudo dpkg -i dzlinux_1.0.6_amd64.deb
    sudo apt install -f
    ```
    *(Or double-click the .deb file in your file manager to open with your package installer.)*
 3. Launch from your app menu or run `dzlinux` in the terminal.
 
-### Method 4: RPM Package (.rpm) — Fedora, RHEL, openSUSE
+### Method 5: RPM Package (.rpm) — Fedora, RHEL, openSUSE
 
-1. Download `dzlinux-1.0.5.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
+1. Download `dzlinux-1.0.6.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux-Releases/releases/latest).
 2. Install via the terminal:
    ```bash
-   sudo rpm -i dzlinux-1.0.5.x86_64.rpm
+   sudo rpm -i dzlinux-1.0.6.x86_64.rpm
    ```
 3. Launch from your app menu or run `dzlinux` in the terminal.
 
