@@ -151,6 +151,8 @@ Have an idea for a performance toggle, layout improvement, or mod-management fea
 
 ---
 
+<meta name="google-site-verification" content="rCIufZmcDcZvI0qSfz_WBgAV5v6KH7IFHFdc5BBr51w" />
+
 ## 📄 License & Compliance
 
 * **Application License:** DzLinux is distributed as a proprietary, closed-source application. All rights reserved.
