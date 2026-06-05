@@ -163,7 +163,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
 [Desktop Entry]
 Name=DzLinux
 Exec=/usr/local/bin/dzlinux
-Icon=$ICON_DIR/dzlinux.png
+Icon=dzlinux
 Type=Application
 Categories=Game;
 Comment=DayZ Linux Server Browser & Mod Manager
