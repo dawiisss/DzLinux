@@ -150,15 +150,16 @@ if [ "$OS_TYPE" = "appimage" ]; then
     echo -e "${BLUE}Creating desktop environment integrations...${NC}"
     
     # Download icon
-    ICON_DIR="$HOME/.local/share/icons/hicolor/512x512/apps"
-    mkdir -p "$ICON_DIR"
-    curl -s -L -o "$ICON_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux/main/build/icon.png" || true
+    ICON_DIR="/usr/share/icons/hicolor/512x512/apps"
+    curl -s -L -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux-releases/main/icon.png" || true
+    if [ -f "$TEMP_DIR/dzlinux.png" ]; then
+        sudo mkdir -p "$ICON_DIR"
+        sudo mv "$TEMP_DIR/dzlinux.png" "$ICON_DIR/"
+    fi
     
-    # Create desktop file
-    DESKTOP_DIR="$HOME/.local/share/applications"
-    mkdir -p "$DESKTOP_DIR"
-    
-    cat <<EOF > "$DESKTOP_DIR/dzlinux.desktop"
+    # Create desktop file globally
+    DESKTOP_DIR="/usr/share/applications"
+    cat <<EOF > "$TEMP_DIR/dzlinux.desktop"
 [Desktop Entry]
 Name=DzLinux
 Exec=/usr/local/bin/dzlinux
@@ -168,7 +169,14 @@ Categories=Game;
 Comment=DayZ Linux Server Browser & Mod Manager
 Terminal=false
 EOF
-    chmod +x "$DESKTOP_DIR/dzlinux.desktop"
+    sudo mkdir -p "$DESKTOP_DIR"
+    sudo mv "$TEMP_DIR/dzlinux.desktop" "$DESKTOP_DIR/"
+    sudo chmod +x "$DESKTOP_DIR/dzlinux.desktop"
+    
+    # Update desktop database so the menu picks it up immediately
+    if command -v update-desktop-database &> /dev/null; then
+        sudo update-desktop-database "$DESKTOP_DIR" || true
+    fi
     
     # Make sure we recommend dependencies for AppImage
     echo -e "${YELLOW}Please ensure you have 'iputils-ping' (or 'iputils') and 'xdg-utils' installed on your system for all network and launcher features to function properly.${NC}"
