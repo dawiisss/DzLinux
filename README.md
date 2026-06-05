@@ -1,4 +1,4 @@
-# 🎯 DzLinux
+# <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux
 
 Welcome to the official public distribution and issue tracking repository for **DzLinux**! 
 
