@@ -6,7 +6,7 @@ Welcome to the official public distribution and issue tracking repository for **
 
 > [!NOTE]
 > This repository is used exclusively for distributing compiled binaries (AppImages and tarball packages) and hosting the public bug/issue tracker. The core application codebase is closed-source and maintained in a private repository.
-<img width="1398" height="799" alt="Screenshot_20260601_144012" src="https://github.com/user-attachments/assets/2cf4259d-75d8-4e8c-bc6a-ad703add5614" />
+<img width="1401" height="799" alt="Screenshot_20260605_133958" src="https://github.com/user-attachments/assets/c9104482-d195-489a-8c8f-93e3f78e55da" />
 
 ---
 
