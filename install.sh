@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # DzLinux Installer Script
-# Host/Command: curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux-releases/main/install.sh | bash
+# Host/Command: curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | bash
 
 # Color codes for visual styling
 RED='\033[0;31m'
@@ -19,6 +19,11 @@ echo "============================================="
 echo "        DZLINUX STANDALONE INSTALLER        "
 echo "============================================="
 echo -e "${NC}"
+echo -e "${YELLOW}This installer will install DzLinux and all its dependencies.${NC}"
+echo -e "${YELLOW}It will also create a desktop shortcut for DzLinux.${NC}"
+echo -e "${YELLOW}Please note that this installer will not install the DayZ game itself.${NC}"
+echo -e "${YELLOW}You will need to install the game separately.${NC}"
+echo -e "${YELLOW}The game can be installed from the Steam client or Epic Games client(Lutris/Heroic).${NC}"
 
 # Check for curl
 if ! command -v curl &> /dev/null; then
@@ -159,7 +164,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
     
     # Create desktop file globally
     DESKTOP_DIR="/usr/share/applications"
-    cat <<EOF > "$TEMP_DIR/dzlinux.desktop"
+    cat <<EOF > "$TEMP_DIR/com.dawiisss.dzlinux.desktop"
 [Desktop Entry]
 Name=DzLinux
 Exec=/usr/local/bin/dzlinux
@@ -167,11 +172,16 @@ Icon=dzlinux
 Type=Application
 Categories=Game;
 Comment=DayZ Linux Server Browser & Mod Manager
+StartupWMClass=com.dawiisss.dzlinux
 Terminal=false
 EOF
     sudo mkdir -p "$DESKTOP_DIR"
-    sudo mv "$TEMP_DIR/dzlinux.desktop" "$DESKTOP_DIR/"
-    sudo chmod +x "$DESKTOP_DIR/dzlinux.desktop"
+    # Clean up old shortcut name if it exists to avoid duplicates
+    if [ -f "$DESKTOP_DIR/dzlinux.desktop" ]; then
+        sudo rm -f "$DESKTOP_DIR/dzlinux.desktop"
+    fi
+    sudo mv "$TEMP_DIR/com.dawiisss.dzlinux.desktop" "$DESKTOP_DIR/"
+    sudo chmod +x "$DESKTOP_DIR/com.dawiisss.dzlinux.desktop"
     
     # Update desktop database so the menu picks it up immediately
     if command -v update-desktop-database &> /dev/null; then
