@@ -16,10 +16,10 @@ Welcome to the official public distribution and issue tracking repository for **
 
 ## 📌 Table of Contents
 * [Key Features](#key-features)
-* [Installation & Setup](#installation-setup)
+* [Installation and Setup](#installation-and-setup)
 * [Configuration Guide](#configuration-guide)
-* [Bug Reporting & Feedback](#bug-reporting-feedback)
-* [License & Compliance](#license-compliance)
+* [Bug Reporting and Feedback](#bug-reporting-and-feedback)
+* [License and Compliance](#license-and-compliance)
 
 ---
 
@@ -49,7 +49,7 @@ Inject advanced launch arguments directly through a simple toggle interface:
 
 ---
 
-## Installation & Setup
+## Installation and Setup
 
 DzLinux requires no installation and is fully portable. You can use our automated install script, or manually download your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases).
 
@@ -152,7 +152,7 @@ sudo dnf install gamemode mangohud
 
 ---
 
-## Bug Reporting & Feedback
+## Bug Reporting and Feedback
 
 We rely on community feedback in this repository to find and squash bugs!
 
@@ -166,7 +166,7 @@ Have an idea for a performance toggle, layout improvement, or mod-management fea
 
 ---
 
-## License & Compliance
+## License and Compliance
 
 * **Application License:** DzLinux is distributed as a proprietary, closed-source application. All rights reserved.
 * **Privacy & Telemetry:** DzLinux does not collect, store, or transmit any personal data, analytics, or telemetry. All server queries are done directly from your machine to the public game databases, and your configuration settings remain completely local.
