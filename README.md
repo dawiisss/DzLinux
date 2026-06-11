@@ -23,7 +23,7 @@ Welcome to the official public distribution and issue tracking repository for **
 
 ---
 
-## 🌟 Key Features
+## Key Features
 
 ### 🕶️ GUI Interface
 Experience a beautifully styled, high-contrast user interface designed to be practical.
@@ -49,7 +49,7 @@ Inject advanced launch arguments directly through a simple toggle interface:
 
 ---
 
-## 📦 Installation & Setup
+## Installation & Setup
 
 DzLinux requires no installation and is fully portable. You can use our automated install script, or manually download your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases).
 
@@ -115,7 +115,7 @@ If you prefer standard directory structures or like to keep your game utilities 
 
 ---
 
-## 📋 Requirements
+## Requirements
 
 The application will launch without any of these installed, but certain features will be unavailable if the corresponding dependency is missing.
 
@@ -143,7 +143,7 @@ sudo dnf install gamemode mangohud
 
 ---
 
-## ⚙️ Configuration Guide
+## Configuration Guide
 
 1. **Set Paths:** On your first launch, click the **Settings** gear icon. DzLinux will attempt to auto-detect your Steam library and DayZ Workshop folders. If they are installed on a secondary drive, manually browse and select your standard `steamapps/common/DayZ` and `steamapps/workshop/content/221100` directories.
 2. **Choose Proton:** Select your preferred Proton version from the auto-detected dropdown list.
@@ -152,7 +152,7 @@ sudo dnf install gamemode mangohud
 
 ---
 
-## 🐞 Bug Reporting & Feedback
+## Bug Reporting & Feedback
 
 We rely on community feedback in this repository to find and squash bugs!
 
@@ -166,7 +166,7 @@ Have an idea for a performance toggle, layout improvement, or mod-management fea
 
 ---
 
-## 📄 License & Compliance
+## License & Compliance
 
 * **Application License:** DzLinux is distributed as a proprietary, closed-source application. All rights reserved.
 * **Privacy & Telemetry:** DzLinux does not collect, store, or transmit any personal data, analytics, or telemetry. All server queries are done directly from your machine to the public game databases, and your configuration settings remain completely local.
