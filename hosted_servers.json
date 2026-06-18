@@ -812,7 +812,8 @@
   {
     "name": "Ground Zero US2 | Solo/Duo/Trio | Weekend Raiding | High FPS",
     "ip": "172.111.51.171",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27017
   },
   {
     "name": "KarmaKrew Livonia #3 NA - 1PP | VANILLA + MODS",
@@ -833,7 +834,7 @@
     "queryPort": 27016
   },
   {
-    "name": "CARNAGE Z | BRASIL | VANILLA+ | dsc.gg/carnagez",
+    "name": "[BR] CARNAGE Z GRUPOS (WIPE! 15/06) | BRASIL | VANILLA+ | dsc.g",
     "ip": "108.165.230.224",
     "port": 2312,
     "queryPort": 2313
@@ -920,7 +921,7 @@
     "name": "[RU] ZENITKA PVP [4]",
     "ip": "185.207.214.99",
     "port": 2302,
-    "queryPort": 27016
+    "queryPort": 2216
   },
   {
     "name": "Mind Games STALKER RP | https://discord.gg/mgstalkerrp",
@@ -973,7 +974,8 @@
   {
     "name": "[US] After DayZ Jurassic Isle | PvE with PvP Zones | Wiped 16/5",
     "ip": "168.100.160.58",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "DayZed.GG Chernarus | Vanilla+ | Quests",
@@ -1084,7 +1086,7 @@
     "queryPort": 2405
   },
   {
-    "name": "=FRESH WIPE= UPG DayZ US1|Solo/Duo/Trio|Weekend Raid|Airdrops",
+    "name": "=WIPED TODAY= UPG DayZ US1|Solo/Duo/Trio|Weekend Raid|Airdrops",
     "ip": "172.111.51.210",
     "port": 2302,
     "queryPort": 27016
@@ -1288,7 +1290,7 @@
     "queryPort": 2403
   },
   {
-    "name": "SODA | VANILA++ | PARTY 10 | PVP | LOOT MORE | RT | WIPE 15.05",
+    "name": "SODA | PVP | VANILA++| LOOT +++| PARTY 5 | RT | WIPE 20.06",
     "ip": "109.248.4.240",
     "port": 2402,
     "queryPort": 2403
@@ -1407,7 +1409,7 @@
     "queryPort": 2303
   },
   {
-    "name": "[WIPE]The New Hope Banov|PVE/PVP|Loot+|Quests|Trader",
+    "name": "The New Hope Banov|PVE/PVP|Loot+|Quests|Trader",
     "ip": "85.209.54.6",
     "port": 2502,
     "queryPort": 27018
@@ -1593,7 +1595,7 @@
     "queryPort": 2301
   },
   {
-    "name": "SUPCHIKMOD|PVP|Х5|BANK|TRADE|NO RAID| WIPE 28.05",
+    "name": "SUPCHIKMOD|PVP|Х5|BANK|TRADE|NO RAID",
     "ip": "37.18.21.154",
     "port": 2302,
     "queryPort": 2303
@@ -1686,11 +1688,6 @@
     "ip": "172.111.51.192",
     "port": 2302,
     "queryPort": 2303
-  },
-  {
-    "name": "[LATAM] - [ARG] MalviNamalsk | Vanilla - NO BASES - 1PP",
-    "ip": "45.235.98.248",
-    "port": 27610
   },
   {
     "name": "5420 | EUROPE - DE",
@@ -2195,7 +2192,7 @@
     "queryPort": 2303
   },
   {
-    "name": "BluMoon #1 - VANILLA+ | MAX 6 | BUNKER | WIPE 05.06",
+    "name": "BluMoon #1 - CHERNO+ | MAX 6 | BUNKER | KEY ROOMS | WIPE 05.06",
     "ip": "176.117.184.72",
     "port": 2302,
     "queryPort": 27016
@@ -2271,12 +2268,6 @@
     "ip": "5.62.99.19",
     "port": 11500,
     "queryPort": 11501
-  },
-  {
-    "name": "DobermannChernarus [GER/ENG]PVP-PVE|SafeBase|Quests",
-    "ip": "95.156.225.9",
-    "port": 2302,
-    "queryPort": 27016
   },
   {
     "name": "Выжить Любой Ценой PVE",
@@ -2453,7 +2444,7 @@
     "queryPort": 27018
   },
   {
-    "name": "[BR] LegadoZ Vanilla | 1PP | BASE SUBTERRANEA - WIPE 05/06",
+    "name": "[BR] LegadoZ Vanilla | 1PP | BASE SUBTERRANEA - RAID SÁBADO",
     "ip": "188.255.171.163",
     "port": 2332,
     "queryPort": 27019
@@ -2465,7 +2456,7 @@
     "queryPort": 27016
   },
   {
-    "name": "[ESP] Covenant solo PvE |IA| Terje | Misiones | Buena Comunidad",
+    "name": "[ESP] Covenant solo PvE |IA| Terje | Misiones | Lore Completo",
     "ip": "94.130.68.224",
     "port": 2902,
     "queryPort": 2903
@@ -3573,10 +3564,10 @@
     "queryPort": 2305
   },
   {
-    "name": "!*ВДАЛИ от ЖЁН Chernarus*! 4 [PVE] [vk.com/vdzh_pve]",
+    "name": "!*ВДАЛИ от ЖЁН Chernarus*! 2 [PVE] [vk.com/vdzh_pve]",
     "ip": "185.189.255.73",
     "port": 2302,
-    "queryPort": 27024
+    "queryPort": 27020
   },
   {
     "name": "3536 | EUROPE - DE | 1st Person Only",
@@ -4021,9 +4012,10 @@
     "queryPort": 2310
   },
   {
-    "name": "Recon Brigade Thailand SS5 | PVE | Military Events | *FRESH WIP",
+    "name": "Recon Brigade Thailand SS6 | PVE | Military Events | *FRESH WIP",
     "ip": "183.88.218.20",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27017
   },
   {
     "name": "DayZed.GG Sakhal | Vanilla+ | Quests",
@@ -4130,7 +4122,8 @@
   {
     "name": "Area X | Hardcore PVE | Mutants | Labs | Crafting",
     "ip": "5.226.142.88",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "REFORUM PVE #1 | TRADERS | EVENTS | BOTS | MISSIONS",
@@ -4157,7 +4150,7 @@
     "queryPort": 27022
   },
   {
-    "name": "**WIPED** [TLM] TheLastMistake |Solo Duo Trio Quads|Vanilla+|WE",
+    "name": "[TLM] TheLastMistake |Solo Duo Trio Quads|Vanilla+|WEEKEND RAID",
     "ip": "193.25.252.67",
     "port": 2302,
     "queryPort": 2303
@@ -4683,7 +4676,7 @@
     "queryPort": 2343
   },
   {
-    "name": "SBS-DI HARDCORE",
+    "name": "SBS-DI HARDCORE HARDCORE PVE AI Progressive Tiered zones",
     "ip": "82.30.56.66",
     "port": 2602,
     "queryPort": 2603
@@ -4877,7 +4870,8 @@
   {
     "name": "HORROR|PVE|V2.0",
     "ip": "185.207.214.82",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2405
   },
   {
     "name": "Zombieland | Sakhal | friendly PVE",
@@ -5062,7 +5056,8 @@
   {
     "name": "SURVIVAL INSTINCT LIVONIA PvE Kill=Ban|Raid=Ban",
     "ip": "95.165.139.50",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27017
   },
   {
     "name": "GER PVE ElfenZauber (Drugs Helis Cars DNA Horde)",
@@ -5145,10 +5140,11 @@
   {
     "name": "[EU] CrowBar's PvE|DeerIsle|AI|Drugs|Boats|Airdrop",
     "ip": "83.147.29.57",
-    "port": 2602
+    "port": 2602,
+    "queryPort": 27019
   },
   {
-    "name": "Fresh wipe|Gran Reset 2028 | Mods | ESP | IA | BB | Trader | 1P",
+    "name": "Fresh wipe|Gran Reset 2028 | DUO/TRIO| ESP | IA | Trader | 1PP",
     "ip": "64.31.29.242",
     "port": 2302,
     "queryPort": 2303
@@ -5298,7 +5294,7 @@
     "queryPort": 27016
   },
   {
-    "name": "[BR] PontoZ Brasil | PvP Ativo | Eventos | NoRaid | FullMOD",
+    "name": "[BR] PontoZ Brasil | PvP | Helis | Trade | KOTH | NoRaid",
     "ip": "189.127.165.202",
     "port": 2302,
     "queryPort": 27018
@@ -5334,7 +5330,7 @@
     "queryPort": 2303
   },
   {
-    "name": "LegendZ PvE KEEP INV ON DEATH/FUTURISTIC/EVENTS/NEW ADMINS/KILL",
+    "name": "LegendZ PvE SCI FI/FUTURISTIC/EVENTS/SAPCESHIPS/KILL RWRDS/BBP",
     "ip": "185.216.144.117",
     "port": 2491,
     "queryPort": 2492
@@ -5457,9 +5453,10 @@
     "port": 11000
   },
   {
-    "name": "[GER][PVE] SenfBude | Cherno | Helis | Cars | 25K | Dogs",
+    "name": "[GER][PVE] SenfBude | Cherno | Helis | Cars | 25K | Update!",
     "ip": "134.255.217.144",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "MonsterZ | Bots AI | PvE/PvP | NoRaid | Wipe 08/04 | Temp 25",
@@ -5503,7 +5500,7 @@
     "queryPort": 2492
   },
   {
-    "name": "EmpireZ | PvE with PvP Zones",
+    "name": "EmpireZ : Star Wars : PvE with PvP Zones",
     "ip": "64.20.63.70",
     "port": 2502,
     "queryPort": 2503
@@ -5819,7 +5816,7 @@
     "queryPort": 2303
   },
   {
-    "name": "[CZ/ENG] TGPA PVE/PVP Winter|Terje|AI|Quests|Factions 12.4. WIP",
+    "name": "[CZ/ENG] TGPA PVE/PVP Terje|AI|Quests|Factions 12.4. WIPE",
     "ip": "46.135.139.236",
     "port": 2350,
     "queryPort": 27020
@@ -5863,7 +5860,8 @@
   {
     "name": "MURDER |WIPED|5/7|CUSTOMUNDERGROUNDBASE|EVENTS|SIBS",
     "ip": "216.158.235.206",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Jurassic Island Stuart Island | PvE | GGG | Dinos | FRESH 5.30",
@@ -5908,7 +5906,7 @@
     "queryPort": 2653
   },
   {
-    "name": "DeadByZed | Est. 2019 | Loot+ | Spawn Select | Helis | Events",
+    "name": "DeadByZed | Custom Mods | Loot+ | Spawn Select | Helis | Events",
     "ip": "65.21.94.181",
     "port": 2302,
     "queryPort": 2303
@@ -5931,7 +5929,7 @@
     "queryPort": 2310
   },
   {
-    "name": "SBS-Bitterroot",
+    "name": "SBS-Bitterroot HARDCORE PVE AI Bots Progressive Tiered AI zones",
     "ip": "82.30.56.66",
     "port": 2302,
     "queryPort": 2303
@@ -6009,9 +6007,10 @@
     "queryPort": 27028
   },
   {
-    "name": "SBS PVE HARDCORE AI Roaming TERJE",
+    "name": "SBS-Alteria HARDCORE PVE AI Bots Progressive Tiered AI zones",
     "ip": "82.30.56.66",
-    "port": 2702
+    "port": 2702,
+    "queryPort": 2703
   },
   {
     "name": "AMIGOS EN EL APOCALIPSIS ESP/PVE TRADER,MISIONES Y EVENTOS",
@@ -6054,7 +6053,7 @@
     "port": 2302
   },
   {
-    "name": "[UA]Liga Shakal HardPVE,BOT(AI)Quests",
+    "name": "[UA] Liga HardPVE Predator vs. Aliens, BOT(AI),QUEST",
     "ip": "213.130.24.23",
     "port": 2302,
     "queryPort": 27016
@@ -6120,7 +6119,7 @@
     "queryPort": 27017
   },
   {
-    "name": "WarHunt | NSK | LIVONIYA | PVE |AI_BOT/DROP_CAR+BOX",
+    "name": "WarHunt | NSK | LIVONIYA | PVE+ |AI_BOT/DROP_CAR+BOX/FPV-DRONE",
     "ip": "152.89.199.82",
     "port": 2304,
     "queryPort": 2305
@@ -6215,7 +6214,7 @@
     "queryPort": 2303
   },
   {
-    "name": "AnarchyOutpost | 250KStart | PvPvE | 6Man | verif-SYALK6 |",
+    "name": "AnarchyOutpost | 250KStart | PvPvE | 6Man | Wiped~29/05 | Balan",
     "ip": "103.193.80.48",
     "port": 2702,
     "queryPort": 2703
@@ -6289,7 +6288,8 @@
   {
     "name": "Immortalz|PVE Active Admins|Events|Kill Rewards|Bosses|Dungeons",
     "ip": "136.175.187.176",
-    "port": 2332
+    "port": 2332,
+    "queryPort": 2333
   },
   {
     "name": "[FR] The Blackreef Isle PVE/AI/MUTANT/DNA",
@@ -6328,7 +6328,8 @@
   {
     "name": "OVERCOMING | STALKER RP",
     "ip": "109.248.4.100",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Oasis | STALKER RP",
@@ -6443,7 +6444,7 @@
     "queryPort": 27016
   },
   {
-    "name": "[UA-PVE]  BLACK  FOREST  AI-BOTS  EVENTS",
+    "name": "[UA] | BLACK  FOREST | PVE AI | QUESTS | BATLE PASS |",
     "ip": "147.93.161.169",
     "port": 2302,
     "queryPort": 2303
@@ -6457,7 +6458,8 @@
   {
     "name": "Exo's PvE [Deer Isle] - Where danger Is the default!",
     "ip": "136.243.75.14",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "[WIPE 05.06] BattleGroundZ :: Sakhal [3PP] | Vanilla++",
@@ -6466,7 +6468,7 @@
     "queryPort": 2355
   },
   {
-    "name": "EmpireZ | PVP + Raid2",
+    "name": "EmpireZ : Star Wars : PVP Raid",
     "ip": "64.20.63.70",
     "port": 2302,
     "queryPort": 2303
@@ -6552,7 +6554,8 @@
   {
     "name": "UbuntuZa | PVP | Weekend Raid | Custom Events | KOTH | Quads",
     "ip": "169.1.18.11",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Red Deerisle 6.0 EXP-PVE",
@@ -6617,7 +6620,8 @@
   {
     "name": "[FR]La Petite Vadrouille Apocalyptique|PVEAI|Drugz|CarPack",
     "ip": "216.39.242.243",
-    "port": 27080
+    "port": 27080,
+    "queryPort": 27084
   },
   {
     "name": "ChernarusHasFallen-ImmersiveSurvival",
@@ -6935,7 +6939,7 @@
     "queryPort": 2492
   },
   {
-    "name": "FOG OF WAR| DEER ISLE 6.0 [RU] | PVP | WIPE 28.04",
+    "name": "FOG OF WAR| DEER ISLE 6.0 [RU] | PVP | WIPE 02.06",
     "ip": "185.207.214.149",
     "port": 2302,
     "queryPort": 2702
@@ -7072,7 +7076,8 @@
   {
     "name": "[BR] PVE BRASIL",
     "ip": "189.127.165.241",
-    "port": 2430
+    "port": 2430,
+    "queryPort": 27130
   },
   {
     "name": "Chillnarus|PVE Only|BM Island|Custom Bases|",
@@ -7134,7 +7139,7 @@
     "queryPort": 2403
   },
   {
-    "name": "LHZ_PVE|AI|死亡保护|合成|尸王|空投|种植|副本_5月",
+    "name": "LHZ_PVE|AI|死亡保护|合成|尸王|传送|种植|副本",
     "ip": "101.227.76.250",
     "port": 23000,
     "queryPort": 27016
@@ -7183,7 +7188,8 @@
   {
     "name": "[UK/EU] Volatile PVE | 30k Start | Ai | Custom POIs | Bitcoin |",
     "ip": "51.89.173.29",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "AZALEA EU | 1PP - No Bases - Adventure | v0.3.5 | azaleamap.com",
@@ -7227,7 +7233,7 @@
     "port": 26358
   },
   {
-    "name": "☠ Lost Lands PVE ☠ | RoamingAI | Quests | Terje",
+    "name": "☠ Lost Lands PVE ☠ | RoamingAI | Quests | Terje 6/16",
     "ip": "198.96.88.253",
     "port": 2302,
     "queryPort": 2303
@@ -7299,7 +7305,8 @@
   {
     "name": "XineLeirosBRpve | FullPvE | PvBot Tático",
     "ip": "188.255.171.147",
-    "port": 2412
+    "port": 2412,
+    "queryPort": 27020
   },
   {
     "name": "[BR] The AlphineZ/NoRaid/PVP/KOTH/HELI/AIRDROP/",
@@ -7381,7 +7388,8 @@
   {
     "name": "Dead Mans Island PVE (The Channel)",
     "ip": "5.226.142.83",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "RU APOCALYPSE PVE IMPOSSIBLE",
@@ -7479,7 +7487,7 @@
     "queryPort": 10501
   },
   {
-    "name": "[DE]BeefBrother|PvPvE|AI Patrouille|Flugzeuge|Events|Cars+|Loot",
+    "name": "[DE]BeefBrother|PvPvE|AI Patrouille|Mods|Events|Cars+|Loot++",
     "ip": "5.9.89.240",
     "port": 2402,
     "queryPort": 2403
@@ -7659,7 +7667,8 @@
   {
     "name": "[UA] Dayz_PVE https://discord.gg/ntHVEGC5U2",
     "ip": "91.224.202.10",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[CZ/SK] Dara Chernarus Morava-games.cz MapLink PVE",
@@ -7763,7 +7772,7 @@
     "queryPort": 27018
   },
   {
-    "name": "WIPED | District Z | PVP | 5 Man | Nuke Launch Event |",
+    "name": "| District Z | PVP | 5 Man | Nuke Launch Event |",
     "ip": "193.25.252.107",
     "port": 2302,
     "queryPort": 27016
@@ -7949,7 +7958,7 @@
     "queryPort": 27017
   },
   {
-    "name": "-   *fresh-wiped* Nightfall-01-PvP-moreLoot|Keyrooms|Hacked-Cra",
+    "name": "Trackyserver204521  -   *fresh-wiped* Nightfall-01-PvP-moreLoot",
     "ip": "152.53.86.96",
     "port": 2402,
     "queryPort": 27017
@@ -8093,7 +8102,8 @@
   {
     "name": "[RO] FSA Zone Romania Reborn|Loot++Event-KOTH-Airdrop-BunkerTun",
     "ip": "193.135.10.168",
-    "port": 20195
+    "port": 20195,
+    "queryPort": 20196
   },
   {
     "name": "[GER/PvE Hardcore] Day & Night Survivor Chernarus",
@@ -8104,7 +8114,8 @@
   {
     "name": "WIPED! Just Dayz Livonia 6man | PVP/PVE | AI | Traders | Quests",
     "ip": "95.156.230.243",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "[UA|EU] Wild Fields|PVP++|AIR DROP|LOOT++|EXCHANGE|3PP",
@@ -8236,7 +8247,8 @@
   {
     "name": "Plain DayZ PVE Banov |AI|Missions|Skill System|Keycards|Drugs|C",
     "ip": "5.226.142.46",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Sahrani PVE / No Trader / Vanilla++",
@@ -8258,7 +8270,8 @@
   {
     "name": "Destemidos by MonsterZ | Full PVE | Full MOD | Bots IA | Quests",
     "ip": "188.255.171.167",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "[RU] IMPERIAL MEDIUM / PVE #3",
@@ -8386,7 +8399,7 @@
     "queryPort": 27033
   },
   {
-    "name": "[EU] NoPants DeerIsle PvPvE 4MAN Raiding",
+    "name": "[EU] NoPants DeerIsle PvP 4MAN Raiding",
     "ip": "213.166.84.10",
     "port": 2869,
     "queryPort": 2870
@@ -8413,14 +8426,10 @@
     "port": 5614
   },
   {
-    "name": "[PVE][RU] Posledniy patron",
-    "ip": "194.85.235.15",
-    "port": 2302
-  },
-  {
     "name": "NK-Robz-Deadfall-PVE",
     "ip": "178.63.53.168",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "Its Your STALKER pve",
@@ -8650,9 +8659,10 @@
     "queryPort": 2345
   },
   {
-    "name": "[BR] ODISSEY ǀ NoRAID-BOTs-VANILLA BUILDING-NoHELI ǀ 22/05/26",
+    "name": "[BR] ODISSEY ǀ NoRAID-BOTs-VANILLA BUILDING-NoHELI ǀ",
     "ip": "187.60.186.230",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "RaccoonCity/PVE 4|War with Bots|Bed-Respawning|Trader",
@@ -8792,7 +8802,8 @@
   {
     "name": "Plain DayZ PVE Onforin |AI|Missions|Skill System|Keycards|Drugs",
     "ip": "213.166.84.4",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "BLAKLANDZ VANILLA+ [SAHKAL] PVE | AI | FUN",
@@ -8860,7 +8871,8 @@
   {
     "name": "The DayZ After - Namalsk Regular - (PvE Only) Simply Vanilla",
     "ip": "185.35.99.220",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "HellCatZ Den PVE Deerisle Roaming AI Helis",
@@ -8887,7 +8899,8 @@
   {
     "name": "amd4fun e.V. - PVE, aber trau niemals der Stille!",
     "ip": "85.14.210.11",
-    "port": 22300
+    "port": 22300,
+    "queryPort": 22310
   },
   {
     "name": "DayzUnderground.com - Livonia - OrganicRP Enhanced Vanilla",
@@ -8934,7 +8947,8 @@
   {
     "name": "DayZ | Land of the Dead | PVE | Pride",
     "ip": "185.207.214.103",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2405
   },
   {
     "name": "[PL]SPRZYMIERZENI PvE Strefy PvP Start 23.01|Craft|AI|Quest",
@@ -8980,7 +8994,8 @@
   {
     "name": "OnDay0 PvE [ITA] discord.gg/AfTzFZC288",
     "ip": "178.33.122.90",
-    "port": 2517
+    "port": 2517,
+    "queryPort": 2518
   },
   {
     "name": "The illusion of life livonia PVE | Bots | hard zombi | No trade",
@@ -8988,7 +9003,7 @@
     "port": 2316
   },
   {
-    "name": "HUN/EU] Black Horizon|Quest|vehicles|Events|invasion",
+    "name": "HUN/EU Black Horizon |50k|vehicles|Events|invasion",
     "ip": "141.95.34.154",
     "port": 3058,
     "queryPort": 3059
@@ -9013,7 +9028,8 @@
   {
     "name": "CARTEL ISLAND PURE CARNAGE PVE | STARTER PACK | HELIS | CARS |",
     "ip": "64.20.51.157",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Basically Vanilla US #1 | Deer Isle - Vanilla|Party|Loot+",
@@ -9036,7 +9052,8 @@
   {
     "name": "[UA] Ukrainian Stalker Project RP",
     "ip": "51.195.55.211",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Monkey Nutterz Sahrani PVE",
@@ -9244,7 +9261,8 @@
   {
     "name": "[EU] The Sanctuary PVE | NEW | Maplink | Cherno",
     "ip": "57.128.188.154",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "WAF PVE NO MOD",
@@ -9289,7 +9307,8 @@
   {
     "name": "S.T.A.L.K.E.R. ZONE DEPTHS HARD RP",
     "ip": "94.127.218.83",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Die Verdammten [GER] PVE Bitterroot Trader Car Heli Quest",
@@ -9354,7 +9373,8 @@
   {
     "name": "[RU] alexzulu's server | PVE | Chernarus | NO MODS | VANILLA",
     "ip": "91.194.149.217",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "THE LAST ROAD|PVP|VANILA+|1PP",
@@ -9377,7 +9397,8 @@
   {
     "name": "Ger/PvE Verlorene Engel Mecklenburg",
     "ip": "88.198.18.146",
-    "port": 2602
+    "port": 2602,
+    "queryPort": 2603
   },
   {
     "name": "[BR] HidraZ Full PVE |AI Bots|Bunkers|KOTH|Airdrop|Eventos",
@@ -9425,11 +9446,6 @@
     "ip": "185.218.225.175",
     "port": 2402,
     "queryPort": 27816
-  },
-  {
-    "name": "NO|FX | DEUTSCH | PVE | SURVIVE | SKILL | QUEST | TRADER | AIRD",
-    "ip": "178.104.108.193",
-    "port": 2302
   },
   {
     "name": "[EU] Exile: Dead Zone - Banov | 100% Vanilla | launched 28/03",
@@ -9519,7 +9535,7 @@
     "queryPort": 2492
   },
   {
-    "name": "0014 | ASIA PACIFIC - HC",
+    "name": "0011 | ASIA PACIFIC - HK",
     "ip": "94.242.218.76",
     "port": 2303,
     "queryPort": 10104
@@ -9532,7 +9548,8 @@
   {
     "name": "Bads PVE 6.0 (Deerisle's Newest Quest)*Dayz Phone Mod*",
     "ip": "167.160.93.180",
-    "port": 2312
+    "port": 2312,
+    "queryPort": 2313
   },
   {
     "name": "LE DERNIER ESPOIR",
@@ -9553,7 +9570,7 @@
     "queryPort": 2323
   },
   {
-    "name": "Dayz Destroyers: ZA-No Mods Official PVP PVAI",
+    "name": "Dayz Destroyers: ZA-Mods Official PVP PVAI",
     "ip": "156.38.175.131",
     "port": 2552,
     "queryPort": 2553
@@ -9630,7 +9647,8 @@
   {
     "name": "[GER/ENG] NooBTerror Wiped 16.05 | PVP/PVE | QUEST | TRADER | K",
     "ip": "45.89.124.207",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "UntiyVerse",
@@ -9664,7 +9682,8 @@
   {
     "name": "[FR] Stalag13 | Green County — Terje | IA & PVP",
     "ip": "90.35.198.179",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "H5N1 Hardcore Chernarus PvE |Terje|Expansion|Maplink|",
@@ -9846,11 +9865,6 @@
     "queryPort": 2492
   },
   {
-    "name": "UAE/AD DayZ Server",
-    "ip": "86.98.100.169",
-    "port": 2306
-  },
-  {
     "name": "Land of the Lost DayZ[TH]Animal Hunting Farm|Season5|PVE|",
     "ip": "124.121.87.116",
     "port": 2302,
@@ -9904,10 +9918,11 @@
   {
     "name": "СОЮЗ WS cherno",
     "ip": "80.242.59.106",
-    "port": 2702
+    "port": 2702,
+    "queryPort": 2703
   },
   {
-    "name": "FRESH 31.5 Vanilla FUNPARK 1PP | CHAT | HELIS | MAP | GateRaidO",
+    "name": "*NEW* 15.06 Vanilla FUNPARK | FLYABLE HELIs | 1PP | CHAT | Gate",
     "ip": "136.243.105.99",
     "port": 60405,
     "queryPort": 60411
@@ -10081,11 +10096,6 @@
     "queryPort": 3303
   },
   {
-    "name": "[RU] Old School [PVE][Rostow]",
-    "ip": "176.57.78.113",
-    "port": 33015
-  },
-  {
     "name": "[Ru] Old School [PVE][Takistan]",
     "ip": "176.57.78.113",
     "port": 39015,
@@ -10110,7 +10120,8 @@
   {
     "name": "[CZ/SK] Dara Livonia Morava-games.cz MapLink PVE",
     "ip": "77.48.47.118",
-    "port": 2922
+    "port": 2922,
+    "queryPort": 2925
   },
   {
     "name": "8319 | NORTH AMERICA - NY | 1st Person Only",
@@ -10194,7 +10205,7 @@
     "port": 3247
   },
   {
-    "name": "MGT DayZ Chernarus|Helis|BaseBuilding+|NoStamina|PVP|GroupSyste",
+    "name": "MGT DayZ Chernarus|Helis|BaseBuilding+|NoStamina|PvP|GroupSyste",
     "ip": "149.202.89.63",
     "port": 2602,
     "queryPort": 27016
@@ -10408,11 +10419,6 @@
     "queryPort": 27002
   },
   {
-    "name": "NoCo Gaming 100% Vanilla PVP US|Admin Tools Only| Wiped 4-8-26",
-    "ip": "184.60.7.234",
-    "port": 2602
-  },
-  {
     "name": "DayZ | Land of the Dead | PVE | Vela",
     "ip": "185.207.214.103",
     "port": 2702,
@@ -10531,7 +10537,8 @@
   {
     "name": "The World's Rebirth PVE 75k start [UK]",
     "ip": "51.89.219.58",
-    "port": 2591
+    "port": 2591,
+    "queryPort": 2592
   },
   {
     "name": "The Rejects : PvE",
@@ -10554,7 +10561,8 @@
   {
     "name": "[RU] Risen from ashes Sakhal [PVE]",
     "ip": "109.248.4.116",
-    "port": 2308
+    "port": 2308,
+    "queryPort": 2309
   },
   {
     "name": "AFZ+Everystuff | Winter Dino Survival | PvE + NPC | Helis++",
@@ -10640,7 +10648,8 @@
   {
     "name": "WILDLANDZ Green County 1.1 - Vanilla+ | No Bases",
     "ip": "208.115.212.75",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Raptor Island (Stuart | Dinos | Hardcore | Quest | 1PP)",
@@ -10651,7 +10660,8 @@
   {
     "name": "ZombieMarathon | Sakhal | Ai Bots | PVE only",
     "ip": "72.225.130.201",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27015
   },
   {
     "name": "Beg4MercyDayz",
@@ -10668,7 +10678,8 @@
   {
     "name": "OLD_CZ/SK Kralovstvi VojPaKa PvE|PvP WIPE 21.12.",
     "ip": "94.112.240.210",
-    "port": 2952
+    "port": 2952,
+    "queryPort": 2953
   },
   {
     "name": "Topol9 | SAKHAL | PVE | X15 | STARTBONUS | FRESHWIPE",
@@ -10678,7 +10689,8 @@
   {
     "name": "Gray Matter Gaming - Banov PVE Modded -",
     "ip": "108.193.188.236",
-    "port": 3010
+    "port": 3010,
+    "queryPort": 27018
   },
   {
     "name": "ITA Blood|CHERNO easy|FULL PVE |TRADER |AI |CAR |HELY |SKILLS |",
@@ -10714,12 +10726,6 @@
     "ip": "172.111.51.175",
     "port": 2302,
     "queryPort": 2303
-  },
-  {
-    "name": "#2 TDS Trader PvE| BBP | NO Raid",
-    "ip": "155.4.192.179",
-    "port": 2502,
-    "queryPort": 27018
   },
   {
     "name": "New Life Stalker RP",
@@ -10859,7 +10865,8 @@
   {
     "name": "Detroit DayZ (PvE) -KillReward -AI -Traders -Quest -CustomAreas",
     "ip": "68.61.229.43",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "THELASTDAYZ|DEATHAWAITING",
@@ -10879,7 +10886,7 @@
     "queryPort": 2303
   },
   {
-    "name": "Twisted Jungle Chern -- Traders -- Aliens/Tigers/Rhinos -- Ques",
+    "name": "Welcome To The Jungle",
     "ip": "194.50.234.108",
     "port": 2302,
     "queryPort": 2303
@@ -10991,7 +10998,8 @@
   {
     "name": "**СЕДОЙ УРАЛ** PVP Ливония",
     "ip": "212.220.212.86",
-    "port": 2414
+    "port": 2414,
+    "queryPort": 27013
   },
   {
     "name": "Metasequoia|GroupServer|DeerIsle",
@@ -11036,7 +11044,8 @@
   {
     "name": "[STPC] Malden | PVE-Ai | Trader | Survival",
     "ip": "185.83.152.171",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "#1 SciFi Modded CDN Banov PVE AI/Monsters/Ships/Traders",
@@ -11053,7 +11062,8 @@
   {
     "name": "COLDBREWZ DeerIsle 6.0 EXP | PvP | NO BASES",
     "ip": "217.196.148.212",
-    "port": 8302
+    "port": 8302,
+    "queryPort": 8716
   },
   {
     "name": "Village Frontier wiped (4-18-2026)| PVE | Winter-AI-Airdrop_Tra",
@@ -11140,11 +11150,6 @@
     "queryPort": 2303
   },
   {
-    "name": "[EU/SWE] Svenska Servrar Chernarus| TERJE-SKILLS | SNAFU | MMG",
-    "ip": "78.69.8.52",
-    "port": 2102
-  },
-  {
     "name": "AVANPOST RUS /HARD /VIRUS/DROP/AI/+REP",
     "ip": "109.248.4.68",
     "port": 2302
@@ -11208,7 +11213,8 @@
   {
     "name": "SINFALL PVE S2",
     "ip": "178.63.66.21",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "THE LOOP|1PP| ECHOES OF PRIPYAT|S.T.A.L.K.E.R.|SURVIVAL|PvE+PvP",
@@ -11223,9 +11229,10 @@
     "queryPort": 2303
   },
   {
-    "name": "DEATHMATCH - SPAWN GEAR - ARENAS - Quick PVP",
+    "name": "1PP Namalsk Deathmatch - Arenas - Spawngear - QuickPVP",
     "ip": "185.162.251.120",
-    "port": 3333
+    "port": 3333,
+    "queryPort": 2733
   },
   {
     "name": "ElementZ PVP Melkart|6 Man Max|Hacked Crate|Airdrops|",
@@ -11248,11 +11255,6 @@
     "ip": "134.19.157.3",
     "port": 2302,
     "queryPort": 27016
-  },
-  {
-    "name": "Nicos Dayz Server",
-    "ip": "158.174.246.78",
-    "port": 2302
   },
   {
     "name": "SURVIVOR | YMG | DAYZ | CHERNO 3PP | PVP",
@@ -11343,11 +11345,6 @@
     "port": 2702
   },
   {
-    "name": "Heimatlose Seelen Deadfall / PVE / Explore the Secret",
-    "ip": "88.198.18.146",
-    "port": 3802
-  },
-  {
     "name": "Test",
     "ip": "109.248.4.82",
     "port": 2308,
@@ -11391,7 +11388,8 @@
   {
     "name": "[FR][PVE][PVP] ZOMBOID ! vous pouvez rejoindre !",
     "ip": "148.251.237.60",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2323
   },
   {
     "name": "ALLIANCE DAYZ | VANILLA+ | 3PP | PVP | NEW WIPE 08.04",
@@ -11406,9 +11404,10 @@
     "queryPort": 2492
   },
   {
-    "name": "ROF BITTERROOT PVE|AI LOW FOOD|SLOW PROGRESSION",
+    "name": "ROF BITTERROOT PVE|HEAVY AI LOW FOOD|SLOW PROGRESSION",
     "ip": "185.83.152.115",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "ReClaimed",
@@ -11490,11 +11489,6 @@
     "queryPort": 2303
   },
   {
-    "name": "CZ/SK VojPaKa PvE | BEZ TRADERA",
-    "ip": "94.112.240.210",
-    "port": 2802
-  },
-  {
     "name": "[BR] The Last DayZ O Ultimo dia Z Chernarus VANILA+",
     "ip": "189.76.78.74",
     "port": 2302,
@@ -11507,7 +11501,7 @@
     "queryPort": 2681
   },
   {
-    "name": "UKROP |UA| Realistic Survival DeerIsle |NO WIPE|",
+    "name": "UKROP |UA| HardSurvival|Deerisle|NO WIPE|",
     "ip": "31.43.152.33",
     "port": 2402,
     "queryPort": 27099
@@ -11535,11 +11529,6 @@
     "port": 2802
   },
   {
-    "name": "0Skil-Multigaming",
-    "ip": "91.240.117.225",
-    "port": 2302
-  },
-  {
     "name": "Project Cherno",
     "ip": "216.158.229.36",
     "port": 2491
@@ -11558,7 +11547,8 @@
   {
     "name": "[BR] DayZ 014 PVE NoRaid CarsVanilla 3Idade Oficial",
     "ip": "188.255.171.173",
-    "port": 2392
+    "port": 2392,
+    "queryPort": 27024
   },
   {
     "name": "[EU/SWE] DeadZone | PvP/PvE | ExtremeLOOT | Keycards | Traders",
@@ -11587,7 +11577,8 @@
   {
     "name": "Top Shelf Deerisle 6.0 Exp PvP | Map Link Hive | Weekend Raids",
     "ip": "47.194.152.65",
-    "port": 1111
+    "port": 1111,
+    "queryPort": 27024
   },
   {
     "name": "[RU]Alex Project | Ostrova PVE",
@@ -11618,10 +11609,10 @@
     "port": 2902
   },
   {
-    "name": "[PVE搜打撤联动地图][请勿进入]",
+    "name": "【PVE搜打撤模式][三图联动][角色互通]",
     "ip": "202.189.4.219",
     "port": 2305,
-    "queryPort": 27017
+    "queryPort": 27018
   },
   {
     "name": "Die Verdammten [GER] PVE Arsteinen Trader Car Heli Quest",
@@ -11695,7 +11686,8 @@
   {
     "name": "End of the Line | PvE | NO KOS | Vanilla+",
     "ip": "24.240.149.46",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[GER]  Z-Zone  PvE  *Trader*Vehicles*BBP*KI*Skill System*",
@@ -11726,9 +11718,10 @@
     "queryPort": 2303
   },
   {
-    "name": "ttvRIFUSHII PvE Community Server",
+    "name": "ROMPUS Survival | PNW 2.0 | Bandit AI + Loot | No M79/Claymores",
     "ip": "66.118.239.91",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Sonntäglicher Kneipentreff im DeerIsle Endgame",
@@ -11744,7 +11737,8 @@
   {
     "name": "A GraveYard Lux PvE/Ai/Roaming Ai/DNA/Terje",
     "ip": "23.109.63.158",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Iconic PvE - EU Lite",
@@ -11755,7 +11749,8 @@
   {
     "name": "> [BR] BLACK BEAR | LEGACY | FULL PVE CONTRA BOTS [WIPE 18/04]",
     "ip": "188.255.171.158",
-    "port": 2312
+    "port": 2312,
+    "queryPort": 27017
   },
   {
     "name": "Zef Hoenders Unite : Modded No AI",
@@ -11795,7 +11790,7 @@
     "port": 2302
   },
   {
-    "name": "0011 | ASIA PACIFIC - HK",
+    "name": "0014 | ASIA PACIFIC - HC",
     "ip": "94.242.218.76",
     "port": 2316,
     "queryPort": 10103
@@ -11868,12 +11863,14 @@
   {
     "name": "[DGS] UK PVE/PVP Livonia|AI Patrols|Heli|Traders|Short Nights|B",
     "ip": "185.216.144.109",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
-    "name": "VETERAN SOLDIERS BRASIL - MISSIONS/KOTH/BOTS/AIRDROP/PVP&PVE/LO",
+    "name": "VETERAN SOLDIERS BRASIL - MISSÕES/EVENTOS/BOTS/PVP&PVE/LOOT++",
     "ip": "177.0.7.18",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "The Frontier Pripyat PVE Only | No Raid| No PVP",
@@ -11902,7 +11899,8 @@
   {
     "name": "[Fr/PvP-Fact°] Secteur 16",
     "ip": "208.115.196.3",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "DayZNL [ Nederland ] [ Belgie ]",
@@ -11935,7 +11933,7 @@
     "queryPort": 27018
   },
   {
-    "name": "LegendZ LIVONIA PVE KillRewards/Carepackages/Events/BBP/ExtraLo",
+    "name": "LegendZ LIVONIA PVE KillRewards/Carepackages/Events/BBP/KOTH",
     "ip": "185.125.205.121",
     "port": 2491,
     "queryPort": 2492
@@ -11970,7 +11968,8 @@
   {
     "name": "Bloodtiger 2",
     "ip": "85.190.160.81",
-    "port": 14000
+    "port": 14000,
+    "queryPort": 14001
   },
   {
     "name": "GenesisPC|Bunkers|StartPack|Trader|Drugs|KeyCards|Missions|Heli",
@@ -12027,7 +12026,8 @@
   {
     "name": "4Netplayers DayZ Server",
     "ip": "173.237.55.238",
-    "port": 21000
+    "port": 21000,
+    "queryPort": 21010
   },
   {
     "name": "Hashima - Adventure Time - Come and join",
@@ -12053,7 +12053,7 @@
     "queryPort": 2555
   },
   {
-    "name": "鹿岛PVE 垃圾佬的天堂 萌新可带不氪 Q群527053176",
+    "name": "鹿岛PVE 垃圾佬的天堂 6月新档 Q群527053176",
     "ip": "202.189.15.229",
     "port": 20645,
     "queryPort": 11645
@@ -12082,9 +12082,10 @@
     "queryPort": 27016
   },
   {
-    "name": "A ViciouZ Circle |PVE|AI|Custom Loot|Custom Vehicles|Terje",
+    "name": "A ViciouZ Circle    ||    PVE | AI | Basebuilding | Terje",
     "ip": "69.9.53.134",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "[CK-PVE-Rare deerisle SURVIVAL]YY:14364553",
@@ -12112,7 +12113,8 @@
   {
     "name": "Kazai Server",
     "ip": "85.190.160.19",
-    "port": 11900
+    "port": 11900,
+    "queryPort": 11901
   },
   {
     "name": "DayZ Europe Livonia AI Hardcore |Hunt|Craft|Survive|",
@@ -12161,12 +12163,8 @@
   {
     "name": "nitrado.net gameserver",
     "ip": "85.190.163.190",
-    "port": 10900
-  },
-  {
-    "name": "Red Mountain Namalsk    | PVP | PlaneCrash+ | Loot++ | Map",
-    "ip": "176.165.229.213",
-    "port": 2303
+    "port": 10900,
+    "queryPort": 10901
   },
   {
     "name": "Lucky Bandits",
@@ -12214,7 +12212,8 @@
   {
     "name": "Dayz Is Hell Blood",
     "ip": "85.190.128.3",
-    "port": 10700
+    "port": 10700,
+    "queryPort": 10701
   },
   {
     "name": "Zockerstube",
@@ -12282,7 +12281,8 @@
   {
     "name": "DizNight RU PVE-island",
     "ip": "109.248.4.89",
-    "port": 2212
+    "port": 2212,
+    "queryPort": 2213
   },
   {
     "name": "Vanilla PLUS PVE survival barterer quest cars helicrash realism",
@@ -12298,7 +12298,8 @@
   {
     "name": "INERTES Yiprit | ESP | PVE | TRADERS | BASES | LORE | MISIONES",
     "ip": "83.61.31.58",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "Stoned and Afraid PVE - By Pingperfect.com",
@@ -12309,7 +12310,8 @@
   {
     "name": "Dreamwarrior's Channel Pve +PvAI",
     "ip": "173.234.137.184",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "RobZ-UK-Avalon-PVE",
@@ -12386,11 +12388,6 @@
     "ip": "83.178.209.105",
     "port": 28015,
     "queryPort": 27016
-  },
-  {
-    "name": "*WIPED TODAY* NodeStack US#3 Namalsk | Pure Vanilla | No Mods",
-    "ip": "51.222.254.178",
-    "port": 2314
   },
   {
     "name": "New World Europe Experimental",
@@ -12638,7 +12635,8 @@
   {
     "name": "FUN TIME",
     "ip": "149.56.195.120",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "dSmile Hardcore Namalsk 1PP - EU/LV",
@@ -12659,7 +12657,8 @@
   {
     "name": "[Ru] Old School [PVE][Cherno]",
     "ip": "176.57.78.113",
-    "port": 30015
+    "port": 30015,
+    "queryPort": 30016
   },
   {
     "name": "[Ru] Old School [PVE][Namalsk]",
@@ -12716,7 +12715,8 @@
   {
     "name": "Porkypie-pve-trader-20k start -quest-airdrops-drugs-AI-banov",
     "ip": "142.132.158.239",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27017
   },
   {
     "name": "[AU] After DayZ Chiemsee | 100k Start | PvEvP | Wiped 16/5",
@@ -12885,7 +12885,8 @@
   {
     "name": "Puukkojunkkarit - Sakhal",
     "ip": "83.172.91.20",
-    "port": 3602
+    "port": 3602,
+    "queryPort": 3603
   },
   {
     "name": "2302 | NORTH AMERICA - LA | 1st Person Only",
@@ -12920,7 +12921,8 @@
   {
     "name": "Zwiebelmett mit Guerkchen [DEERISLE] GER|PVE|ONLY",
     "ip": "162.55.65.196",
-    "port": 2806
+    "port": 2806,
+    "queryPort": 27025
   },
   {
     "name": "MrNasty's DeerIsle Adventure | PVE | AI Bots - Boosted Stamina",
@@ -12994,7 +12996,8 @@
   {
     "name": "[CZ] Deerisle (PVE)",
     "ip": "185.180.2.95",
-    "port": 27193
+    "port": 27193,
+    "queryPort": 28193
   },
   {
     "name": "[RU] FOS Project | STALKER | FORCE OF SIBERIA | Middle RP #3",
@@ -13003,14 +13006,16 @@
     "queryPort": 2303
   },
   {
-    "name": "FRESH WIPE - Kindergarten GER|ENG PVP|Underground Bunker|SNAFU|",
+    "name": "Kindergarten GER|ENG PVP|Underground Bunker|SNAFU|MMG|Airdrops|",
     "ip": "46.4.98.105",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "TttH (PvPvE) - PvE-Enemies, Safe Bases, NoWipe, Dynamic Traders",
     "ip": "77.20.137.21",
-    "port": 28123
+    "port": 28123,
+    "queryPort": 27016
   },
   {
     "name": "Pervak4 - Chaos",
@@ -13031,7 +13036,8 @@
   {
     "name": "DayZ | Land of the Dead | PVE | Sakhal",
     "ip": "185.207.214.103",
-    "port": 2802
+    "port": 2802,
+    "queryPort": 2805
   },
   {
     "name": "Zakat-DayZ | Vanilla++ | 3pp |RU| PVP",
@@ -13083,12 +13089,14 @@
   {
     "name": "ZEROLAND | NAMALSK | PvP | 3PP | HARDCORE",
     "ip": "195.18.27.49",
-    "port": 2323
+    "port": 2323,
+    "queryPort": 2324
   },
   {
     "name": "ZEROLAND | NAMALSK | PvP | 1PP | HARDCORE",
     "ip": "195.18.27.49",
-    "port": 2316
+    "port": 2316,
+    "queryPort": 2317
   },
   {
     "name": "Digberts DayZ - PVE Only - a friendly server",
@@ -13172,7 +13180,8 @@
   {
     "name": "True DayZ - Valning PvE - Missions/Events/Modded",
     "ip": "66.23.239.18",
-    "port": 2802
+    "port": 2802,
+    "queryPort": 27025
   },
   {
     "name": "DayZ Exiled World",
@@ -13186,25 +13195,16 @@
     "queryPort": 9303
   },
   {
-    "name": "[EU] Gebirgsjaeger |PVP|No Stamina!|No Fences!|Loot+",
-    "ip": "176.9.104.249",
-    "port": 2402
-  },
-  {
     "name": "[ParacetamolZ] Namalsk | Bases/Codelock | WIPE 2704 | Vanilla+",
     "ip": "38.225.91.3",
     "port": 2302,
     "queryPort": 2303
   },
   {
-    "name": "PARAMILITARY 2 | DEER ISLE | PVP | 4 MAX GROUP |",
+    "name": "PARAMILITARY | DEER ISLE | PVP | 4 MAX GROUP | NO RAID |",
     "ip": "185.189.255.146",
-    "port": 2202
-  },
-  {
-    "name": "AfterDayZ.com | Sakura Hashima Islands | Linked | No Bases",
-    "ip": "23.95.11.78",
-    "port": 2602
+    "port": 2202,
+    "queryPort": 2205
   },
   {
     "name": "TRUMPLAND PVE W/PVP ZONES 25MIL START RAID WEEKENDS!!",
@@ -13232,16 +13232,6 @@
     "ip": "172.111.51.188",
     "port": 2302,
     "queryPort": 2303
-  },
-  {
-    "name": "[C&G] | PVE STRONG SURVIVAL | EST. 2021",
-    "ip": "5.9.78.202",
-    "port": 2302
-  },
-  {
-    "name": "[US-SE] HUBS | DeerIsle | PVE w/ PVP Zones | Economy | Trader",
-    "ip": "68.62.138.125",
-    "port": 2302
   },
   {
     "name": "ENOCH",
@@ -13282,19 +13272,10 @@
     "port": 2602
   },
   {
-    "name": "BoMF Server | Livonia | Vanilla | LOOT+ | Fresh wipe | Start ba",
-    "ip": "185.18.6.113",
-    "port": 2322
-  },
-  {
-    "name": "[STALKER PVE] Way to the Future",
-    "ip": "5.35.3.29",
-    "port": 2502
-  },
-  {
     "name": "NEW WIPE|Guerra Mundial Z ESP|PvE-PvP|MISIONES|BOT|KEYS|",
     "ip": "193.25.252.100",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "87 8 Survivor FM DayZ Exp",
@@ -13324,9 +13305,10 @@
     "queryPort": 27017
   },
   {
-    "name": "YA DAD WEARS KNICKERS |EU SOLO DUO TRIO|",
+    "name": "YA DAD WEARS KNICKERS |EU SOLO DUO TRIO| CUSTOM LOCATIONS",
     "ip": "89.34.97.14",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "*Fresh Wipe* On The Verge | Trio | Koth/Airdrops | Custom Event",
@@ -13527,7 +13509,8 @@
   {
     "name": "Havenfall | PVE | Challenging | 125k Start | Custom Bunkers |",
     "ip": "157.180.12.146",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Stahlgewitter Chernarus | EU | Vanilla",
@@ -13561,12 +13544,8 @@
   {
     "name": "Bad DayZ Cherno 3PP | Vanilla + mods",
     "ip": "193.25.252.97",
-    "port": 2302
-  },
-  {
-    "name": "A Beautiful Potato | Emergence | Winter Livonia | sGunplay Skil",
-    "ip": "104.218.48.62",
-    "port": 2502
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "[BR] ADYL 90902 NAMALSK",
@@ -13626,7 +13605,8 @@
   {
     "name": "Fear The Dead-PVE | PVP Zones |Roaming AI - By Pingperfect.com",
     "ip": "64.31.28.164",
-    "port": 2342
+    "port": 2342,
+    "queryPort": 2343
   },
   {
     "name": "TheCrossFire Vanilla no wipe [FR EU]",
@@ -13637,7 +13617,8 @@
   {
     "name": "[NOR] The Outlaws | Chernarus | Vanilla+ | 1PP",
     "ip": "92.221.179.130",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "*Wiped 6/5/26* KILLERZ Cherno |PvP|LOOTx7|Heli|Cars|WkndRaid",
@@ -13646,12 +13627,7 @@
     "queryPort": 27018
   },
   {
-    "name": "Dream PVE HARD / Мечта ПВЕ СЛОЖНО",
-    "ip": "87.117.38.5",
-    "port": 2302
-  },
-  {
-    "name": "|-NEW-|-OPERATION-OBSIDIAN-| Chernarus: More than Expected! v2.",
+    "name": "-NextWipe13thOctober-|-OPERATION-OBSIDIAN-|More than Expected!",
     "ip": "152.53.3.130",
     "port": 2322,
     "queryPort": 2323
@@ -13659,7 +13635,8 @@
   {
     "name": "[EU/FR] Echoes Of Survival || TRADER || LOOT x3 || PVE || KOTH",
     "ip": "51.77.84.38",
-    "port": 2316
+    "port": 2316,
+    "queryPort": 27016
   },
   {
     "name": "Russian Classic [TEST-SERVER] [Dr. MAX]",
@@ -13715,7 +13692,8 @@
   {
     "name": "No Safe DayZ - Vanilla Enhanced (COMING SOON)",
     "ip": "37.156.35.49",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "The Four Horsemen - Chernarus | PVE |",
@@ -13762,11 +13740,6 @@
     "queryPort": 2303
   },
   {
-    "name": "[BR] SCATSERVER FULL PVE NO RAID [Livonia]",
-    "ip": "168.121.233.160",
-    "port": 2301
-  },
-  {
     "name": "Vulcans Winter NeighborHorde",
     "ip": "83.223.204.176",
     "port": 28400
@@ -13790,9 +13763,10 @@
     "queryPort": 2433
   },
   {
-    "name": "CA by DayZ Masochists [ Survival | North America ]",
+    "name": "CA by DayZ Masochists [ Hardcore Survival+ | US ]",
     "ip": "192.169.81.180",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2323
   },
   {
     "name": "Hounds of Bitterroot|PVE|PvAI|YETI|SECRET TRADER",
@@ -13812,14 +13786,10 @@
     "queryPort": 20185
   },
   {
-    "name": "LekkaZA Chernarus Modded",
-    "ip": "156.155.26.225",
-    "port": 2322
-  },
-  {
     "name": "HeroZ DeerIsle |WIPED 4.8| ||V6 EXP||   |AI Patrols|Traders|Bas",
     "ip": "147.135.30.238",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "MRHArsteinen",
@@ -13850,7 +13820,8 @@
   {
     "name": "3799 | NORTH AMERICA - LA",
     "ip": "85.190.152.177",
-    "port": 11100
+    "port": 11100,
+    "queryPort": 11101
   },
   {
     "name": "[PVE] BaZaR",
@@ -13883,12 +13854,14 @@
   {
     "name": "XHS仿官服|萌新|官方地图|1:1|QQ群808199285",
     "ip": "103.91.209.170",
-    "port": 2905
+    "port": 2905,
+    "queryPort": 27619
   },
   {
     "name": "Highway 211 PVE",
     "ip": "154.16.200.198",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "Metasequoia|GroupServer|Namalsk|AI",
@@ -13912,12 +13885,13 @@
     "name": "The Last Hope #1 | PvP | AI | C4 | BBP | Extract | HIGH FPS+",
     "ip": "91.212.121.113",
     "port": 2302,
-    "queryPort": 27016
+    "queryPort": 2303
   },
   {
     "name": "ZedQon.1|Solo-Duo-Trio|PvP|Tarkov style|Drugs-BBP-Quest",
     "ip": "198.244.177.17",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Savage's Alteria PVE 50k start",
@@ -13926,14 +13900,10 @@
     "queryPort": 2603
   },
   {
-    "name": "Nexus Point | *Very Realistic AI* | *PVEVP* | Wiped 5-1",
-    "ip": "66.180.23.11",
-    "port": 2302
-  },
-  {
     "name": "[BSG] PvE | Custom | Hunt | Hard Survival | Tons of Shit",
     "ip": "66.196.2.106",
-    "port": 2702
+    "port": 2702,
+    "queryPort": 27015
   },
   {
     "name": "Холодное Солнце [Hardcore, Deer Isle, 3PP, PvE]",
@@ -13944,7 +13914,8 @@
   {
     "name": "Bolshoi Adventure Time 1PP | Vanilla | No mods",
     "ip": "193.70.81.122",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Barn Owl DeerIsle PVE|DynamicAI|Airdrops|No Trader",
@@ -14018,7 +13989,7 @@
     "port": 2312
   },
   {
-    "name": "RebornPVPDeerisle|8Man|Trader|Vehicles|ATMs|Wiped 8/5|",
+    "name": "RebornPVPDeerisle|8Man|Trader|Vehicles|ATMs|",
     "ip": "103.152.197.239",
     "port": 2302,
     "queryPort": 2303
@@ -14041,11 +14012,6 @@
     "port": 2402
   },
   {
-    "name": "MiddleGroundJurgen",
-    "ip": "88.202.151.21",
-    "port": 2303
-  },
-  {
     "name": "Chillzone Test",
     "ip": "168.119.79.178",
     "port": 2491
@@ -14053,7 +14019,8 @@
   {
     "name": "EXAMPLE NAME",
     "ip": "162.43.89.149",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "2035 (NEW!) PVE/Vehicles/Airdrops/Drugs/Fishing/Gear/Collectabl",
@@ -14136,16 +14103,6 @@
     "ip": "66.235.175.4",
     "port": 2491,
     "queryPort": 2492
-  },
-  {
-    "name": "Department of Survivor Services | Livonia | PvE/PvP/PvAI | Mapl",
-    "ip": "206.72.204.230",
-    "port": 2902
-  },
-  {
-    "name": "[JP]edo-taro",
-    "ip": "220.158.19.94",
-    "port": 2302
   },
   {
     "name": "TOMORROWLAND CHERNARUS PVE ONLY NO PVP NO THEFT NO RAIDING OR K",
@@ -14252,11 +14209,6 @@
     "port": 2491
   },
   {
-    "name": "DAYZ EUROPA |Hard Mummy| |1st Person Only|",
-    "ip": "178.218.79.108",
-    "port": 2302
-  },
-  {
     "name": "-                        [RU] KRSK Vanilla",
     "ip": "95.188.87.59",
     "port": 2312,
@@ -14287,11 +14239,6 @@
     "queryPort": 27016
   },
   {
-    "name": "| THE OLD GUARD | DEADFALL | AI-PATROL |",
-    "ip": "81.20.135.84",
-    "port": 2302
-  },
-  {
     "name": "LATAM Melkart V+|1pp",
     "ip": "186.139.196.79",
     "port": 2310
@@ -14309,7 +14256,8 @@
   {
     "name": "BLACK SITE | Discord.gg/blacksitedayz",
     "ip": "192.64.86.194",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Harold's Deadfall",
@@ -14369,7 +14317,8 @@
   {
     "name": "The Grateful Gang DeadFall [PvE]",
     "ip": "88.99.244.186",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "test DayZ Kastaneta SK/CZ PVE-Trader",
@@ -14425,7 +14374,8 @@
   {
     "name": "PoGrom DeerIsle PVE",
     "ip": "94.26.229.201",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27018
   },
   {
     "name": "CHERNARUS [PVE] - SEASONS/AI/DRUGS/SKILLS | projectoutbreak.com",
@@ -14457,7 +14407,8 @@
   {
     "name": "[RU] Hustle DeathMatch",
     "ip": "188.134.80.167",
-    "port": 2304
+    "port": 2304,
+    "queryPort": 27016
   },
   {
     "name": "nitrado.net gameserver",
@@ -14493,11 +14444,6 @@
     "port": 2502
   },
   {
-    "name": "First Light | Namalsk Hardcore | us-east1",
-    "ip": "50.36.224.4",
-    "port": 2311
-  },
-  {
     "name": "[BR] ALFA Alteria | 1PP | SAFE INVENTORY | VANILLA+",
     "ip": "188.255.171.171",
     "port": 2302,
@@ -14523,7 +14469,8 @@
   {
     "name": "HARLEYS HANGOUT/PVE/ALTERIA",
     "ip": "198.96.88.252",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "SURVIVOR | YMG | DAYZ | COMFORT VANILLA | CHERNO 1PP",
@@ -14555,7 +14502,8 @@
   {
     "name": "[CZ/SK] GameArea.cz PvPvE | Vanilla++ | Expanze/Obchodnici/Mise",
     "ip": "37.221.249.60",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2306
   },
   {
     "name": "1363 | EUROPE - FR | NAMALSK",
@@ -14583,7 +14531,8 @@
   {
     "name": "[US] Vanilla Survival | Map | 3PP",
     "ip": "76.156.82.113",
-    "port": 2303
+    "port": 2303,
+    "queryPort": 2306
   },
   {
     "name": "[Die of Survive] - Alfa",
@@ -14591,7 +14540,7 @@
     "port": 2372
   },
   {
-    "name": "Vanilla PVE SERVER - Hosted by JAY JAY",
+    "name": "Vanilla+ AI PVE SERVER - Hosted by JAY JAY",
     "ip": "95.156.250.235",
     "port": 11000,
     "queryPort": 11001
@@ -14626,7 +14575,8 @@
   {
     "name": "Utopia",
     "ip": "168.100.162.9",
-    "port": 27143
+    "port": 27143,
+    "queryPort": 27147
   },
   {
     "name": "CortezJr",
@@ -14708,11 +14658,6 @@
     "queryPort": 2870
   },
   {
-    "name": "Vanilla+ | Chiemsee | 1PP",
-    "ip": "178.239.199.33",
-    "port": 2402
-  },
-  {
     "name": "SCHICKSALSPFADE | Whitelist DayZ-RP.de | Deutsches Roleplay |",
     "ip": "93.186.198.27",
     "port": 2302,
@@ -14724,14 +14669,10 @@
     "port": 2323
   },
   {
-    "name": "Chernarus Vanilla - Hosted by Majus",
-    "ip": "167.235.103.7",
-    "port": 2302
-  },
-  {
     "name": "Dead Quiet | BBP+ | Hacked Crates | KeyCards | 1PP",
     "ip": "195.252.236.214",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "willis test",
@@ -14753,7 +14694,8 @@
   {
     "name": "Echoes of Chernarus|PvE|Sci-Fi|Aliens|Fallout|AI|Invasions",
     "ip": "145.239.146.240",
-    "port": 2432
+    "port": 2432,
+    "queryPort": 2433
   },
   {
     "name": "[Hun | EU] New Hope ( Sakhal )",
@@ -14802,17 +14744,13 @@
   {
     "name": "BR Heavy Metal Full Pve Chernarus2035",
     "ip": "188.255.171.161",
-    "port": 2332
+    "port": 2332,
+    "queryPort": 27018
   },
   {
     "name": "DayZ DeerIsle 5.9 Min Mods EDGE",
     "ip": "82.16.21.205",
     "port": 2302
-  },
-  {
-    "name": "CZ Revenant PVE",
-    "ip": "93.99.7.86",
-    "port": 2682
   },
   {
     "name": "PVE|HARDCORE|SURVIVE|Quest|Crafting|AI|Hardzeds we live we die",
@@ -14901,12 +14839,8 @@
   {
     "name": "Future PVE Namalsk | Bosses | Quests | Maplink",
     "ip": "145.239.149.164",
-    "port": 2402
-  },
-  {
-    "name": "[BZH DayZ]-Chernarus Cold Legacy-[Survie]",
-    "ip": "87.90.159.251",
-    "port": 2302
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "Br RadioativoZ RPve com areas Pvp no raid full mod",
@@ -14930,11 +14864,6 @@
     "name": "[GER/EN] Dark Grid PVE - NoWipe|Trader|Cars|Helis|Hardcore",
     "ip": "193.25.252.73",
     "port": 2302
-  },
-  {
-    "name": "[BR] The Last DayZ O Ultimo dia Z Livonia Vanilla",
-    "ip": "189.76.78.74",
-    "port": 2702
   },
   {
     "name": "[GER] TOKARAK | PVP/PVE | Loot+ | Base+ | Vehicles+ | Chernarus",
@@ -15002,7 +14931,7 @@
     "queryPort": 3503
   },
   {
-    "name": "[New] Protocol Decay PvE Winter v1.4",
+    "name": "[New] Protocol Decay PvE Winter v1.5",
     "ip": "205.209.113.94",
     "port": 2302,
     "queryPort": 2303
@@ -15192,7 +15121,8 @@
   {
     "name": "ChillZone Vanila +|Party|Map|1PP|EU",
     "ip": "51.195.63.34",
-    "port": 27800
+    "port": 27800,
+    "queryPort": 27801
   },
   {
     "name": "Graveland || EU || Vanilla",
@@ -15213,7 +15143,8 @@
   {
     "name": "Future Land PVE - Chernarus",
     "ip": "91.192.93.61",
-    "port": 2452
+    "port": 2452,
+    "queryPort": 2501
   },
   {
     "name": "The Silent Survivor: LOW-POP DeerIsle",
@@ -15233,7 +15164,8 @@
   {
     "name": "UDR Deerisle Survival [PVE|PVAI|EU] NO TRADER! FRESH WIPED",
     "ip": "109.230.239.139",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "[PRX] Secrets of Banov | AI Survivors | Skills | Vehicles | Bas",
@@ -15268,11 +15200,6 @@
     "ip": "5.196.90.2",
     "port": 2302,
     "queryPort": 27016
-  },
-  {
-    "name": "SOY LEYENDA EN DEERISLE ESP PVE BASES",
-    "ip": "178.104.56.97",
-    "port": 2302
   },
   {
     "name": "Panam 4Netplayers DayZ Server",
@@ -15335,11 +15262,6 @@
     "port": 2680
   },
   {
-    "name": "[GER HKD] Showroom",
-    "ip": "148.251.75.36",
-    "port": 2602
-  },
-  {
     "name": "Echoes of Humanity",
     "ip": "14.1.30.98",
     "port": 2312
@@ -15347,7 +15269,8 @@
   {
     "name": "B-U-K  DEERISLE - PVE - AI - HELIS - TRADERS - NO  WIPE",
     "ip": "193.160.22.170",
-    "port": 2312
+    "port": 2312,
+    "queryPort": 2313
   },
   {
     "name": "[DE] -=The Walking Dead=- *Roleplay*",
@@ -15360,11 +15283,6 @@
     "ip": "205.209.114.157",
     "port": 2491,
     "queryPort": 2492
-  },
-  {
-    "name": "[GER HKD] Eventserver",
-    "ip": "148.251.75.36",
-    "port": 2302
   },
   {
     "name": "Decay US | 5-Man Max | A Balanced Modded Experience",
@@ -15432,11 +15350,6 @@
     "queryPort": 27016
   },
   {
-    "name": "OHGT [SA] PvPvE | AI Missions | Helis | Weekend Raids",
-    "ip": "102.182.38.194",
-    "port": 2302
-  },
-  {
     "name": "Excuse My Hatred|Chernarus|1PP|PVP|No Raid|No Trader",
     "ip": "208.115.248.158",
     "port": 2491
@@ -15445,11 +15358,6 @@
     "name": "DayZ Server",
     "ip": "194.69.160.23",
     "port": 18002
-  },
-  {
-    "name": "[GER/EN] TagZ PVP Trader/Base+/DNA/more",
-    "ip": "178.105.31.90",
-    "port": 2402
   },
   {
     "name": "Mushrooms and Schnapps Test |PVE Only |MODS |AI Bots |Traders",
@@ -15473,11 +15381,6 @@
     "name": "EN ESPANOL PARA JUGADORES NOVATOS // SOLO 10 SLOTS Survivor",
     "ip": "64.31.47.245",
     "port": 2491
-  },
-  {
-    "name": "[BR] DayZ Server Hardcore Vanilla",
-    "ip": "82.24.40.132",
-    "port": 2302
   },
   {
     "name": "AZ Last of DayZ | AI Awakening PvE | Join the fight!",
@@ -15527,14 +15430,10 @@
     "port": 2305
   },
   {
-    "name": "Manolita Novikostok | Survival Terje",
-    "ip": "136.243.95.94",
-    "port": 2502
-  },
-  {
     "name": "RealDead | V1",
     "ip": "208.115.196.42",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "1 Awesome Beginners Friendly PVE V2",
@@ -15550,7 +15449,8 @@
   {
     "name": "- [GER] SUCHT BUNK3R | Vanilla+ | Airdrops | Safe Base |",
     "ip": "176.9.72.216",
-    "port": 2602
+    "port": 2602,
+    "queryPort": 2603
   },
   {
     "name": "[EU] DEERISLE | VANILLA+| 3PP | PVP | HELI | WEEKEND RAIDING",
@@ -15568,11 +15468,6 @@
     "ip": "80.223.112.124",
     "port": 2304,
     "queryPort": 27016
-  },
-  {
-    "name": "PawneeNdNs Apocalypse",
-    "ip": "95.173.216.56",
-    "port": 11345
   },
   {
     "name": "[EU] Radio CCCP | AIs, Vehicles, Winter... | PvPvE - BuildEvery",
@@ -15614,7 +15509,8 @@
   {
     "name": "Reloaded [ZA]",
     "ip": "46.151.193.41",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "The Last Lone Survivor (GER/PVE/Trader)",
@@ -15694,11 +15590,6 @@
     "port": 10300
   },
   {
-    "name": "ZONA_13PVE(Hard)",
-    "ip": "77.51.187.246",
-    "port": 2302
-  },
-  {
     "name": "[UA|EU] VAGABUND | Building | Map | Party | Vanilla+",
     "ip": "149.50.101.26",
     "port": 2372,
@@ -15712,12 +15603,14 @@
   {
     "name": "A Dark Beginning UK-DeerIsle-PvPvE",
     "ip": "95.156.230.243",
-    "port": 2602
+    "port": 2602,
+    "queryPort": 2603
   },
   {
     "name": "GER_We are Family_PVE #DeerIsle Trader",
     "ip": "51.195.39.225",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "|ESP|La Ostia|NukeZZonE|Solo-PVE-Only|Test-Server|",
@@ -15742,7 +15635,8 @@
   {
     "name": "Wandersimulator Thorstie",
     "ip": "5.62.100.27",
-    "port": 11900
+    "port": 11900,
+    "queryPort": 11901
   },
   {
     "name": "Herr-Meier.de - Deutsch | PvE / RP | Zombies nur im Military",
@@ -15789,7 +15683,8 @@
   {
     "name": "Spring Namalsk 2026 Official",
     "ip": "116.202.197.169",
-    "port": 3602
+    "port": 3602,
+    "queryPort": 27029
   },
   {
     "name": "Frozen Quad Platoon",
@@ -15836,11 +15731,6 @@
     "port": 2302
   },
   {
-    "name": "Experiment",
-    "ip": "5.42.211.60",
-    "port": 2302
-  },
-  {
     "name": "Simple Life PvE",
     "ip": "185.216.144.93",
     "port": 2869,
@@ -15856,11 +15746,6 @@
     "ip": "148.251.9.36",
     "port": 2302,
     "queryPort": 27016
-  },
-  {
-    "name": "[FR] ReaperZ PVP NO BASE",
-    "ip": "82.121.82.187",
-    "port": 2402
   },
   {
     "name": "174NARASLABONE",
@@ -15889,11 +15774,6 @@
     "name": "Jolins Empire | NO | PVE | Chernarus",
     "ip": "85.190.149.219",
     "port": 11300
-  },
-  {
-    "name": "[GER][SF][PVE] Betreutes Wohnen am Sumpf | Quests | AI | Trader",
-    "ip": "116.202.232.9",
-    "port": 2422
   },
   {
     "name": "Paratiisi",
@@ -15937,11 +15817,6 @@
     "name": "Sunnyvale #0 | Test Server | Locked",
     "ip": "172.111.51.169",
     "port": 2502
-  },
-  {
-    "name": "TEST_HARDLINE",
-    "ip": "23.88.65.250",
-    "port": 2402
   },
   {
     "name": "3103 | CHINA - SH | Linux_Ubuntu",
@@ -16015,11 +15890,6 @@
     "queryPort": 2320
   },
   {
-    "name": "UNIDAYZ |EU| LIVONIA |1PP| 5-SQUAD | VANILLA +",
-    "ip": "193.250.140.108",
-    "port": 2302
-  },
-  {
     "name": "Northbound - Organic RP | Deer Isle",
     "ip": "172.111.51.223",
     "port": 2302,
@@ -16064,7 +15934,8 @@
   {
     "name": "BEST PVE",
     "ip": "93.99.7.86",
-    "port": 2792
+    "port": 2792,
+    "queryPort": 2793
   },
   {
     "name": "ROSSINI PVE NAMALSK DayZ",
@@ -16096,9 +15967,10 @@
     "queryPort": 27110
   },
   {
-    "name": "[EU/SWE] Göteborg (Noob Friendly)",
+    "name": "[EU/SWE] Göteborg Chernarusplus",
     "ip": "78.82.31.195",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "MeinPrivaterServer",
@@ -16271,11 +16143,6 @@
     "port": 2372
   },
   {
-    "name": "Priva serveri",
-    "ip": "84.250.6.168",
-    "port": 2302
-  },
-  {
     "name": "ProjectHardline: BlackSite",
     "ip": "163.245.195.221",
     "port": 2302
@@ -16327,19 +16194,16 @@
     "queryPort": 27016
   },
   {
-    "name": "[BR] DEADZONE INFINITY PVE | TESTE",
+    "name": "[BR]BrasilZ FULLMOD |PVP|LOOT+++|BBP|VIP",
     "ip": "179.108.169.230",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 27020
   },
   {
-    "name": "[BR]OPERATION TAKISTAN-WAR OF DESERT",
+    "name": "Rearmed BR Takistan",
     "ip": "188.255.171.173",
-    "port": 2302
-  },
-  {
-    "name": "- End of Day's -Fresh server Banov PvE",
-    "ip": "24.29.51.188",
-    "port": 2602
+    "port": 2302,
+    "queryPort": 27015
   },
   {
     "name": "Iron Bones [Keine Client-Mods]",
@@ -16365,7 +16229,8 @@
   {
     "name": "ServerOfChaos | PVE | Heli's | Active Staff | Wiped | Traders",
     "ip": "23.111.240.114",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2323
   },
   {
     "name": "Life Inc Agenda 2030 Roleplay PVP RP Hardcore AI Quests",
@@ -16384,9 +16249,10 @@
     "queryPort": 2423
   },
   {
-    "name": "UK|Rusty Plums|PvP|Safezones|Raiding|Airdrops|Drugs|KOTH|Blackm",
+    "name": "JUST WIPED|UK|Rusty Plums|PvP|Traders|Raiding|Airdrops|Drugs|Bl",
     "ip": "173.234.137.181",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2323
   },
   {
     "name": "HardRP_Nostalgija_RU",
@@ -16451,9 +16317,10 @@
     "queryPort": 27016
   },
   {
-    "name": "[EU] No Man's Road PVP Vanilla+ NEW",
+    "name": "[EU] No Man’s War | Vanilla+ PvP | NEW DayZ | Dynamic Events",
     "ip": "23.109.63.158",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "World War Z 8",
@@ -16476,12 +16343,7 @@
     "port": 2502
   },
   {
-    "name": "[UA|EU] VARTA Sakhal | 3pp | Vanilla++",
-    "ip": "178.150.251.247",
-    "port": 2402
-  },
-  {
-    "name": "[FreshWipe] No Way Home PVP|3PP|Loot x10|6Groups|KOTH|KEYCARD|",
+    "name": "[EU] No Way Home | 6 Man | PvP | 250k Start | Loot x10 | Trader",
     "ip": "109.238.10.170",
     "port": 2302,
     "queryPort": 2303
@@ -16599,11 +16461,6 @@
     "port": 2311
   },
   {
-    "name": "[ARG] Proyecto RJ|PVE-PVP|EVENTOS+|5 MAX|BASESPAWN|WIPED 24/5",
-    "ip": "186.57.108.126",
-    "port": 2302
-  },
-  {
     "name": "The Black Reach",
     "ip": "95.156.198.138",
     "port": 12000,
@@ -16630,9 +16487,10 @@
     "port": 2602
   },
   {
-    "name": "Suomi - Winter Deer Isle | Hardcore Survival | AI Bandits",
+    "name": "Frozen Hell - EU Winter Deer Isle | Survival | AI Bandits",
     "ip": "86.60.184.214",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "187th Gooners",
@@ -16924,9 +16782,10 @@
     "queryPort": 24110
   },
   {
-    "name": "[BR] AventuraZ - PVE com areas PVP - Server Novo",
+    "name": "[BR] AventuraZ - PVE com areas PVP - No Raid",
     "ip": "143.137.87.84",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Cannabis Cartel Land™ PvP/PvE Builder Kits Trader Helis Drugs",
@@ -17096,11 +16955,6 @@
     "queryPort": 2303
   },
   {
-    "name": "iL00t Game << PRIVATE>> DayZ Server",
-    "ip": "157.85.89.245",
-    "port": 27686
-  },
-  {
     "name": "- Patriots Paradise-PVE - AI/Custom-Gear/Guns/Animals",
     "ip": "191.96.186.3",
     "port": 2491,
@@ -17174,7 +17028,8 @@
   {
     "name": "Adamant DeathMatch - 1PP | Vanilla +",
     "ip": "5.252.101.142",
-    "port": 2309
+    "port": 2309,
+    "queryPort": 2310
   },
   {
     "name": "Brasil FullMod 1PP | PVP | HELI | CAÇA",
@@ -17363,7 +17218,8 @@
   {
     "name": "Reapers Revenge Avalon PVE|Traders|Ai|Diesel|Airdrops",
     "ip": "50.53.102.233",
-    "port": 2702
+    "port": 2702,
+    "queryPort": 27020
   },
   {
     "name": "RedZoneZ  Vanilla +",
@@ -17390,7 +17246,8 @@
   {
     "name": "World War III Modded | Helis | Traders | Expansion FRESH WIPE",
     "ip": "74.91.124.37",
-    "port": 2702
+    "port": 2702,
+    "queryPort": 28016
   },
   {
     "name": "Last Hope S.T.A.L.K.E.R. RP DM NO WHITE LIST vk.com/lastohope",
@@ -17427,11 +17284,6 @@
     "queryPort": 2503
   },
   {
-    "name": "Prodigy DeathMatch | Tappers | Random Loadouts",
-    "ip": "209.236.119.18",
-    "port": 2402
-  },
-  {
     "name": "T.I.M.B.E.R. PNW Hardcore Survival",
     "ip": "167.160.89.82",
     "port": 2302,
@@ -17466,11 +17318,6 @@
     "queryPort": 2803
   },
   {
-    "name": "AventuraZ_ServerTest",
-    "ip": "143.137.87.84",
-    "port": 2402
-  },
-  {
     "name": "WasteLandZ™ Survival | 1PP | Vanilla+",
     "ip": "69.10.33.150",
     "port": 27155
@@ -17499,7 +17346,8 @@
   {
     "name": "[BR] MetrópoleZ | FULL PVE | EM TESTES",
     "ip": "45.187.166.103",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Webster Knights PvE",
@@ -17533,7 +17381,8 @@
   {
     "name": "Strij PVE Pripyat",
     "ip": "77.39.9.79",
-    "port": 2313
+    "port": 2313,
+    "queryPort": 27017
   },
   {
     "name": "[RU]UltimateSurvival | HARD | vk.com/hard_us",
@@ -17621,7 +17470,8 @@
   {
     "name": "Bail Bond Agency 2 | PvE",
     "ip": "104.192.227.59",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2323
   },
   {
     "name": "[Rmcc]PVE|合成|副本|2月新档|Q群：598808562",
@@ -17729,7 +17579,8 @@
   {
     "name": "[EU/SWE] Svenska Servrar Livonia  | TRADER | AI | SNAFU | MMG",
     "ip": "78.69.8.52",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Waffleisle",
@@ -17774,7 +17625,8 @@
   {
     "name": "-    LoneStar RP | 1PP Vanilla+ | Organic RP | CodeLocks",
     "ip": "74.91.114.140",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "FireflyZ *Fresh Wipe 5/10* Group Limit 5 | PvP | Weekend Raid |",
@@ -17795,7 +17647,8 @@
   {
     "name": "Welcome to the Forgotten War|Chernarus PvE PvP|Expansion|Trader",
     "ip": "216.158.232.170",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "Beginner Friendly | Deer Isle 6 Exp | Show_Runna",
@@ -17907,7 +17760,8 @@
   {
     "name": "ExPVE |Admins|Traders|Cars|Helis|KeyCards|SkyCastles|TinyItems",
     "ip": "172.100.137.17",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "UK Winchester Gaming #6 PVE Trader, Drugs",
@@ -17929,7 +17783,8 @@
   {
     "name": "Dead City STALKER Death Match",
     "ip": "80.242.59.114",
-    "port": 2316
+    "port": 2316,
+    "queryPort": 2319
   },
   {
     "name": "The Melting Pot PVE (Livonia) No Base Raiding",
@@ -17960,11 +17815,6 @@
     "queryPort": 11119
   },
   {
-    "name": "CG Friends Server",
-    "ip": "45.149.153.130",
-    "port": 2302
-  },
-  {
     "name": "GoNutz - PVE (mods|trader|cars|helis)",
     "ip": "31.214.238.17",
     "port": 10400
@@ -17972,7 +17822,8 @@
   {
     "name": "NoobLandZ PvE Fucken Florida",
     "ip": "206.72.194.78",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "Seattle Vanilla",
@@ -17985,9 +17836,10 @@
     "port": 3436
   },
   {
-    "name": "#1 Nocturnia|AiCompanion|SciFi|Quests|Traders|Hardcore",
+    "name": "#1 Nocturnia NAM|AiCompanion|SciFi|Quests|Traders|HARD",
     "ip": "65.7.2.44",
-    "port": 2555
+    "port": 2555,
+    "queryPort": 2556
   },
   {
     "name": "DarkOasis DayZomby DeerIsle PVE CZ/SK",
@@ -18014,7 +17866,8 @@
   {
     "name": "PVE/FR|The Simply Day-Z|custom car|traders|loot+|hard",
     "ip": "147.93.161.190",
-    "port": 3402
+    "port": 3402,
+    "queryPort": 3403
   },
   {
     "name": "Onslaught Resurrection",
@@ -18038,11 +17891,6 @@
     "ip": "188.255.171.147",
     "port": 2392,
     "queryPort": 27022
-  },
-  {
-    "name": "CAVEMART MEGALOOT (Deerisle) pve/Modded/new player friendly",
-    "ip": "47.36.116.177",
-    "port": 2322
   },
   {
     "name": "[PVE] D-ZION BANOV | HARDCORE - BOTS (TEST)",
@@ -18081,7 +17929,8 @@
   {
     "name": "420th Delta | PvPvE | Traders |  KoTH  | Black Market",
     "ip": "147.135.7.35",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27017
   },
   {
     "name": "Broke Boiz",
@@ -18102,11 +17951,6 @@
     "name": "DayB | DeerIsle",
     "ip": "185.216.145.152",
     "port": 2491
-  },
-  {
-    "name": "Ticklers Den - PvP/PvE",
-    "ip": "108.215.156.224",
-    "port": 2302
   },
   {
     "name": "Hy9h.lyf3 | Endless Loss | Trader | AI | Cars/Helis",
@@ -18141,11 +17985,6 @@
     "port": 2302
   },
   {
-    "name": "Skrimpmiser",
-    "ip": "73.171.150.225",
-    "port": 2302
-  },
-  {
     "name": "[BR] O REFUGIO BRASIL 1PP | Vanilla+ Namalsk | OPEN BETA",
     "ip": "188.255.171.211",
     "port": 2602
@@ -18153,7 +17992,8 @@
   {
     "name": "RSF FREEDOM SURVIVAL | Vanilla+ | 1pp | PVP | AI Missions |",
     "ip": "45.126.209.171",
-    "port": 3075
+    "port": 3075,
+    "queryPort": 3022
   },
   {
     "name": "Savage Horizons |PvPvE|NoWipe| 6mMFWhR9JW",
@@ -18239,11 +18079,6 @@
     "queryPort": 11001
   },
   {
-    "name": "Phoenix Deer Isle",
-    "ip": "148.251.84.218",
-    "port": 2402
-  },
-  {
     "name": "*JUST WIPED* The Wall US PVP/RAID | KOTH | C4 | HELI | Ai | KOS",
     "ip": "147.135.9.64",
     "port": 2302,
@@ -18324,7 +18159,8 @@
   {
     "name": "Maccsimum Overdrive PvE w/1PP PvP zones",
     "ip": "66.235.172.31",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Pod 6 | 1PP | Vanilla | Admin | Build Anywhere",
@@ -18357,7 +18193,8 @@
   {
     "name": "NFOservers.com - Seattle test # 02",
     "ip": "162.248.94.79",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Wulvs Deerisle #2,PVE,150k Start, keycards,Drugs,Helis,Vehicles",
@@ -18395,7 +18232,8 @@
   {
     "name": "UHG - Lost Hope |Hunting - AI|Trader|PVE Only",
     "ip": "198.96.90.94",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "NoCo Gaming Wiped 4-8-26 |Helis|Hard Zeds|AI|PVE ONLY,NO KOS|",
@@ -18459,11 +18297,6 @@
     "queryPort": 27016
   },
   {
-    "name": "DayZ Beyond the End |Hardcore Namalsk|",
-    "ip": "94.63.73.183",
-    "port": 2502
-  },
-  {
     "name": "ZDM | Valhalla | DEATHMATCH | AI",
     "ip": "136.175.187.114",
     "port": 2342
@@ -18509,7 +18342,8 @@
   {
     "name": "Egon`s PlayGround",
     "ip": "208.115.206.172",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "[US] Unofficial | Vanilla+ | Chernarus",
@@ -18517,9 +18351,10 @@
     "port": 2302
   },
   {
-    "name": "VETERAN - NAMALSK [PVE|EU] [www.veteran.onl]",
+    "name": "VETERAN - NAMALSK [PVE|EU]",
     "ip": "185.180.2.94",
-    "port": 27871
+    "port": 27871,
+    "queryPort": 28871
   },
   {
     "name": "Deadfall by The Captain      DISCORD: dUXgTnfnFb",
@@ -18599,20 +18434,10 @@
     "queryPort": 2405
   },
   {
-    "name": "|US|NotForTheFaintOfHeart|Loot+|Cars/Heli/Tanks|Guns+|Armor+",
-    "ip": "68.106.162.81",
-    "port": 2302
-  },
-  {
     "name": "billymac's HARDCORE Namalsk Adventure",
     "ip": "96.35.125.194",
     "port": 2302,
     "queryPort": 27016
-  },
-  {
-    "name": "billymac's Deer Isle 6.0 Adventure",
-    "ip": "96.35.125.194",
-    "port": 2306
   },
   {
     "name": "[BR] Aprendiz Z PVE - Ranking - Missões",
@@ -18655,11 +18480,6 @@
     "port": 2602
   },
   {
-    "name": "PrimalDayZ - Modded PVE/AI",
-    "ip": "199.58.145.220",
-    "port": 2302
-  },
-  {
     "name": "Outside the Wire Deerisle Test Server",
     "ip": "195.60.167.42",
     "port": 2502,
@@ -18681,11 +18501,6 @@
     "port": 2482
   },
   {
-    "name": "WarGame Z[VANILLA]/NO BASE/NO VEHICLES/ADVENTURE/+RIFLES+PVP/1P",
-    "ip": "189.76.177.51",
-    "port": 2802
-  },
-  {
     "name": "HeroZ Sakhal |WIPED 4.8| |AI Patrols|Traders|Base Building|PVE|",
     "ip": "147.135.30.238",
     "port": 2402,
@@ -18694,7 +18509,8 @@
   {
     "name": "HeroZ Chernarus |WIPED 4.8||WIPED 4.8| |AI Patrols|Traders|Base",
     "ip": "147.135.30.238",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 27018
   },
   {
     "name": "The Walking Dead: Livonia | PVP | AI | Quests | Maplink to Cher",
@@ -18721,7 +18537,8 @@
   {
     "name": "CL4NDESTINOS BRASIL 1PP LOOT+|NORAID|PVP|FULLMOD|WIPE 28/02",
     "ip": "170.238.163.70",
-    "port": 2306
+    "port": 2306,
+    "queryPort": 27018
   },
   {
     "name": "WIPED 14/3 [EU]NordZ|PvE w/ PvP Zones|Drugs|Friendly",
@@ -18794,11 +18611,6 @@
     "name": "XHS|硬核|PVE|养老|萌新|生存|建家|QQ群808199285",
     "ip": "103.91.209.170",
     "port": 2909
-  },
-  {
-    "name": "Dads Gaff [Lightly modded] [all welcome] [no rules]",
-    "ip": "27.50.77.243",
-    "port": 2325
   },
   {
     "name": "OMEN",
@@ -18892,7 +18704,8 @@
   {
     "name": "UNFORGIVING 2: Summer Slaughter PVE",
     "ip": "185.216.144.114",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Farmer Mike's Apocalypse Ranch|Rehost:136.175.187.81:2302",
@@ -18943,11 +18756,6 @@
     "queryPort": 2343
   },
   {
-    "name": "Cat Party Sorta Vanilla + AI",
-    "ip": "173.238.139.154",
-    "port": 2303
-  },
-  {
     "name": "CZ/SK AMBUSH PVE|PVP|EAi|GROUPS|Trader|Helis|Cars",
     "ip": "109.164.34.29",
     "port": 2302,
@@ -18986,11 +18794,6 @@
     "port": 2869
   },
   {
-    "name": "[US] Vanilla Survival | Map | 3PP",
-    "ip": "76.156.82.113",
-    "port": 2312
-  },
-  {
     "name": "TTV itspatty Deadfall Mods! Interaction! Adventure!",
     "ip": "194.50.234.178",
     "port": 2491
@@ -18998,7 +18801,8 @@
   {
     "name": "[BR] Sobreviventes do Brasil | HardCore Survival | TERJE MODS |",
     "ip": "206.0.29.198",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Bourbon and Beers - Deadfall",
@@ -19075,7 +18879,8 @@
   {
     "name": "RepriZal|1PP|PvP|Group Max 4|Raid 24/7|AirDrops|LootChest|KeyCa",
     "ip": "23.175.146.131",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Planeta Aceituna(Tester)",
@@ -19108,7 +18913,8 @@
   {
     "name": "[RU]Region 32 PVE",
     "ip": "31.132.164.248",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "The City - US Main [Heli's, keycards, codelock] (Dallas, TX)",
@@ -19175,14 +18981,10 @@
     "port": 2442
   },
   {
-    "name": "[BR] Ultimo Refugio PVE/PVP | DEERISLE 100K",
+    "name": "[BR] PandemicZ - 1PP |DeadFall",
     "ip": "200.4.97.255",
-    "port": 2316
-  },
-  {
-    "name": "H-DIVISION - Frozen Vanilla ice-scream",
-    "ip": "124.187.50.15",
-    "port": 2312
+    "port": 2316,
+    "queryPort": 27018
   },
   {
     "name": "Lucky Deadfall (1PP/No Bases)",
@@ -19215,11 +19017,6 @@
     "name": "PVP|BetterChernarus|PVP",
     "ip": "173.225.104.218",
     "port": 2680
-  },
-  {
-    "name": "-Sahinkaya Experimental",
-    "ip": "168.182.98.10",
-    "port": 2702
   },
   {
     "name": "Casper/Pve/chernarusplus",
@@ -19297,12 +19094,8 @@
   {
     "name": "HacksawZA DEATHMATCH - Geared spawn - NWAF PVP With AI.",
     "ip": "156.38.175.131",
-    "port": 2472
-  },
-  {
-    "name": "[BR] PicoZVanilla Avalon",
-    "ip": "177.84.238.158",
-    "port": 2402
+    "port": 2472,
+    "queryPort": 2473
   },
   {
     "name": "[TW/ASIA] ALIEN SERVER #1 | Chernarus | PvP | 4M Wipe | 5 Man M",
@@ -19365,19 +19158,9 @@
     "queryPort": 2403
   },
   {
-    "name": "THE WALKING DEAD | PvePvp | Trader | Skills | Quest | Horde",
-    "ip": "185.229.236.22",
-    "port": 2302
-  },
-  {
     "name": "The Kool Kats Korner",
     "ip": "85.190.159.59",
     "port": 10200
-  },
-  {
-    "name": "(Wiped) Hunters Paradise PvE ++Animals&Loot|LimitTraders|AI",
-    "ip": "144.137.72.234",
-    "port": 2302
   },
   {
     "name": "The Last Frontier: Hardcore Vanilla Ice",
@@ -19485,11 +19268,6 @@
     "queryPort": 27016
   },
   {
-    "name": "[BR-TESTE] ZUMBILANDIA | BANOV PVE HARDCORE | IA + SKILLS",
-    "ip": "138.255.160.63",
-    "port": 2302
-  },
-  {
     "name": "[FR][QC] eXtremZ Life [Loot+][PVP][PVZ][Survival]",
     "ip": "96.21.154.97",
     "port": 2302
@@ -19521,9 +19299,10 @@
     "port": 2305
   },
   {
-    "name": "System Error PVE 2 - Boosted-DNA-Helis-GoKarts-Casino-Dogs",
+    "name": "System Error PVE 2 - DNA-SpaceSHIPS-Helis-RaceTracks-FunServer",
     "ip": "173.225.104.253",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "MADMAC1014",
@@ -19575,11 +19354,6 @@
     "port": 27045
   },
   {
-    "name": "Blackrock test",
-    "ip": "95.156.230.29",
-    "port": 2502
-  },
-  {
     "name": "[UA|EU] OutLife Chernarus+ | 3PP | Map | Party",
     "ip": "141.95.70.15",
     "port": 2402
@@ -19617,7 +19391,7 @@
     "queryPort": 2492
   },
   {
-    "name": "[BR] IMPERIOZ| KOTH|GROUP| PVP| RAID| OPEN HOJE",
+    "name": "[BR] IMPERIOZ| BBP RAID VANILLA |GROUP| PVP 12\\06",
     "ip": "177.68.13.141",
     "port": 2302,
     "queryPort": 27016
@@ -19627,11 +19401,6 @@
     "ip": "57.129.100.63",
     "port": 2302,
     "queryPort": 2303
-  },
-  {
-    "name": "[FRESH WIPE] District Of The Dead |EU|4 MAN GROUP",
-    "ip": "37.156.35.94",
-    "port": 2502
   },
   {
     "name": "28 Weeks Later PVE by RuthlessGaming",
@@ -19660,9 +19429,10 @@
     "port": 10900
   },
   {
-    "name": "Frosts Cherno|NYC|-Rain|+Animals|LessInfctd|NoGasZones",
+    "name": "Frosts Cherno|NY|+Stam|+Animals|LessInfctd|NoGasZones",
     "ip": "95.156.213.83",
-    "port": 10900
+    "port": 10900,
+    "queryPort": 10901
   },
   {
     "name": "YourWorld PVE Deadfall-1",
@@ -19683,12 +19453,8 @@
   {
     "name": "MDF Make Dayz Fun",
     "ip": "64.31.28.147",
-    "port": 2362
-  },
-  {
-    "name": "The Last Of Our Kind - Test",
-    "ip": "173.235.147.38",
-    "port": 2302
+    "port": 2362,
+    "queryPort": 2363
   },
   {
     "name": "Heroes Reborn",
@@ -19711,11 +19477,6 @@
     "port": 2322
   },
   {
-    "name": "TheBudHole",
-    "ip": "172.222.91.21",
-    "port": 55017
-  },
-  {
     "name": "Brownie's Getaway",
     "ip": "85.190.158.141",
     "port": 10800
@@ -19734,11 +19495,6 @@
     "name": "DespertarZ | Vanilla | PVP  1PP | Start 25.05.26",
     "ip": "206.42.63.162",
     "port": 2902
-  },
-  {
-    "name": "ARROW TEST",
-    "ip": "128.0.135.110",
-    "port": 2602
   },
   {
     "name": "[DZBRES] FULL PVE",
@@ -19793,11 +19549,6 @@
     "port": 30300
   },
   {
-    "name": "RayZ-PvPvExpansionAI",
-    "ip": "98.183.1.82",
-    "port": 2302
-  },
-  {
     "name": "[BR] Baixada CruelZ Vanilla+ | KOTH | Missions | Bots",
     "ip": "217.9.14.248",
     "port": 2302
@@ -19816,11 +19567,6 @@
   {
     "name": "Hardcore Chernarus PvE",
     "ip": "187.127.96.217",
-    "port": 2302
-  },
-  {
-    "name": "*WIPED TODAY* NodeStack US#4 Deerisle | Pure Vanilla | No Mods",
-    "ip": "51.222.254.178",
     "port": 2302
   },
   {
@@ -19899,9 +19645,10 @@
     "queryPort": 27016
   },
   {
-    "name": "Allied Forces Chernarus | PvE w/ PvP Zones | Airdrops | Faction",
+    "name": "Allied Forces: Frontier | Season 1 Chernarus | PvE w/ PvP zones",
     "ip": "69.164.248.235",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "(STN) - Horror - Progressive - Hardcore - Tunnel",
@@ -20037,37 +19784,44 @@
   {
     "name": "GreenScreamsRP|Custom Weapons|NewTraders|RadationZones",
     "ip": "158.69.122.44",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "RU Styx Server [TRADER / MAP / NO STAMINA / PvP]",
     "ip": "82.202.249.222",
-    "port": 3002
+    "port": 3002,
+    "queryPort": 3003
   },
   {
     "name": "Eyeless One Official|GreatLoot|",
     "ip": "14.1.30.98",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2325
   },
   {
     "name": "Bienvenid@s al APOCALIPSIS [PvP/Rol+Loot] Sobrevive! [ESP/LAT]",
     "ip": "185.38.151.44",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[GER] deutschesdosenbier.de [Whitelist/Trader/Savezone/Guns+]",
     "ip": "148.251.2.124",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "FTS Survival|MODDED|Trader|UniqueWeapons|discord.me/FTS-Servers",
     "ip": "207.148.21.184",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 27017
   },
   {
     "name": "Swiss DayZ by GSS",
     "ip": "94.130.200.219",
-    "port": 2312
+    "port": 2312,
+    "queryPort": 2315
   },
   {
     "name": "Bepis - NoStam|HighLoot|PVP|GlobalChat|NVG|GoreZ",
@@ -20204,7 +19958,8 @@
   {
     "name": "Dogs Decidedly Dangerous 2",
     "ip": "174.138.180.37",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "SMERT|PVP|SIBERIA|Vanilla|STANDART LOOT|SURVIVE",
@@ -20221,7 +19976,8 @@
   {
     "name": "[UA|EU] GreenFrog | 3pp | Livonia | Loot | WIPED 23.05",
     "ip": "37.53.84.91",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 27018
   },
   {
     "name": "N1 CZC-车臣尼亚PVE-商店-毒区-装备不掉-AI",
@@ -20248,7 +20004,8 @@
   {
     "name": "The Old Mans Lounge DeerIsle | PvP | 100K | Drugs | Helis | AI",
     "ip": "217.155.83.202",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "ProjectFeral  Deathmatch",
@@ -20297,7 +20054,8 @@
   {
     "name": "WarZone Survivor - VANILLA +",
     "ip": "168.0.97.151",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "XD|仿官|萌新|高倍|防拆|4年老服",
@@ -20343,7 +20101,8 @@
   {
     "name": "[UA/EU] Albatros pvp",
     "ip": "31.129.167.243",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[FR] Xtreme Peril [PVE]",
@@ -20383,7 +20142,8 @@
   {
     "name": "GoatYard.eu Deathmatch | Discord.gg/GoatYard",
     "ip": "62.192.153.214",
-    "port": 2802
+    "port": 2802,
+    "queryPort": 2803
   },
   {
     "name": "(EU)LES SURVIVALISTES PVE terje",
@@ -20399,7 +20159,8 @@
   {
     "name": "[EU] Cheranu* | no base damage | Loot+ | Vanilla | IKEA",
     "ip": "85.190.163.9",
-    "port": 11000
+    "port": 11000,
+    "queryPort": 11001
   },
   {
     "name": "\"Next of Kin\" The Walking Dead PVE Hardcore WarZone",
@@ -20410,7 +20171,8 @@
   {
     "name": "NOVICHOK | 1PP | MORE LOOT PVP | WIPE 8/04",
     "ip": "91.232.167.147",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "FuryZ | FullPvP | Keycards | Helis | Airdrops | HackedCrate",
@@ -20431,7 +20193,8 @@
   {
     "name": "[GER/ENG]Apocalypse Cherno|PVE|Bunker|Helis|Trader|30kStart",
     "ip": "195.201.110.118",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "Rubber Dinghy Rapids - DeerIsle 6.0 PvE",
@@ -20507,7 +20270,7 @@
     "queryPort": 2720
   },
   {
-    "name": "Zeub",
+    "name": "les buses",
     "ip": "188.42.131.180",
     "port": 2307,
     "queryPort": 2308
@@ -20548,9 +20311,10 @@
     "queryPort": 2348
   },
   {
-    "name": "Survival Instinct Namalsk - 1PP",
+    "name": "Survival Instinct Namalsk - 1PP - Basebuilding - Vanilla+",
     "ip": "51.38.181.93",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "TryHardMorePls",
@@ -20594,11 +20358,6 @@
     "name": "UmCo GER PVE Green County MMG SNAFU Quest Cars Helis",
     "ip": "5.62.100.236",
     "port": 12100
-  },
-  {
-    "name": "Void [test server]",
-    "ip": "94.131.141.235",
-    "port": 2302
   },
   {
     "name": "server v1",
@@ -20691,7 +20450,7 @@
     "queryPort": 27017
   },
   {
-    "name": "[EU] Gebirgsjaeger |PVP/PVE-Zones|Loot+/Stamina+|Rules!",
+    "name": "[EU] Gebirgsjaeger |PVP|No Stamina!|No Fences!|Loot+",
     "ip": "176.9.104.249",
     "port": 2302,
     "queryPort": 27016
@@ -20711,7 +20470,8 @@
   {
     "name": "[UA] [A+ KYIV] SAKHAL [PVE] [discord.gg/g2vE6tX]",
     "ip": "31.43.152.33",
-    "port": 2332
+    "port": 2332,
+    "queryPort": 27017
   },
   {
     "name": "LostFiles | New Summer! New Life! | Wipe 05.06.2026",
@@ -20722,7 +20482,8 @@
   {
     "name": "Wasteland Survivors United PvE | UK | 3dPrinter | Quests |",
     "ip": "51.89.157.96",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "5086 | EUROPE - DE",
@@ -20783,7 +20544,8 @@
   {
     "name": "WorldBeyondZ | Vanilla | More Loot | More Zombies",
     "ip": "144.76.107.183",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[RU] Vladivostok Namalsk",
@@ -20859,7 +20621,8 @@
   {
     "name": "[FR PVE]-Les Compagnons Du Dimanche-[BZH DayZ]",
     "ip": "87.90.159.251",
-    "port": 2415
+    "port": 2415,
+    "queryPort": 27026
   },
   {
     "name": "[RU] Vladivostok DeerIsle",
@@ -20887,7 +20650,8 @@
   {
     "name": "The Dragon PVE",
     "ip": "185.216.147.169",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "DRUGOY MIR PVE | Operations",
@@ -20934,25 +20698,16 @@
     "queryPort": 2303
   },
   {
-    "name": "MajorDans S.T.A.L.K.E.R Classic Lore (PvsAI)",
-    "ip": "216.82.20.107",
-    "port": 2304
-  },
-  {
     "name": "Sakhalin DayZ | PvP | WIPE 09.04.2026",
     "ip": "91.147.42.234",
     "port": 2302,
     "queryPort": 2303
   },
   {
-    "name": "CZ/SK/EU LAST_HOUR | Vanilla+ |BBP|C4|",
-    "ip": "93.99.173.75",
-    "port": 3132
-  },
-  {
     "name": "nitrado.net gameserver",
     "ip": "85.190.128.100",
-    "port": 11100
+    "port": 11100,
+    "queryPort": 11101
   },
   {
     "name": "🎮  VOSTOK | PVP | VANILLA+ |RU| EVENT | WIPE 10.05⭐",
@@ -21028,11 +20783,6 @@
     "queryPort": 10201
   },
   {
-    "name": "Abandon All Hope Server",
-    "ip": "212.159.20.176",
-    "port": 2302
-  },
-  {
     "name": "[EU] The Sanctuary PVE | NEW | Maplink | Deerisle",
     "ip": "57.128.188.154",
     "port": 2402
@@ -21040,7 +20790,8 @@
   {
     "name": "[UK/EU] Volatile Livonia PVP | BBP | Ai | Vanilla ++",
     "ip": "51.89.173.29",
-    "port": 2602
+    "port": 2602,
+    "queryPort": 2603
   },
   {
     "name": "BRASIL DAYZ",
@@ -21103,14 +20854,10 @@
     "port": 2502
   },
   {
-    "name": "(: SIAM :) | Event+ | Guns+ | ASIA | PVP | KOTH | **FRESH WIPE*",
-    "ip": "183.88.218.20",
-    "port": 2302
-  },
-  {
     "name": "LitosWorld Chern Expansion",
     "ip": "173.69.52.248",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Snows Welt",
@@ -21214,11 +20961,6 @@
     "queryPort": 2303
   },
   {
-    "name": "[EU] THE LAST DAWN |PvePvp|Weekend Raid|Trader|Terje|Quests",
-    "ip": "185.229.236.22",
-    "port": 2402
-  },
-  {
     "name": "FRACTERRA | Le Monde d'Après",
     "ip": "37.156.35.10",
     "port": 2302
@@ -21247,7 +20989,8 @@
   {
     "name": "AG | LONELINESS S.T.A.L.K.E.R RP verif-NH9PVU",
     "ip": "65.109.112.220",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Tobi und Polly (DE)",
@@ -21284,7 +21027,8 @@
   {
     "name": "The Trailblazer's Cherno",
     "ip": "109.230.239.55",
-    "port": 3302
+    "port": 3302,
+    "queryPort": 3303
   },
   {
     "name": "Dayz OldWar GR-EU [Almost Vanila]",
@@ -21305,7 +21049,8 @@
   {
     "name": "[RU] GreenGarden Neuro PVE Pt.1",
     "ip": "88.151.117.173",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "[EU] DeadFall 2.1 Vanilla",
@@ -21373,11 +21118,6 @@
     "port": 2602
   },
   {
-    "name": "CAVEMART MEGALOOT Pripyat",
-    "ip": "47.36.116.177",
-    "port": 2362
-  },
-  {
     "name": "-The Channel US Base Bldg PVP With PVE Spawn",
     "ip": "168.182.98.10",
     "port": 2602,
@@ -21407,7 +21147,8 @@
   {
     "name": "[CZ/SK] Dara Frostline Morava-games.cz MapLink PVE",
     "ip": "77.48.47.118",
-    "port": 3202
+    "port": 3202,
+    "queryPort": 3205
   },
   {
     "name": "Wild life  deerisle",
@@ -21423,7 +21164,8 @@
   {
     "name": "Iron Brotherhood",
     "ip": "152.233.12.211",
-    "port": 11076
+    "port": 11076,
+    "queryPort": 11137
   },
   {
     "name": "the snablo island",
@@ -21454,11 +21196,6 @@
     "name": "The Untold Test",
     "ip": "41.76.213.189",
     "port": 2395
-  },
-  {
-    "name": "Axios Test Server",
-    "ip": "185.186.65.8",
-    "port": 2502
   },
   {
     "name": ".::[Narkosis]::.-|PvEvAI|-Events+Missions+Mutants+Skills|",
@@ -21493,9 +21230,10 @@
     "queryPort": 2303
   },
   {
-    "name": "[EU] EuroPVP | NO party | MAP | CodeLock | Livonia 3pp",
+    "name": "|WIPE 15/06| [EU] EuroPVP | NO party | MAP | Vanilla+",
     "ip": "57.128.211.147",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 2503
   },
   {
     "name": "ASCENSION | US1 | 1PP | 4Man",
@@ -21545,20 +21283,10 @@
     "port": 44444
   },
   {
-    "name": "Baltic Outpost | Chernarus",
-    "ip": "46.109.141.189",
-    "port": 2302
-  },
-  {
     "name": "Afterlife | Hardcore Lore | AI | Stalker - dsc.gg/XMDA48FSv9",
     "ip": "188.255.171.151",
     "port": 2362,
     "queryPort": 27022
-  },
-  {
-    "name": "WASTELAND | 3PP PVP | VANILLA | Chernarus | WIPE 22.05",
-    "ip": "212.22.93.250",
-    "port": 2392
   },
   {
     "name": "Early winter Chernarus",
@@ -21610,7 +21338,7 @@
     "queryPort": 2403
   },
   {
-    "name": "ZERO ZONE | PVP | MOD | X5 | C4 | HELI |",
+    "name": "ZERO ZONE | PVP | 3PP | MOD | X5 | C4 | HELI |",
     "ip": "5.188.131.164",
     "port": 2302,
     "queryPort": 2303
@@ -21623,7 +21351,8 @@
   {
     "name": "The One Run ZA #2 | WIP",
     "ip": "197.100.121.45",
-    "port": 2303
+    "port": 2303,
+    "queryPort": 27017
   },
   {
     "name": "Gift of Death | S.T.A.L.K.E.R. RP",
@@ -21683,11 +21412,6 @@
     "name": "Hellishot",
     "ip": "95.156.213.133",
     "port": 11100
-  },
-  {
-    "name": "DayZ Estonia/Baltics Vanilla++ Takistan",
-    "ip": "90.190.177.29",
-    "port": 2502
   },
   {
     "name": "[BR] InsaneZ DayZ Brasil [1PP] Vanilla+Eventos | Koth  | Bunker",
@@ -21995,7 +21719,8 @@
   {
     "name": "Holly83",
     "ip": "85.190.160.249",
-    "port": 12200
+    "port": 12200,
+    "queryPort": 12201
   },
   {
     "name": "DreamZone-Stalker_PVE_NH-alpha_test",
@@ -22023,7 +21748,8 @@
   {
     "name": "Real Dayz DEERISLE | 1PP | Vanilla+",
     "ip": "109.235.208.238",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "LOADED - Chernarus Experimental",
@@ -22094,11 +21820,6 @@
     "queryPort": 27016
   },
   {
-    "name": "Savage's Banov PVE 50k start",
-    "ip": "212.56.43.108",
-    "port": 2302
-  },
-  {
     "name": "BoredomHub | Chernarus PVE | Traders | 50k | Bosses",
     "ip": "40.160.34.66",
     "port": 2302,
@@ -22143,9 +21864,10 @@
     "port": 2302
   },
   {
-    "name": "Land of the Looters 2.0 - Rebuildin",
+    "name": "LAND OF LOOTERS PVE 2.0 -IN WORK-",
     "ip": "213.166.84.18",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "[EU] Deadlands Namalsk | PvE | Mutants | Treasure Hunt",
@@ -22176,9 +21898,10 @@
     "queryPort": 2681
   },
   {
-    "name": "SETTLERZ PvPvE | LOOT TRADE FIGHT SURVIVE | NO PW NO WL",
+    "name": "TheGalaxy PvE TEST",
     "ip": "185.216.144.121",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Jax's World",
@@ -22193,11 +21916,6 @@
   {
     "name": "[BR] RemanecentesZ-Vanilão | NOVO! RAID SAB! | WIPE 10/04 | DI",
     "ip": "188.255.171.101",
-    "port": 2302
-  },
-  {
-    "name": "Test |Twinkle Play | STALKER RP",
-    "ip": "212.92.101.173",
     "port": 2302
   },
   {
@@ -22355,11 +22073,6 @@
     "port": 2732
   },
   {
-    "name": "05 | Desecrated Lands | HC Community | PvE | Modded | Chernarus",
-    "ip": "74.208.214.143",
-    "port": 2702
-  },
-  {
     "name": "[TOP SECRET] PROJECT AnoWRLD | RU | PVE | CHERNARUS",
     "ip": "185.189.255.209",
     "port": 2316,
@@ -22373,7 +22086,8 @@
   {
     "name": "-   !@RU@!   LXDayZ | Vanilla + | PVP | X2 LOOT | 3PP |",
     "ip": "62.122.182.131",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "DAYZ Chaos | Vanilla Enhanced | Keycards | Party | KOTH |BBP",
@@ -22422,7 +22136,8 @@
   {
     "name": "[BR] Survivors Struggle PvE Namalsk +++ NoRaid! Wipe 20/06/25",
     "ip": "177.125.61.196",
-    "port": 2902
+    "port": 2902,
+    "queryPort": 27022
   },
   {
     "name": "Test It`s Time Deer Island|PVE",
@@ -22478,11 +22193,6 @@
     "port": 2702
   },
   {
-    "name": "[UA|EU] GreenFrog | 3pp | Loot+ | Frostline | WIPED 23.05",
-    "ip": "37.53.84.91",
-    "port": 2402
-  },
-  {
     "name": "DayZ 0.46 by JustaRandom https://discord.gg/xGS3KKyXX4",
     "ip": "134.255.252.219",
     "port": 9500
@@ -22490,18 +22200,14 @@
   {
     "name": "Fair Play - Door County - Official",
     "ip": "74.215.185.231",
-    "port": 2370
+    "port": 2370,
+    "queryPort": 27030
   },
   {
     "name": "Frostline Adventure PVE",
     "ip": "109.95.207.39",
     "port": 2452,
     "queryPort": 27516
-  },
-  {
-    "name": "BadG|CustomNyheimVanillaMap|PVP",
-    "ip": "37.120.170.127",
-    "port": 2402
   },
   {
     "name": "Survivatorium EU | Deer Isle",
@@ -22513,11 +22219,6 @@
     "ip": "142.132.251.171",
     "port": 3602,
     "queryPort": 27024
-  },
-  {
-    "name": "BanovFrost Adventure PVE - Survive/Explore/Trade",
-    "ip": "109.95.207.39",
-    "port": 2402
   },
   {
     "name": "Hounds Of Livonia|PVE|Hardcore-PvAI|Dragons|Paragon|4KBoss",
@@ -22545,11 +22246,6 @@
     "ip": "5.83.170.47",
     "port": 12500,
     "queryPort": 12501
-  },
-  {
-    "name": "Simply DayZ - 2x Loot|Groups|Nav|Short Nights",
-    "ip": "199.241.27.52",
-    "port": 2302
   },
   {
     "name": "Test serwer",
@@ -22580,17 +22276,13 @@
   {
     "name": "GAVR - Livonia | PVP | 3PP | RU | PATY MAX 5 | LOOT X5",
     "ip": "78.107.191.97",
-    "port": 2310
+    "port": 2310,
+    "queryPort": 27020
   },
   {
     "name": "The Refuge Banov | 1PP | BBP | RaG | CodeLock | Build Anywhere",
     "ip": "74.63.236.156",
     "port": 2491
-  },
-  {
-    "name": "AI'll Be Back",
-    "ip": "68.117.149.138",
-    "port": 2302
   },
   {
     "name": "DAYZWORLD Namalsk PVE ATVs|SUV|Cabins",
@@ -22602,11 +22294,6 @@
     "name": "[EU] MyDayZ DeerIsle 6.1 Exp 1PP - RABB - KotH - Airdrop",
     "ip": "37.187.143.55",
     "port": 2602
-  },
-  {
-    "name": "ViperPvE Deerisle|MapLink|SciFi|CustomMissions",
-    "ip": "95.156.230.193",
-    "port": 2502
   },
   {
     "name": "Noxis Deerisle",
@@ -22651,7 +22338,8 @@
   {
     "name": "(GER) Der Weg -Trader-Heli-Cars-PVE",
     "ip": "176.57.171.199",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "DAYZWORLD Novikostok Test",
@@ -22693,7 +22381,8 @@
   {
     "name": "NATIONs DeerIsle 6.0 PVE almost vanilla Endgame",
     "ip": "95.156.230.174",
-    "port": 2802
+    "port": 2802,
+    "queryPort": 2803
   },
   {
     "name": "Inntalschmiede Public - Vanilla Sakhal 6h restart",
@@ -22719,7 +22408,8 @@
   {
     "name": "[ESP] RESILIENCIA | DEERISLE 6.0 | AVENTURAS",
     "ip": "51.178.199.194",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27010
   },
   {
     "name": "Sakhal Is Dead | Development",
@@ -22729,7 +22419,8 @@
   {
     "name": "FOL - Vanilla",
     "ip": "85.10.203.250",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2305
   },
   {
     "name": "Raven clan",
@@ -22757,14 +22448,16 @@
     "port": 13400
   },
   {
-    "name": "AfterFall",
+    "name": "AFTERFALL ROMANIA | LOOT++ | EVENTS | CARS+ | PVP",
     "ip": "193.135.10.153",
-    "port": 20201
+    "port": 20201,
+    "queryPort": 20202
   },
   {
     "name": "Dreierpasch/PVE/PVP",
     "ip": "116.202.155.175",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Cannabis Cartel Land™ PvP/PvE Builder Kits Trader Helis Drugs",
@@ -22795,7 +22488,8 @@
   {
     "name": "| THE LAST CHAPTER |PvE/PvP| Lootchests |Daily Quests| Events",
     "ip": "188.42.131.214",
-    "port": 2491
+    "port": 2491,
+    "queryPort": 2492
   },
   {
     "name": "Brigaden - DayZ Norway",
@@ -22811,21 +22505,6 @@
     "name": "DayZed and Confused",
     "ip": "167.160.93.178",
     "port": 2312
-  },
-  {
-    "name": "[BR]COLAPSO-Z|RAID C4|BBP|BUNKER|1PP|VANILLA+|WIPE 05/05/2026",
-    "ip": "187.111.113.94",
-    "port": 2302
-  },
-  {
-    "name": "DeadZone UK PVE -Chernarus | 75k start | Custom Areas | Maplink",
-    "ip": "65.21.225.172",
-    "port": 2302
-  },
-  {
-    "name": "Deadly Storm SHP | PVE | AI Bots | AirDrop | x10 Loot",
-    "ip": "90.188.95.184",
-    "port": 2402
   },
   {
     "name": "DeadCraft DayZ GTX",
@@ -22849,14 +22528,10 @@
     "port": 2301
   },
   {
-    "name": "The Wall EU PVP/RAID | KOTH | C4 | HELI | Ai | KOS | 1PP",
+    "name": "*JUST WIPED* The Wall EU PVP/RAID | KOTH | C4 | HELI | Ai | KOS",
     "ip": "145.239.204.105",
-    "port": 2702
-  },
-  {
-    "name": "[COSMO] YASNOMORSK PVP | FREE VIP | MORE LOOT & CARS | VANILLA",
-    "ip": "94.103.88.111",
-    "port": 2302
+    "port": 2702,
+    "queryPort": 2703
   },
   {
     "name": "Porkypie Survive PVE",
@@ -22900,7 +22575,8 @@
   {
     "name": "4_Amici_al_Bar",
     "ip": "142.132.170.141",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Hades Gate",
@@ -22935,7 +22611,8 @@
   {
     "name": "HPG Survial",
     "ip": "144.48.104.98",
-    "port": 2312
+    "port": 2312,
+    "queryPort": 2313
   },
   {
     "name": "Slomiaki",
@@ -23007,9 +22684,10 @@
     "port": 2302
   },
   {
-    "name": "WAREHOUSE|PvE|PvP|AI Survival|CZ/SK/EU",
+    "name": "WAREHOUSE|PvE|PvP|AI|CZ/SK/EU",
     "ip": "93.99.7.93",
-    "port": 3082
+    "port": 3082,
+    "queryPort": 3083
   },
   {
     "name": "[BR] Black Wolf Z - 1PP / PvP/ Full Mod/ Trader/ Raid/ BBP",
@@ -23028,9 +22706,10 @@
     "queryPort": 2313
   },
   {
-    "name": "Salted Legacy|US1|PVP|ATM|Koth|BBP|AI|+loot|Drugs|Heli",
+    "name": "Salted Legacy|US1|PVP|ATM|Koth|BBP|AI|+loot|ARMA|Heli",
     "ip": "95.173.216.130",
-    "port": 2322
+    "port": 2322,
+    "queryPort": 2323
   },
   {
     "name": "Kearsarge pve 3x loot |Expansion|Frequent airdrops|",
@@ -23076,9 +22755,10 @@
     "queryPort": 2303
   },
   {
-    "name": "Project_Exodus",
+    "name": "Project Exodus | Heavily Modded| PVE ONLY|",
     "ip": "64.20.43.242",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "DayZ Server [CFTools OmegaManager-Deployed #2]",
@@ -23107,11 +22787,6 @@
     "port": 11400
   },
   {
-    "name": "Badlandz_Mod_Test_Server",
-    "ip": "73.133.250.192",
-    "port": 2402
-  },
-  {
     "name": "[DZR] | Namalsk | Survival | > * Exploring the lore *",
     "ip": "78.36.6.129",
     "port": 2303
@@ -23134,7 +22809,8 @@
   {
     "name": "[DE] Miris Regular Namalsk Server PVE only 14-24 Uhr",
     "ip": "84.135.249.92",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "FR OQGZ Survival serveur",
@@ -23145,7 +22821,8 @@
   {
     "name": "# Outback AU Sakhal | More Loot | No Mods",
     "ip": "103.193.80.85",
-    "port": 2314
+    "port": 2314,
+    "queryPort": 27003
   },
   {
     "name": "EchelonZ|PVP/PVE|Traders|Quests|LightSwords|x4Loot|Aliens",
@@ -23240,9 +22917,10 @@
     "port": 29400
   },
   {
-    "name": "Noobs Hideout 2.0 | FRESH LAUNCH | PVE & PVP Zones | KOTH | Air",
+    "name": "Noobs Hideout 2.0 | FRESH WIPE | PVE & PVP Zones | KOTH | Airdr",
     "ip": "205.209.114.66",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "#JohnysGroup | FROSTCORE 1PP Chernarus Winter Survival",
@@ -23279,11 +22957,6 @@
     "name": "DayZ RPG - Canada VS Quebec",
     "ip": "66.131.181.15",
     "port": 2302
-  },
-  {
-    "name": "SunRise Nyheim 2.0 | Missions-AI-Trader-Base Building Survival",
-    "ip": "199.101.125.132",
-    "port": 3102
   },
   {
     "name": "Axios Deathmatch | 3PP | Free Drip Menu | Rounds | Map Voting",
@@ -23380,11 +23053,6 @@
     "queryPort": 15170
   },
   {
-    "name": "SnoopFrog | PVE ONLY | AI | MUTANTS | TRADERS | SUITS | PIMPED",
-    "ip": "176.27.149.59",
-    "port": 2302
-  },
-  {
     "name": "DOKY Dayz Server",
     "ip": "134.255.222.217",
     "port": 30300
@@ -23392,7 +23060,8 @@
   {
     "name": "ROSSINI PVE FROSTLINE DayZ",
     "ip": "37.18.21.214",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "SZ Test",
@@ -23426,9 +23095,10 @@
     "queryPort": 20298
   },
   {
-    "name": "[EU]|[Balkan]|Infinity Hub TEST SERVER",
+    "name": "[EU]|Infinity Hub PvE",
     "ip": "148.251.79.19",
-    "port": 3436
+    "port": 3436,
+    "queryPort": 3437
   },
   {
     "name": "#RUSSIAN MAFIA=PvP=Lootx2=HighFpS=MaP",
@@ -23472,11 +23142,6 @@
     "name": "SirenaTu",
     "ip": "31.210.50.23",
     "port": 2303
-  },
-  {
-    "name": "Gordon DayZ Server",
-    "ip": "174.83.12.178",
-    "port": 2302
   },
   {
     "name": "Mind Games STALKER RP  Test server",
@@ -23585,7 +23250,8 @@
   {
     "name": "Fiksiki - Azer'Land",
     "ip": "149.202.82.212",
-    "port": 4147
+    "port": 4147,
+    "queryPort": 4712
   },
   {
     "name": "The Winchester |PvE with PvP zones| Hard AI",
@@ -23681,9 +23347,10 @@
     "port": 2302
   },
   {
-    "name": "vetalkeE",
+    "name": "DAYZILLA",
     "ip": "45.136.205.21",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Grayzen's Server",
@@ -23760,7 +23427,8 @@
   {
     "name": "Lorraine DayZ Server",
     "ip": "85.10.204.52",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[RU][PVE/PVP zone] De-Friz VL |No Raid|Custom mods|DEER ISLE",
@@ -23840,7 +23508,8 @@
   {
     "name": "**СЕДОЙ УРАЛ** PVP Сахал",
     "ip": "212.220.212.86",
-    "port": 2404
+    "port": 2404,
+    "queryPort": 27012
   },
   {
     "name": "The DayZ After - Chernarusplus - (PvE Only) Simply Vanilla",
@@ -23863,10 +23532,11 @@
   {
     "name": "#4 SKYHUB - DEATHMATCH | CHERNARUS | HIGH FPS+",
     "ip": "79.142.206.233",
-    "port": 2828
+    "port": 2828,
+    "queryPort": 27019
   },
   {
-    "name": "Winter Hideout | Chernarus PVE | PT1P1",
+    "name": "Winter Hideout | Chernarus PVE | PTP2",
     "ip": "185.83.152.154",
     "port": 2902,
     "queryPort": 27022
@@ -24006,7 +23676,8 @@
   {
     "name": "[Ger/Eng]Egoperium Namalsk /1PP/ Fresh WIPE 1.1",
     "ip": "176.57.140.204",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "HardZ Namalsk|Hardcore Survival",
@@ -24017,7 +23688,8 @@
   {
     "name": "BoMF Server | Vanilla | Wipe 16.04 | LOOT+ | Start base /bonus",
     "ip": "185.18.6.113",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "WIPE 09.04[#2]QUARK|LOOT+|CARS+|BOTS|PvP|RU",
@@ -24063,7 +23735,8 @@
   {
     "name": "SUDO EU1 Cherno | Airdrop | KOTH | AI | SNAFU | FOG | DRUGs",
     "ip": "147.135.223.74",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "CCCP_Sakhal [PvE]",
@@ -24109,12 +23782,14 @@
   {
     "name": "[GER] www.Friendly-Survivors.de Cluster Chiemsee PVE Schwer",
     "ip": "46.4.23.220",
-    "port": 2502
+    "port": 2502,
+    "queryPort": 27018
   },
   {
     "name": "*FRESH WIPE* CryBabieZ Vanilla +|PVP|6 Group limit|1PP|AI Patro",
     "ip": "74.50.77.179",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "SunRise Alteria |w/PvP Zones | Missions-Build-Survival",
@@ -24132,7 +23807,7 @@
     "port": 2332
   },
   {
-    "name": "A Beautiful Potato | Deer Isle",
+    "name": "A Beautiful Potato | Banov",
     "ip": "104.218.48.62",
     "port": 2602,
     "queryPort": 2603
@@ -24308,12 +23983,14 @@
   {
     "name": "TRU LEGION. |PVPVE |CUSTOM TRADER |AI |BBP |DRUGS |DNA |HELIS",
     "ip": "194.50.234.113",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Namalsk UA",
     "ip": "134.249.52.154",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "Philly Special V3 [TEST]",
@@ -24397,9 +24074,10 @@
     "queryPort": 2303
   },
   {
-    "name": "[ESP] ProyectoZ |PVE|Traders|Heli|BBP|en_construcccion",
+    "name": "[ESP]_ProyectoZ_Full_PVE-_traders_helis_BBP_en_construcccion",
     "ip": "5.226.141.78",
-    "port": 2680
+    "port": 2680,
+    "queryPort": 2681
   },
   {
     "name": "[Hun | EU] New Hope ( teszt )",
@@ -24409,7 +24087,8 @@
   {
     "name": "[FR]-Les3T-PVE / Loot au demarage/ + de Vehicules",
     "ip": "2.15.164.160",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[GER] The long journey - DeerIsle 6.0 [PVE/PVP]",
@@ -24520,7 +24199,8 @@
   {
     "name": "RYFTVALE Chernarus #1 - 3PP | VANILLA + MODS",
     "ip": "176.105.215.203",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "[副地图] 冰岛-战区-请勿直接进入",
@@ -24642,11 +24322,6 @@
     "name": "DARCOM",
     "ip": "93.99.7.63",
     "port": 2972
-  },
-  {
-    "name": "Уютный DAYZ PVE Pripyat(Local)",
-    "ip": "5.253.101.235",
-    "port": 2606
   },
   {
     "name": "Exo's PvP [Sakhal] - Shoot First or Die Trying!",
@@ -25020,29 +24695,9 @@
     "port": 2925
   },
   {
-    "name": "HarWood Aus Chernarus",
-    "ip": "122.148.194.202",
-    "port": 2302
-  },
-  {
-    "name": "Another World STALKER",
-    "ip": "46.42.17.177",
-    "port": 2305
-  },
-  {
     "name": "Mix.Z|Deerisle|FULLPVE|BOOTS|Servidor Lixo|Entre por sua conta",
     "ip": "45.7.120.136",
     "port": 2305
-  },
-  {
-    "name": "RedWave US Main - LOCKED",
-    "ip": "146.168.41.133",
-    "port": 2302
-  },
-  {
-    "name": "#1 Occupy Green County|HardcorePLUS|discord.gg/Bw9TTcMcsZ",
-    "ip": "47.24.104.79",
-    "port": 2306
   },
   {
     "name": "LOOK AT ME I AM THE CAPTAIN NOW/PVP",
@@ -25079,7 +24734,8 @@
   {
     "name": "ArmaItalia.net - (Loot+, Fast Nights, Fixed Spawns, Restarts 6a",
     "ip": "136.243.149.204",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "RU59 | Namalsk | Hardcore | PVE | Vanilla+ | Mods | 3PP",
@@ -25170,9 +24826,10 @@
     "queryPort": 27019
   },
   {
-    "name": "PROJETO FÚRIA | EM DEV | A ERA DA CRIAÇÃO | SEASON 2",
+    "name": "[BR] PROJETO FÚRIA | 09/06 | A ERA DA CRIAÇÃO | SEASON 2",
     "ip": "188.255.171.151",
-    "port": 2372
+    "port": 2372,
+    "queryPort": 27021
   },
   {
     "name": "ContagioZ Brasil PVE | Expedition 01: The DeerIsle Mystery 6.0",
@@ -25186,7 +24843,7 @@
     "queryPort": 3059
   },
   {
-    "name": "Darklands UK PvE Military PvP Zones https://discord.gg/BmWdHgCk",
+    "name": "Darklands UK PvE/RP/PvP Zones https://discord.gg/FjUQdKdnAw",
     "ip": "185.125.205.113",
     "port": 2491,
     "queryPort": 2492
@@ -25194,7 +24851,8 @@
   {
     "name": "MAGNUS STALKER-PVE YELLOW: CARS",
     "ip": "195.18.27.43",
-    "port": 2340
+    "port": 2340,
+    "queryPort": 2210
   },
   {
     "name": "[GER] Secret Place PVE/PVP [Trader|Drugs|Cars|BBP]",
@@ -25204,7 +24862,8 @@
   {
     "name": "[RU] Life Limit PVE | Bots | HARDCORE",
     "ip": "92.38.222.149",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "project gavno-zalupa",
@@ -25369,11 +25028,6 @@
     "queryPort": 27015
   },
   {
-    "name": "基佬pve白名单地堡AI卡房矿机正式服qq群825147307",
-    "ip": "117.159.15.48",
-    "port": 2305
-  },
-  {
     "name": "OW| CHERNO 3PP | VANILLA++ | EU | PVP | WIPE 03.06",
     "ip": "193.25.252.96",
     "port": 2302,
@@ -25410,12 +25064,14 @@
   {
     "name": "- Metal | VANILLA+ (Loot/Cars/Event/Wildlife/Nights) | EU",
     "ip": "15.236.199.8",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "PvE_Dikson CARS | QUESTS | WEAPONS | AIRDROP | BUILDING |",
     "ip": "89.22.16.154",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2405
   },
   {
     "name": "ALTERNATIVE project PvE - DeerIsle",
@@ -25566,7 +25222,8 @@
   {
     "name": "瑞克仿官|公益服|PVP|轻优化MOD",
     "ip": "194.29.186.58",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "The Nightmares DayZ [PVE][RU][CHERNO]-1",
@@ -25606,7 +25263,8 @@
   {
     "name": "Bloc Party Testing",
     "ip": "97.86.40.119",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Last Dawn - Vanilla | Dark Night | 1PP | Better Building | disc",
@@ -25735,7 +25393,8 @@
   {
     "name": "Dystopic Sandbox Creative Helis Deathmatch Godmode",
     "ip": "2.59.133.140",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2305
   },
   {
     "name": "RU | Crystal DayZ | PVP | VANILLA++ | MAX6",
@@ -25877,7 +25536,8 @@
   {
     "name": "#2 DayZ Original | CrossMap | Official Server",
     "ip": "82.125.156.153",
-    "port": 2702
+    "port": 2702,
+    "queryPort": 27020
   },
   {
     "name": "TotalFallouT",
@@ -25952,7 +25612,8 @@
   {
     "name": "Fullsend PVE Livonia",
     "ip": "45.45.237.122",
-    "port": 2902
+    "port": 2902,
+    "queryPort": 27022
   },
   {
     "name": "- Overkill - PVP - 3PP -",
@@ -25975,7 +25636,8 @@
   {
     "name": "[FR-EU] Le QG PVE New Server",
     "ip": "86.227.101.192",
-    "port": 2202
+    "port": 2202,
+    "queryPort": 29015
   },
   {
     "name": "Alatyr-Deer-Isle-1",
@@ -26002,9 +25664,10 @@
     "queryPort": 2834
   },
   {
-    "name": "187 WAKE UP - Hard Life/Veteran/1st Person Only",
+    "name": "187 WAKE UP | Veteran | AI Patrols | Drops | CodeLock | 1PP",
     "ip": "185.180.2.93",
-    "port": 27259
+    "port": 27259,
+    "queryPort": 28259
   },
   {
     "name": "Smokey Haze | PvE | BBP | Bunker | Drugs | Helis | MMG | Trader",
@@ -26021,7 +25684,8 @@
   {
     "name": "WarHunt | NSK | SAKHAL |PVE+|AI_BOT/DROP_CAR+BOX",
     "ip": "152.89.199.82",
-    "port": 2602
+    "port": 2602,
+    "queryPort": 2606
   },
   {
     "name": "OMEGATECH - Sakhal | PVP | AI | Traders | Quests | Events",
@@ -26111,7 +25775,7 @@
     "queryPort": 2305
   },
   {
-    "name": "*NEW* Spin The Block (4 Man Max) PVP | Helis | Events+++",
+    "name": "Spin The Block PVP",
     "ip": "38.44.168.7",
     "port": 2880,
     "queryPort": 3025
@@ -26119,7 +25783,8 @@
   {
     "name": "Crazy Gamers [EU/FIN] | crazy-gamers.net | Traders",
     "ip": "185.57.6.199",
-    "port": 2312
+    "port": 2312,
+    "queryPort": 27027
   },
   {
     "name": "[ACOG] A Community Of Gamers PVE Server |Trader|Cars|Helis|Boss",
@@ -26156,11 +25821,6 @@
     "queryPort": 27014
   },
   {
-    "name": "REDMOON TEST",
-    "ip": "212.22.93.130",
-    "port": 2302
-  },
-  {
     "name": "GearFear-WeekendRaids-8Max-AI-HighlyModded",
     "ip": "38.44.168.7",
     "port": 2699,
@@ -26186,7 +25846,8 @@
   {
     "name": "Fullsend Bitterroot PVE| 150k Start $ | Trader | MUCH MORE!",
     "ip": "45.45.237.122",
-    "port": 3302
+    "port": 3302,
+    "queryPort": 27026
   },
   {
     "name": "WHITEOUT | Toona's House | AI | Bosses | Helis",
@@ -26276,10 +25937,11 @@
   {
     "name": "Kuru | Sakhal | Bots | Terje | Hardcore Survival | PvP",
     "ip": "5.250.233.180",
-    "port": 2301
+    "port": 2301,
+    "queryPort": 27100
   },
   {
-    "name": "Server Dayz-lux -test",
+    "name": "Fury of The Infected - Test phase- Opening soon",
     "ip": "86.227.101.192",
     "port": 2912,
     "queryPort": 37046
@@ -26291,9 +25953,10 @@
     "queryPort": 2303
   },
   {
-    "name": "HOT ZONE | EU/US | Official Vanilla",
+    "name": "-               HotZone Vanilla | 1pp | No Raiding",
     "ip": "149.50.126.13",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "РЕВОЛЮЦИЯ PVP",
@@ -26359,18 +26022,14 @@
   {
     "name": "MIIB-Chernarus",
     "ip": "82.127.108.121",
-    "port": 2310
+    "port": 2310,
+    "queryPort": 27100
   },
   {
     "name": "Ike Dies at the End (Deer Isle)",
     "ip": "99.155.148.228",
     "port": 2306,
     "queryPort": 2356
-  },
-  {
-    "name": "[AU] ZedTopia # 3 - | Winter Survival |",
-    "ip": "124.187.52.12",
-    "port": 2304
   },
   {
     "name": "DespertarZ  | VANILLA | DEATHMATCH  |  AIRFELD",
@@ -26403,12 +26062,14 @@
   {
     "name": "Zahnradkopf Community Server |PvP|BBP|Weapons+|Helis",
     "ip": "152.53.180.113",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2305
   },
   {
     "name": "The DayZ After - Frostline - (PvE Only) Simply Vanilla",
     "ip": "185.35.99.221",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "NEW|LHSF|Cherno|PVP|RaidWeekEnds|Loot++|",
@@ -26486,12 +26147,14 @@
   {
     "name": "INFLUENCE PVE STALKER AoD",
     "ip": "46.4.85.24",
-    "port": 2402
+    "port": 2402,
+    "queryPort": 2403
   },
   {
     "name": "EnterDayZ Vanilla Livonia PvE | enterdayz.ru",
     "ip": "91.206.15.216",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Last-Resort.net - Chernarus - Hardcore PVE",
@@ -26773,7 +26436,8 @@
   {
     "name": "[UA] PALYANYTSIA #5 | DM",
     "ip": "91.200.42.30",
-    "port": 2342
+    "port": 2342,
+    "queryPort": 2343
   },
   {
     "name": "Green DAYZ | DM",
@@ -26799,7 +26463,8 @@
   {
     "name": "abcdefg",
     "ip": "85.190.162.158",
-    "port": 12200
+    "port": 12200,
+    "queryPort": 12201
   },
   {
     "name": "PHANTOM RP TEST",
@@ -26825,7 +26490,8 @@
   {
     "name": "ResterampeDeluxe [GER] PVE only / Helis / Hunting / Age over 18",
     "ip": "212.87.212.184",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "TNW | The Norwegian Way | 1PP - No base | https://discord.gg/8x",
@@ -26864,9 +26530,10 @@
     "port": 2302
   },
   {
-    "name": "porquesi",
+    "name": "Punicheat Services Dayz S. L",
     "ip": "85.190.161.9",
-    "port": 13100
+    "port": 13100,
+    "queryPort": 13101
   },
   {
     "name": "KudlacziniKudlaczos",
@@ -26932,7 +26599,7 @@
     "queryPort": 2303
   },
   {
-    "name": "New World Europe  | NoTraders | NoBaseDmg | Horses | GER|ENG",
+    "name": "New World Europe     | SAFEBASE | 4MAX | VANILLA + MODS",
     "ip": "93.99.173.69",
     "port": 2842,
     "queryPort": 2843
@@ -27015,7 +26682,8 @@
   {
     "name": "AIRFIELD (training ground) / terrain spawn / more loot ...",
     "ip": "85.190.162.221",
-    "port": 10900
+    "port": 10900,
+    "queryPort": 10901
   },
   {
     "name": "The SurvivorZ-https://discord.gg/92sNQjm92v -Experimental",
@@ -27169,7 +26837,8 @@
   {
     "name": "SKIF_СHERNO_PVE",
     "ip": "109.248.4.111",
-    "port": 2309
+    "port": 2309,
+    "queryPort": 27022
   },
   {
     "name": "Zone Nord Pve",
@@ -27322,7 +26991,8 @@
   {
     "name": "Brickbats  NO KOA  PVE ONLY  NO RAIDING",
     "ip": "104.192.226.155",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 2303
   },
   {
     "name": "SweetHome | 1PP | 6 Man | BBPbuilding",
@@ -27379,7 +27049,8 @@
   {
     "name": "One Last Tomorrow",
     "ip": "73.13.165.152",
-    "port": 2302
+    "port": 2302,
+    "queryPort": 27016
   },
   {
     "name": "Sasha's Server",
@@ -27521,7 +27192,7 @@
     "port": 2302
   },
   {
-    "name": "**NEW** | 3Kings | EU | Vanilla+ | No Trader | Raid Alarm",
+    "name": "**NEW** | 3Kings | EU | Vanilla+ | No Trader | Raid Alarm | Mis",
     "ip": "57.129.101.138",
     "port": 2302,
     "queryPort": 27016
@@ -27787,7 +27458,7 @@
     "queryPort": 27016
   },
   {
-    "name": "Serenity | No KOS | Community First",
+    "name": "Serenity | Community before KOS | AI Renegades",
     "ip": "37.156.35.34",
     "port": 2302,
     "queryPort": 2303
@@ -28051,7 +27722,7 @@
     "queryPort": 3059
   },
   {
-    "name": "test",
+    "name": "[CZ] PNW (PVE) Bandits/Trader",
     "ip": "185.180.2.94",
     "port": 27086,
     "queryPort": 28086
@@ -28279,7 +27950,7 @@
     "queryPort": 2492
   },
   {
-    "name": "AHG Sakhal  PVE",
+    "name": "AHG Chernarus  PVE",
     "ip": "46.4.98.58",
     "port": 2302,
     "queryPort": 27016
@@ -28345,7 +28016,7 @@
     "queryPort": 2303
   },
   {
-    "name": "NightTrain",
+    "name": "Night Train",
     "ip": "78.57.236.35",
     "port": 2302,
     "queryPort": 2303
@@ -28573,7 +28244,7 @@
     "queryPort": 27016
   },
   {
-    "name": "Cataclysmic Decay",
+    "name": "Catacysmic Decay",
     "ip": "72.46.128.202",
     "port": 27800,
     "queryPort": 27801
@@ -29215,7 +28886,7 @@
     "queryPort": 2870
   },
   {
-    "name": "TWDUniverse",
+    "name": "Branquelas Dear Isle",
     "ip": "31.214.158.200",
     "port": 11400,
     "queryPort": 11401
@@ -29551,7 +29222,7 @@
     "queryPort": 60432
   },
   {
-    "name": "SuchtBude.Live - Zock Dich Reich",
+    "name": "[GER] SuchtBude | Kronic Bears & Wolves | PvE | Custom Loot",
     "ip": "46.251.251.12",
     "port": 2302,
     "queryPort": 27016
@@ -29809,7 +29480,7 @@
     "queryPort": 11071
   },
   {
-    "name": "【枫叶PVE困难生存服务器】副本，伞兵，坠机",
+    "name": "【枫叶PVE鹿岛生存服务器】副本，伞兵，坠机",
     "ip": "103.120.91.118",
     "port": 2302,
     "queryPort": 27016
@@ -29857,7 +29528,7 @@
     "queryPort": 2870
   },
   {
-    "name": "零四DayZ PVE多图旅行 Banov QQ群1014265186",
+    "name": "零四DayZ PVE多图旅行 Banov 密码加群1014265186",
     "ip": "112.232.42.94",
     "port": 2402,
     "queryPort": 27017
@@ -30961,7 +30632,7 @@
     "queryPort": 27016
   },
   {
-    "name": "[UE] PhantomLore | PVE | +18 | Dangerous Animals | NO AI",
+    "name": "[UE] PhantomLore",
     "ip": "178.63.60.98",
     "port": 2302,
     "queryPort": 27016
@@ -31645,7 +31316,7 @@
     "queryPort": 10701
   },
   {
-    "name": "[BR] SUPRAZ BRASIL 3PP | Aventura++ Loot++ NoRaid",
+    "name": "[BR] OrdemZ | Chernarus | Full PVE | Nova Season | Wipe 31/05",
     "ip": "188.255.171.151",
     "port": 2352,
     "queryPort": 27016
@@ -32749,7 +32420,7 @@
     "queryPort": 27016
   },
   {
-    "name": "NOSTALGIA STALKER RP [#testserver#1]",
+    "name": "NOSTALGIA STALKER RP",
     "ip": "185.207.214.250",
     "port": 2302,
     "queryPort": 2303
@@ -33313,7 +32984,7 @@
     "queryPort": 11001
   },
   {
-    "name": "HighLands | PVP/PVE | Trader | Drugs+ | Cars | Weapons",
+    "name": "Highlands |PVP/PVE| Drugs+|Traders|Cars|Weapons|BM|",
     "ip": "51.195.242.18",
     "port": 2342,
     "queryPort": 2343
@@ -33499,7 +33170,7 @@
     "queryPort": 2815
   },
   {
-    "name": "BeerQuest|RP",
+    "name": "BeerQuest | HardRP",
     "ip": "37.18.21.151",
     "port": 2302,
     "queryPort": 2303
@@ -33709,7 +33380,7 @@
     "queryPort": 2305
   },
   {
-    "name": "ThrillerBark-V2",
+    "name": "ThrillerBark-V2 PVE | ARENA | SCI-FI | DINOS | CUSTOM MOB, WEAP",
     "ip": "66.135.21.86",
     "port": 2302,
     "queryPort": 27018
@@ -33991,7 +33662,7 @@
     "queryPort": 27019
   },
   {
-    "name": "SUPCHIKMOD-V2|PVP|Х5|BANK|TRADE|RAID C4",
+    "name": "SUPCHIKMOD-II |PVP|Х5|BANK|TRADE|RAID C4",
     "ip": "37.18.21.154",
     "port": 2316,
     "queryPort": 2317
@@ -34057,7 +33728,7 @@
     "queryPort": 2403
   },
   {
-    "name": "Pinevale",
+    "name": "Pinevale | Organic RP | dsc.gg/pinevale",
     "ip": "5.196.64.132",
     "port": 2302,
     "queryPort": 2303
@@ -34111,7 +33782,7 @@
     "queryPort": 11801
   },
   {
-    "name": "Verity of Survival/PVE/New/Open Testing",
+    "name": "Verity of Survival/Newly Open/DeerIsle/Casino/Collectibles/Dna",
     "ip": "51.222.11.183",
     "port": 2305,
     "queryPort": 27016
@@ -34141,7 +33812,7 @@
     "queryPort": 27016
   },
   {
-    "name": "[UA] Perimetr [RP]",
+    "name": "[UA] PERIMETR [RP]",
     "ip": "51.255.84.80",
     "port": 2302,
     "queryPort": 2303
@@ -34357,9 +34028,1851 @@
     "queryPort": 27016
   },
   {
-    "name": "[TH] No.001 Survival | Vanilla+ | Codelock | Support LGTVHD+",
+    "name": "[TH] No.001 Community | Vanilla+ | Codelock | Support LGTVHD+",
     "ip": "143.20.142.206",
     "port": 2402,
     "queryPort": 2403
+  },
+  {
+    "name": "THE ISLAND | A Fresh Spawns & Beautiful Potato Experience",
+    "ip": "104.218.48.62",
+    "port": 3602,
+    "queryPort": 3603
+  },
+  {
+    "name": "FlashZ WL | Vanilla Loot++ | Full Pvp | 1pp | Max 4 pers.",
+    "ip": "37.156.35.54",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[TH] Daisy on Game | PVE  Hard Core",
+    "ip": "184.82.107.38",
+    "port": 27015,
+    "queryPort": 27016
+  },
+  {
+    "name": "[UA] Зелена Зона PVE | Bot | Mutants | 18+",
+    "ip": "95.217.69.66",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "PLG VANILLA+ LIVONIA | Weekend Raid | Clans | Airdrops | Toxic",
+    "ip": "109.122.58.50",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "GORILLA Deathmatch",
+    "ip": "88.151.117.96",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "[RU] #1 DM ZASADA Vanilla BIG-MAP SZ Aero Deathmatch",
+    "ip": "185.187.114.44",
+    "port": 2312,
+    "queryPort": 27116
+  },
+  {
+    "name": "[SG] End Times Survival | PVE | AI | DRUGS | LOOT+ | CHILL COMM",
+    "ip": "40.27.47.195",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[RU]GameLife_PVE|Medium Hard|Bots|Quests|More weapons",
+    "ip": "5.42.211.237",
+    "port": 2302,
+    "queryPort": 2305
+  },
+  {
+    "name": "TL潜行者PVE-AI还原派系RPG剧情任务585733200",
+    "ip": "118.251.60.83",
+    "port": 2888,
+    "queryPort": 2889
+  },
+  {
+    "name": "[EU] Shambles PvE #1 | Fresh Wipe | Traders | Quests | Airdrops",
+    "ip": "213.133.111.26",
+    "port": 3002,
+    "queryPort": 3003
+  },
+  {
+    "name": "OTVAGA DEATHMATCH",
+    "ip": "185.207.214.165",
+    "port": 2302,
+    "queryPort": 2603
+  },
+  {
+    "name": "[LATAM] DayZ HARDCORE - Vanilla+ 1PP | Bases",
+    "ip": "109.230.243.174",
+    "port": 11000,
+    "queryPort": 11001
+  },
+  {
+    "name": "LATAM KREW | wipe 17/06/2026",
+    "ip": "201.246.40.208",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[ESP] Los Lobos | Lux - Safari [PvE]",
+    "ip": "161.97.166.210",
+    "port": 3102,
+    "queryPort": 3103
+  },
+  {
+    "name": "CRISIS DAYZ | PVE ✗ PVP | GUN+ | CAR+",
+    "ip": "46.174.54.219",
+    "port": 2302,
+    "queryPort": 2305
+  },
+  {
+    "name": "Feniks Project RP",
+    "ip": "195.18.27.93",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "DeathForest|5MAX|1PP|BBP|Trader|Events|PvP|200K",
+    "ip": "136.243.69.186",
+    "port": 2322,
+    "queryPort": 2323
+  },
+  {
+    "name": "Astral Deathmatch | FFA | VMC | Modded |",
+    "ip": "51.38.168.138",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Alternativa [RU PVE AI_Bot Tropical ]",
+    "ip": "5.172.7.199",
+    "port": 2702,
+    "queryPort": 2703
+  },
+  {
+    "name": "[RU] LASTRAID | VANILLA+ | PVP | CHERNARUS",
+    "ip": "109.248.4.139",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[爆战]PVE/升级/合成/爆战尸巢/2月1新服开荒/Q群13",
+    "ip": "202.189.4.187",
+    "port": 10410,
+    "queryPort": 10450
+  },
+  {
+    "name": "[BR] TerraZ- PVE |SERVER NOVO|LOOT++|DRUGS|FullMOD",
+    "ip": "188.255.171.147",
+    "port": 2452,
+    "queryPort": 27024
+  },
+  {
+    "name": "Strij PVE Banov",
+    "ip": "77.39.9.79",
+    "port": 2413,
+    "queryPort": 27027
+  },
+  {
+    "name": "[FR] les survivants de la bonne humeur PVE, Zone PVP, Trader",
+    "ip": "86.233.101.174",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Exclusion Zone | Chernobyl",
+    "ip": "5.140.213.7",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Operation High Water | RP | Trader | Expansion AI | Helicopters",
+    "ip": "216.173.113.251",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "NoMercy StalkerRP",
+    "ip": "194.93.2.130",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "ASG LAG",
+    "ip": "88.198.64.220",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "ET DO PARANÁ",
+    "ip": "31.214.158.200",
+    "port": 20600,
+    "queryPort": 20601
+  },
+  {
+    "name": "The Refuge Namalsk PVE | Bases | Hacked Crates | Helis",
+    "ip": "172.111.51.5",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "2PARA Dayz Server",
+    "ip": "136.243.93.81",
+    "port": 2328,
+    "queryPort": 27016
+  },
+  {
+    "name": "Tareks Corner",
+    "ip": "45.45.238.181",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[UA] Paintball",
+    "ip": "31.172.80.128",
+    "port": 2460,
+    "queryPort": 2463
+  },
+  {
+    "name": "RED FOX | Cherno 3pp | Vanilla++ | RU | PVP |",
+    "ip": "185.189.255.37",
+    "port": 2302,
+    "queryPort": 2392
+  },
+  {
+    "name": "BigSmoke Walking Dead",
+    "ip": "71.60.48.117",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "Deadline-DeerIsle",
+    "ip": "116.202.171.8",
+    "port": 2602,
+    "queryPort": 2603
+  },
+  {
+    "name": "SurviFR",
+    "ip": "5.83.171.100",
+    "port": 10700,
+    "queryPort": 10701
+  },
+  {
+    "name": "【PVE】HSS CN/HK/TW https://discord.gg/uRPz8GG7xh Join us",
+    "ip": "111.242.186.149",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[EU] MhDz | PvP | Helis | Airdrop | Traders | KOTH | WipedApr08",
+    "ip": "144.2.120.209",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Echo of Death PVE Dungeon",
+    "ip": "185.207.214.115",
+    "port": 2323,
+    "queryPort": 2324
+  },
+  {
+    "name": "True DayZ - Sakhal PvE VanillaPlus w/BBP Wiped 1/23",
+    "ip": "66.23.239.18",
+    "port": 2202,
+    "queryPort": 27022
+  },
+  {
+    "name": "PUDZ | PvE-PvP | 80K | Ai Strongholds | FOG | KOTH | DNA",
+    "ip": "104.249.62.172",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[FNK] Fischis Ballerbude",
+    "ip": "5.83.165.75",
+    "port": 10700,
+    "queryPort": 10701
+  },
+  {
+    "name": "East_WIND_PVE_Cherno",
+    "ip": "95.31.39.206",
+    "port": 2318,
+    "queryPort": 27018
+  },
+  {
+    "name": "28 DAYZ LATER | Death Match | TAPPER PVP",
+    "ip": "216.245.177.27",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Devittboys",
+    "ip": "51.222.108.174",
+    "port": 2322,
+    "queryPort": 2323
+  },
+  {
+    "name": "ЗАПРЕТНАЯ ЗОНА - PVE/RP(STALKER/СТАЛКЕР)",
+    "ip": "178.141.247.40",
+    "port": 2222,
+    "queryPort": 27017
+  },
+  {
+    "name": "Fractured Horizons | BitterRoot Organic RP | .gg/PAPHHcEFZ9",
+    "ip": "45.59.162.28",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "DDD-PVE | 载具体验大厅",
+    "ip": "45.125.47.176",
+    "port": 2700,
+    "queryPort": 27000
+  },
+  {
+    "name": "Iron Bones - [GER - PVE - LTR - keine Client-Mods]",
+    "ip": "147.93.160.199",
+    "port": 2802,
+    "queryPort": 2803
+  },
+  {
+    "name": "Mad Silence | Vanilla+ | 1PP | Solo/Duo/Trio | Weekend Raid",
+    "ip": "88.91.222.25",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "John Hammond Island - Jurrasic | Hardcore | Progression",
+    "ip": "81.99.194.207",
+    "port": 2338,
+    "queryPort": 27019
+  },
+  {
+    "name": "[RU] KAZANTIP DayZ Vanilla-E | Bot | Trade | PvP Livonia",
+    "ip": "92.244.248.108",
+    "port": 2317,
+    "queryPort": 2318
+  },
+  {
+    "name": "Mad Bill's pve server",
+    "ip": "5.62.100.87",
+    "port": 11700,
+    "queryPort": 11701
+  },
+  {
+    "name": "[GER|ENG] Zone der Verdammten | BBP | PVE & PVP | Drugs | Trade",
+    "ip": "213.202.227.3",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "LastExpedition",
+    "ip": "185.70.105.79",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Winter Chernarus | 1PP | DEFiANT",
+    "ip": "54.39.48.197",
+    "port": 2321,
+    "queryPort": 27016
+  },
+  {
+    "name": "[EN|UA] Ember | Deathmatch [DM] | 1PP | Day/Night",
+    "ip": "51.195.94.162",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[BR]KONG PVE",
+    "ip": "188.255.171.151",
+    "port": 2422,
+    "queryPort": 27032
+  },
+  {
+    "name": "Darkside PVE - Livonia - Roaming AI/ Missions/ Danger++/ Predat",
+    "ip": "86.163.144.131",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "FR/EPOCH REBORN | Vanilla+ | 1PP/3PP | Au Plus Proche d'Epoch 2",
+    "ip": "31.172.80.128",
+    "port": 2340,
+    "queryPort": 2343
+  },
+  {
+    "name": "Tempest2 CZ/SK PVP+PVE zones",
+    "ip": "185.180.2.96",
+    "port": 27526,
+    "queryPort": 28526
+  },
+  {
+    "name": "Sophie's Namalsk - Beware The Bears - PVE",
+    "ip": "173.234.137.175",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "MP-LAND GERMAN ONLY Loot+++ Heli+++ Base KILL=BANN",
+    "ip": "85.190.163.192",
+    "port": 12400,
+    "queryPort": 12401
+  },
+  {
+    "name": "Balota Beach Club |PVE|AI|DNA|+MORE| Wipe 6/12",
+    "ip": "24.236.199.218",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Caseman450",
+    "ip": "198.73.57.154",
+    "port": 2322,
+    "queryPort": 2323
+  },
+  {
+    "name": "Another Zone | S.T.A.L.K.E.R RP https://discord.gg/b2pY9nyP",
+    "ip": "109.248.4.97",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Dayz Ireland",
+    "ip": "45.59.162.29",
+    "port": 2869,
+    "queryPort": 2870
+  },
+  {
+    "name": "Hunnia Dayz",
+    "ip": "176.57.140.202",
+    "port": 2702,
+    "queryPort": 2703
+  },
+  {
+    "name": "DayZ PVE Server I Chernarus I (GER) Spieler kill=Ban",
+    "ip": "5.83.171.51",
+    "port": 13100,
+    "queryPort": 13101
+  },
+  {
+    "name": "DayZ",
+    "ip": "51.77.64.211",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Military bases = pvp / World = pve DayZ Server by HostHavoc.com",
+    "ip": "216.245.176.164",
+    "port": 2312,
+    "queryPort": 2313
+  },
+  {
+    "name": "Project SafeZone DayZ | vanilla+ | new server",
+    "ip": "45.59.162.11",
+    "port": 2869,
+    "queryPort": 2870
+  },
+  {
+    "name": "MINASTIRITH 3PP |Cherno| PvP | Vanilla+",
+    "ip": "91.98.176.237",
+    "port": 2312,
+    "queryPort": 27005
+  },
+  {
+    "name": "GuerraZ | Survival Hardcore | Pt-BR",
+    "ip": "188.255.171.173",
+    "port": 2382,
+    "queryPort": 27028
+  },
+  {
+    "name": "Buffalo Server",
+    "ip": "178.235.247.204",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Les vétérants",
+    "ip": "82.65.122.222",
+    "port": 7500,
+    "queryPort": 27016
+  },
+  {
+    "name": "[BR]RuinaZ-PVE",
+    "ip": "186.235.59.251",
+    "port": 2302,
+    "queryPort": 27018
+  },
+  {
+    "name": "Nats sakhal PVE",
+    "ip": "85.190.160.16",
+    "port": 10300,
+    "queryPort": 10301
+  },
+  {
+    "name": "[FR] Melkart 1PP | Nolosha",
+    "ip": "157.90.205.37",
+    "port": 2332,
+    "queryPort": 2333
+  },
+  {
+    "name": "[BR] The Last DayZ | FULLMOD | DEATHMATCH | TAKISTAN",
+    "ip": "189.76.78.74",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "SCP FOUNDATION DAYZ",
+    "ip": "95.156.250.52",
+    "port": 11600,
+    "queryPort": 11601
+  },
+  {
+    "name": "HoneyDrippers Hardcore",
+    "ip": "174.138.180.37",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "SilentWaste | Solo/Duo/Trio | Balanced Mods",
+    "ip": "114.66.28.123",
+    "port": 2402,
+    "queryPort": 27016
+  },
+  {
+    "name": "Golden Jackpot (S1)",
+    "ip": "5.189.119.120",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "scp107ss",
+    "ip": "85.190.160.11",
+    "port": 10600,
+    "queryPort": 10601
+  },
+  {
+    "name": "|AI💀|Trains🚂|Heliz🚁|U.G.bunker☣️|Dogs🐕|",
+    "ip": "73.22.228.143",
+    "port": 2402,
+    "queryPort": 28016
+  },
+  {
+    "name": "team is back",
+    "ip": "85.190.149.10",
+    "port": 11000,
+    "queryPort": 11001
+  },
+  {
+    "name": "!---Smokes Sanctuary---!",
+    "ip": "95.156.250.230",
+    "port": 10400,
+    "queryPort": 10401
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "85.190.161.141",
+    "port": 10400,
+    "queryPort": 10401
+  },
+  {
+    "name": "Mr",
+    "ip": "118.25.42.25",
+    "port": 6689,
+    "queryPort": 27016
+  },
+  {
+    "name": "dawncrow server",
+    "ip": "125.128.141.135",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "ASYLUM HILLS FRESH WIPE TODAY PVP/E HACKEDCRATES AIRDROPS SQUAD",
+    "ip": "45.146.255.207",
+    "port": 2302,
+    "queryPort": 2305
+  },
+  {
+    "name": "[EU1] Dera E-sport | Siberia EXP | Hardcore",
+    "ip": "88.89.224.199",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "85.190.160.214",
+    "port": 10300,
+    "queryPort": 10301
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "95.156.198.172",
+    "port": 12200,
+    "queryPort": 12201
+  },
+  {
+    "name": "Blair'Zz",
+    "ip": "136.243.69.186",
+    "port": 2332,
+    "queryPort": 2333
+  },
+  {
+    "name": "[FR] [PVE] La tribu CHOUKA",
+    "ip": "51.68.2.84",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "FR_LeCalmeAvantLaTempête",
+    "ip": "90.12.126.143",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Viral DayZ | TEST | In Development",
+    "ip": "85.215.190.42",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "BlackOutServerTest",
+    "ip": "86.238.40.203",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "FunZone PVE",
+    "ip": "38.44.168.7",
+    "port": 2875,
+    "queryPort": 3021
+  },
+  {
+    "name": "MeToo DayZ ServerGame PVE 1.29 Update",
+    "ip": "49.49.72.225",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "LD Private Server",
+    "ip": "5.226.142.87",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "INSOMNIA 3PP | CHERNARUS | VANILLA",
+    "ip": "212.22.93.170",
+    "port": 2302,
+    "queryPort": 2305
+  },
+  {
+    "name": "Out of Death STALKER |PVE|MUTANTS|QUESTS|AUTOEVENTS|",
+    "ip": "212.22.93.177",
+    "port": 2402,
+    "queryPort": 2305
+  },
+  {
+    "name": "The Veil RP | UniqueLore | LowFantasy | theveildayz.com",
+    "ip": "135.148.151.40",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[Fr][PVE]-Survivre ou Mourir-[BZH DayZ]",
+    "ip": "87.90.159.251",
+    "port": 2802,
+    "queryPort": 27025
+  },
+  {
+    "name": "THE EVIL DEAD",
+    "ip": "144.48.106.188",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "noAim | EU | Livonia | 2xLoot | no Stamina!",
+    "ip": "51.195.68.230",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Viper 3 [ Cool Kidz ]",
+    "ip": "66.45.234.117",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "NFOservers.com - LA test # 03",
+    "ip": "162.248.93.97",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "UHG-Unhallowed Grounds PvE/AI/Skills",
+    "ip": "198.96.90.94",
+    "port": 2402,
+    "queryPort": 27017
+  },
+  {
+    "name": "Kryten's Red Dwarf DayZ 1.29",
+    "ip": "73.136.126.174",
+    "port": 2301,
+    "queryPort": 27016
+  },
+  {
+    "name": "[Zombie Storm] - Tornado - PvE Only - Vanilla Server",
+    "ip": "94.130.77.165",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Fullsend Vanilla",
+    "ip": "45.45.237.122",
+    "port": 2702,
+    "queryPort": 27020
+  },
+  {
+    "name": "NATIONs - Pripyat PVP 1PP Survival Mod",
+    "ip": "95.156.230.174",
+    "port": 2402,
+    "queryPort": 2407
+  },
+  {
+    "name": "BrothersOfVictory 1PP Vanilla Chernarus | NO MODS",
+    "ip": "51.68.234.134",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "FDGs | Fresh Wipe | Weekend Door Raiding | Keycards | KOTH | AI",
+    "ip": "216.173.114.6",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "DefconZ|Custom-Livonia|US1|5-Man|Trader|BBP|Drugs|KOTH|Airdrops",
+    "ip": "149.56.28.31",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "The Cursed Dayz Minimal Wipe (Pve/Pvp)",
+    "ip": "188.240.63.102",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "БЕЗУМИЕ PVE Cherno",
+    "ip": "109.248.4.56",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[SE/EU] KF1 PVE AI+++ DEERISLE WIPED JUNE 14",
+    "ip": "46.162.111.144",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "OasisDayz #Livonia",
+    "ip": "5.167.98.123",
+    "port": 2402,
+    "queryPort": 27015
+  },
+  {
+    "name": "Dirt Nap | Full Pop. Simulator | Hardcore Survival",
+    "ip": "64.20.51.155",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "#1. Ashes of Chernorus: Forgoten Land|PvE|HARDCORE MODE",
+    "ip": "176.126.144.176",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "RU | Avalanche | PvP | Ai",
+    "ip": "109.198.191.140",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[CZ/SK] METRO+ RP | discord.gg/projectexodusrp",
+    "ip": "93.99.173.69",
+    "port": 3162,
+    "queryPort": 3163
+  },
+  {
+    "name": "Black Legion Clan S.T.A.L.K.E.R Hive",
+    "ip": "98.96.162.239",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[RU]RainbowStar.RU | PVP | TRADER | 3PP | HELI | CARS+",
+    "ip": "78.60.219.158",
+    "port": 2302,
+    "queryPort": 2306
+  },
+  {
+    "name": "BeachedZ PVE",
+    "ip": "45.45.238.176",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "Epic SurvivorZ | Sahrani | AI | Hard | Terje | PVE |",
+    "ip": "136.243.79.51",
+    "port": 3247,
+    "queryPort": 3248
+  },
+  {
+    "name": "CZ/SK Ztracený Kraj [PVE/PVP]",
+    "ip": "93.99.7.86",
+    "port": 3062,
+    "queryPort": 3063
+  },
+  {
+    "name": "Bolted.cz TEST SERVER",
+    "ip": "93.99.7.63",
+    "port": 2732,
+    "queryPort": 2733
+  },
+  {
+    "name": "Vida Z - LIVONIA |BR|PVE|TRADE|MISSIONS|PROGRESSAO|HARD|BOOTs",
+    "ip": "189.59.9.50",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Z3n | Tapper Deathmatch | 3PP | Modded | 20mm | Map Rotation |",
+    "ip": "193.25.252.31",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "(EU)VENOM PVE ZONES PVP",
+    "ip": "37.156.35.72",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Vida Z - LIVONIA |BR|PVE|TRADE|MISSIONS|PROGRESSAO|HARD|BOOTs",
+    "ip": "177.87.50.26",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Dark Dayz Namalsk",
+    "ip": "51.195.53.92",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "Zato4ka | PVE | RU |",
+    "ip": "185.61.255.214",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "AI Insanity Sandbox DeerIsle PVE/PVP Trader Helis AI Combatants",
+    "ip": "192.154.227.66",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "ISA | Triple B PNW | PVP, No Bases, Vanilla+",
+    "ip": "45.59.162.23",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "Blue Ice┃PvE┃Ancient Sci-Fi Jungle┃StoryLine┃ Progressi",
+    "ip": "89.34.97.24",
+    "port": 2869,
+    "queryPort": 2870
+  },
+  {
+    "name": "UmCo GER PVE via Maplink DNA Mutant crates Horde Bunker",
+    "ip": "5.83.165.54",
+    "port": 11100,
+    "queryPort": 11101
+  },
+  {
+    "name": "[ESP]TIERRA HOSTIL|PVP/PVE|VANILLA|NO TRADE",
+    "ip": "185.223.139.178",
+    "port": 2602,
+    "queryPort": 27016
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "45.159.4.55",
+    "port": 10600,
+    "queryPort": 10601
+  },
+  {
+    "name": "[RU] DARK CITY: Vanilla+ | PvP | 1PP | Namalsk",
+    "ip": "176.197.182.249",
+    "port": 2484,
+    "queryPort": 22008
+  },
+  {
+    "name": "[GER] Special Operations Forces | Modded | Wiped",
+    "ip": "147.93.162.12",
+    "port": 3602,
+    "queryPort": 3603
+  },
+  {
+    "name": "KAR-HC Namalsk Hardcore | Vanilla+ | PVE | NO KOS",
+    "ip": "193.135.10.197",
+    "port": 20100,
+    "queryPort": 20101
+  },
+  {
+    "name": "逃离鹿岛 PVE Ai Q群1032171671",
+    "ip": "103.45.143.200",
+    "port": 21777,
+    "queryPort": 17777
+  },
+  {
+    "name": "- End of Day's -Fresh server chernarus PvP",
+    "ip": "24.29.51.188",
+    "port": 2702,
+    "queryPort": 27020
+  },
+  {
+    "name": "The Oasis DayZ",
+    "ip": "76.153.232.186",
+    "port": 2402,
+    "queryPort": 27016
+  },
+  {
+    "name": "[CA] Capn_Crusty's Melkart | 1PP",
+    "ip": "216.225.193.225",
+    "port": 3902,
+    "queryPort": 3912
+  },
+  {
+    "name": "Swerve Test II",
+    "ip": "172.111.51.214",
+    "port": 2602,
+    "queryPort": 2603
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "85.190.160.133",
+    "port": 10600,
+    "queryPort": 10601
+  },
+  {
+    "name": "Gammelfleisch DayZ 4Netplayers",
+    "ip": "85.14.206.246",
+    "port": 23500,
+    "queryPort": 23510
+  },
+  {
+    "name": "[GER/ENG] White Silence | Namalsk Hardcore PvE | No Bull****",
+    "ip": "85.190.160.19",
+    "port": 11200,
+    "queryPort": 11201
+  },
+  {
+    "name": "PUERTO RICO",
+    "ip": "109.230.243.104",
+    "port": 11000,
+    "queryPort": 11001
+  },
+  {
+    "name": "Creality DayZ",
+    "ip": "95.217.101.165",
+    "port": 2402,
+    "queryPort": 27016
+  },
+  {
+    "name": "Unity Outposts | PVE + PVP | 3PP | Vanilla+ | Wiped April 23rd",
+    "ip": "162.55.242.238",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[CZ-SK] Usvit nemrtvych PVE / PVP zone",
+    "ip": "93.99.7.93",
+    "port": 2602,
+    "queryPort": 2603
+  },
+  {
+    "name": "The DAWN PVP 3PP Vanilla++ Discord.gg/UZM4SbYqU2",
+    "ip": "46.175.167.162",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Highland Survival | PVE | Trader | AI | Events |",
+    "ip": "161.129.66.155",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "W4 Namalsk Hardcore (EU/PVP)",
+    "ip": "212.186.245.114",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Escape From DayZ | Development",
+    "ip": "216.82.5.190",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "Hier ist DEUMUDDA sagen erwünscht !!!KEINE REGELN!!!",
+    "ip": "5.100.140.225",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[PVE|PVP-Zones] NoLastName [Airdrop|MMG|Patrol Heli|Traders]",
+    "ip": "176.159.183.1",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "DeadClan /Vanilla with build anywhere and dark nights",
+    "ip": "68.61.63.126",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "War Souls PVE",
+    "ip": "109.248.4.72",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "THE LOST LANDS",
+    "ip": "5.226.142.91",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[PL] Zenobian-PVE (testy) Survival, AI-Patrol i AI Przyjaciele.",
+    "ip": "168.119.212.33",
+    "port": 26283,
+    "queryPort": 26286
+  },
+  {
+    "name": "livonia.ironhorde.com | 1pp | VanillaLite | QuestChain | MapOve",
+    "ip": "109.228.174.25",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "NightHawkZ | NORTH AMERICA - NY | Vanilla+ |",
+    "ip": "147.189.173.70",
+    "port": 2326,
+    "queryPort": 2327
+  },
+  {
+    "name": "ThisIsTheTrenches |AI|PVE||GANG||FACTIONS|GUNPLAY|",
+    "ip": "205.209.105.252",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "(PT) Ascensao-Z",
+    "ip": "188.42.132.44",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[BR] PARADOXZ | 1PP/3PP | Pura Sobrevivência",
+    "ip": "31.214.158.200",
+    "port": 12100,
+    "queryPort": 12101
+  },
+  {
+    "name": "Project Henson",
+    "ip": "64.31.28.188",
+    "port": 2322,
+    "queryPort": 2323
+  },
+  {
+    "name": "ExilioZ_teste",
+    "ip": "186.233.190.61",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "Candyland - Deer Isle | PVP | Vanilla+ | QOL Mods",
+    "ip": "66.45.242.251",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Loot & Legends Vanilla Loot++ PVP",
+    "ip": "45.92.216.95",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[EU] Flashpoint: Chernarus PVE LOCAL",
+    "ip": "188.25.7.46",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Brasil Vanilla+ Treino Carros e Helis FREE",
+    "ip": "104.234.119.192",
+    "port": 2317,
+    "queryPort": 27018
+  },
+  {
+    "name": "-                 #1=ALL-ARE-WELCOME-TRADERS-AIRDROPS-PVP-PVE",
+    "ip": "216.245.177.18",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Exodus Protocol",
+    "ip": "5.252.101.181",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Chill/No Thrill - Oberpfalz PvE",
+    "ip": "136.243.82.234",
+    "port": 3058,
+    "queryPort": 3059
+  },
+  {
+    "name": "$hitZ & GiggleZ",
+    "ip": "85.190.157.109",
+    "port": 10200,
+    "queryPort": 10201
+  },
+  {
+    "name": "Kostas Montana DayZ",
+    "ip": "5.83.171.151",
+    "port": 10700,
+    "queryPort": 10701
+  },
+  {
+    "name": "LIGHTWAY DAYZ  PVE  | Bots  | PROMO",
+    "ip": "185.189.255.183",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "SimpleVanilla 1PP NoMods",
+    "ip": "148.251.153.246",
+    "port": 2402,
+    "queryPort": 28002
+  },
+  {
+    "name": "橙子",
+    "ip": "103.39.64.28",
+    "port": 10666,
+    "queryPort": 27018
+  },
+  {
+    "name": "STORM IDSCI",
+    "ip": "84.38.184.66",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Altalake_Testing",
+    "ip": "85.190.149.68",
+    "port": 10400,
+    "queryPort": 10401
+  },
+  {
+    "name": "BM Experimental Testing BM-6 | Admins Only",
+    "ip": "148.113.189.234",
+    "port": 3122,
+    "queryPort": 27027
+  },
+  {
+    "name": "JADS | EU Main | Just Another DayZ Server",
+    "ip": "37.27.59.80",
+    "port": 2702,
+    "queryPort": 2703
+  },
+  {
+    "name": "UKHUB NAMALSK",
+    "ip": "5.62.127.138",
+    "port": 11200,
+    "queryPort": 11201
+  },
+  {
+    "name": "nitrado.netcastroggs",
+    "ip": "46.251.234.133",
+    "port": 10100,
+    "queryPort": 10101
+  },
+  {
+    "name": "[BR] GothamZ FullPVE | Bots | NoRaid | Livonia DEV",
+    "ip": "179.94.101.109",
+    "port": 2502,
+    "queryPort": 27015
+  },
+  {
+    "name": "SHG Moorhuhnjagdverein Schwarz Rot Gold n.e.V",
+    "ip": "109.71.254.165",
+    "port": 30090,
+    "queryPort": 30091
+  },
+  {
+    "name": "Testing Server",
+    "ip": "31.172.80.128",
+    "port": 2326,
+    "queryPort": 2336
+  },
+  {
+    "name": "DayZ Server Editor",
+    "ip": "176.176.82.170",
+    "port": 2312,
+    "queryPort": 27026
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "85.190.160.22",
+    "port": 10700,
+    "queryPort": 10701
+  },
+  {
+    "name": "Save the Catz",
+    "ip": "194.50.234.83",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "SOG SanctuaryOfGamers Test",
+    "ip": "109.230.239.162",
+    "port": 2602,
+    "queryPort": 2603
+  },
+  {
+    "name": "The Real BoyZ",
+    "ip": "45.59.162.23",
+    "port": 2869,
+    "queryPort": 2870
+  },
+  {
+    "name": "Puukkojunkkarit - Takistan (AI)",
+    "ip": "83.172.91.20",
+    "port": 3802,
+    "queryPort": 3803
+  },
+  {
+    "name": "PVE URPG Expansion|AI|Vehicles|Missions",
+    "ip": "208.115.196.4",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Skeletrix14 I NEW SUMMER CHERNARUS",
+    "ip": "136.243.69.189",
+    "port": 2352,
+    "queryPort": 2353
+  },
+  {
+    "name": "Das bessere GermanDayZ",
+    "ip": "178.63.74.248",
+    "port": 41944,
+    "queryPort": 41945
+  },
+  {
+    "name": "[UA]BorsCH | PVP | C4 | TRADE | TOXIC | 10k START",
+    "ip": "176.98.86.176",
+    "port": 2302,
+    "queryPort": 2306
+  },
+  {
+    "name": "Two Dudes One Cup PVE WIP",
+    "ip": "216.173.113.254",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "[BR] DoomsDayZ Vanilla++ [PVE] [BOTs] [Missoes] [NoRaid]",
+    "ip": "188.255.171.65",
+    "port": 2362,
+    "queryPort": 27025
+  },
+  {
+    "name": "TEST",
+    "ip": "185.207.214.102",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "paradise pve",
+    "ip": "192.64.85.238",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "Yes Yes Test Server",
+    "ip": "208.115.196.107",
+    "port": 2362,
+    "queryPort": 2363
+  },
+  {
+    "name": "LinZeeDayZ",
+    "ip": "142.179.83.213",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Silent Infection PVE | AI Guarded Military Bases | PVEZ | PVP A",
+    "ip": "86.21.247.187",
+    "port": 2302,
+    "queryPort": 2305
+  },
+  {
+    "name": "Biktor's Compound | Vanilla+ | More Loot | No Stamina | AI",
+    "ip": "77.172.255.6",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Blackwood - Deamoon Army",
+    "ip": "89.58.34.29",
+    "port": 5183,
+    "queryPort": 5152
+  },
+  {
+    "name": "Anti",
+    "ip": "162.55.199.103",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "ECHO OF CHERNOBYL | RP PROJECT",
+    "ip": "37.18.21.219",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Grave Bound",
+    "ip": "95.156.198.172",
+    "port": 12400,
+    "queryPort": 12401
+  },
+  {
+    "name": "MMM namalsk",
+    "ip": "95.120.114.162",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "InvasionTest",
+    "ip": "80.242.59.192",
+    "port": 2402,
+    "queryPort": 2405
+  },
+  {
+    "name": "The Quarantine Zone [Sector 1]",
+    "ip": "46.251.234.73",
+    "port": 12000,
+    "queryPort": 12001
+  },
+  {
+    "name": "The Year After | PVE | PVP ZONES",
+    "ip": "162.216.115.212",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "prueba no entres",
+    "ip": "69.164.251.155",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "MAGNIT|MAP|GUNS++|PvP|LOOT+|CARS+|EVENTS|5PARTY",
+    "ip": "188.190.156.168",
+    "port": 2402,
+    "queryPort": 27017
+  },
+  {
+    "name": "Fallschirmtaucher",
+    "ip": "5.83.171.151",
+    "port": 10300,
+    "queryPort": 10301
+  },
+  {
+    "name": "[FR] Les Choupettes Vanilla Banov || Mutants ||",
+    "ip": "82.64.209.139",
+    "port": 2302,
+    "queryPort": 27017
+  },
+  {
+    "name": "[GER] Zockerbude",
+    "ip": "147.93.160.199",
+    "port": 2702,
+    "queryPort": 2703
+  },
+  {
+    "name": "HC Project RED",
+    "ip": "66.45.233.146",
+    "port": 3814,
+    "queryPort": 3815
+  },
+  {
+    "name": "2420-UtopiaTeste",
+    "ip": "189.127.165.138",
+    "port": 2420,
+    "queryPort": 27120
+  },
+  {
+    "name": "TyDie's Deer Isle",
+    "ip": "85.190.159.153",
+    "port": 10400,
+    "queryPort": 10401
+  },
+  {
+    "name": "A Bitter Resistance | DEV SERVER",
+    "ip": "170.39.213.55",
+    "port": 2680,
+    "queryPort": 2681
+  },
+  {
+    "name": "Apocalypse Z PVE AI BOTS",
+    "ip": "79.21.40.91",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "SILENT LANDS / Vanilla+ / 1PP / Chernarus Map Overhaul",
+    "ip": "85.190.162.13",
+    "port": 10300,
+    "queryPort": 10301
+  },
+  {
+    "name": "KE TEST PVE",
+    "ip": "87.146.204.72",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "yukaZ",
+    "ip": "162.43.41.69",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[FR] The Last Man | Full PvP | Vanilla | Stamina ++ |",
+    "ip": "51.210.86.140",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "一念永恒【测试】",
+    "ip": "120.220.76.246",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "ApoTest2",
+    "ip": "93.99.173.75",
+    "port": 3342,
+    "queryPort": 3343
+  },
+  {
+    "name": "TWINKLE Play STALKER #3 | PVE | QUESTS | SEASONPASS",
+    "ip": "185.189.255.235",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "The Lost My Pesce ITA",
+    "ip": "147.93.161.229",
+    "port": 3502,
+    "queryPort": 3503
+  },
+  {
+    "name": "FAF2",
+    "ip": "68.57.146.178",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "VRNDAYZ CHERNO CLASSIC VANILLA [PVP/3PP]",
+    "ip": "46.174.55.135",
+    "port": 2309,
+    "queryPort": 27116
+  },
+  {
+    "name": "[NEW] DayZ-Elden.com | Namalsk | EU | Vanilla+ | No Bases",
+    "ip": "91.98.184.29",
+    "port": 2602,
+    "queryPort": 2603
+  },
+  {
+    "name": "[PVE][Echo of Time] Dragon|Bosses|Skill|Event|Battle Pass|Quest",
+    "ip": "45.136.204.166",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "EKs Revenge Reloaded PVE",
+    "ip": "77.99.106.54",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Contraband | Coming Soon",
+    "ip": "45.45.195.33",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "4Netplayers DayZ Server Pall",
+    "ip": "134.255.222.217",
+    "port": 26200,
+    "queryPort": 26210
+  },
+  {
+    "name": "FITEST",
+    "ip": "208.115.206.172",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "Portuguese Warfare",
+    "ip": "208.115.196.13",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "Vanilla+",
+    "ip": "5.83.171.248",
+    "port": 12300,
+    "queryPort": 12301
+  },
+  {
+    "name": "Nato DayZ | CLUSTER | Deer Isle | Door Raid Only | x5 Loot",
+    "ip": "73.211.86.68",
+    "port": 2502,
+    "queryPort": 27018
+  },
+  {
+    "name": "-佰亿PVE极限生存|Syberia疾病|福利|群817042964",
+    "ip": "202.189.15.103",
+    "port": 6666,
+    "queryPort": 2325
+  },
+  {
+    "name": "Shadow Wizard Money Gang",
+    "ip": "45.45.238.240",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "85.190.161.141",
+    "port": 12300,
+    "queryPort": 12301
+  },
+  {
+    "name": "TLZ PIM Testing",
+    "ip": "207.178.108.179",
+    "port": 2402,
+    "queryPort": 27017
+  },
+  {
+    "name": "PANDORAZ BRASIL | PVP | LOOT+ | ACTIVE ADM",
+    "ip": "200.150.178.249",
+    "port": 2305,
+    "queryPort": 27016
+  },
+  {
+    "name": "Chernarus 2035",
+    "ip": "79.161.193.100",
+    "port": 2602,
+    "queryPort": 2603
+  },
+  {
+    "name": "ProTEST",
+    "ip": "212.220.212.86",
+    "port": 2382,
+    "queryPort": 27015
+  },
+  {
+    "name": "The Fortune'sOfGamers|deerisle Vanila]",
+    "ip": "78.83.183.151",
+    "port": 2326,
+    "queryPort": 27018
+  },
+  {
+    "name": "IronHeads MPG",
+    "ip": "104.192.227.58",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Comunidad Boricua",
+    "ip": "85.190.158.98",
+    "port": 12100,
+    "queryPort": 12101
+  },
+  {
+    "name": "gmtest_namalsk",
+    "ip": "75.19.16.77",
+    "port": 9752,
+    "queryPort": 9753
+  },
+  {
+    "name": "zarya_test",
+    "ip": "185.207.214.194",
+    "port": 2402,
+    "queryPort": 2405
+  },
+  {
+    "name": "Survivors Paradise",
+    "ip": "68.225.71.163",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "jays madness",
+    "ip": "69.164.251.165",
+    "port": 2491,
+    "queryPort": 2492
+  },
+  {
+    "name": "FallenHopePVP",
+    "ip": "51.89.207.38",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "nitrado.net gameserver",
+    "ip": "95.156.238.28",
+    "port": 10200,
+    "queryPort": 10201
+  },
+  {
+    "name": "FallenZ",
+    "ip": "187.101.161.25",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "MAGNUS STALKER-PVE PURPLE: CARS",
+    "ip": "80.242.59.81",
+    "port": 2302,
+    "queryPort": 2215
+  },
+  {
+    "name": "Ermolaev",
+    "ip": "109.168.146.238",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "The Halls Of Durin",
+    "ip": "95.156.250.230",
+    "port": 10500,
+    "queryPort": 10501
+  },
+  {
+    "name": "GamingHoes",
+    "ip": "95.156.250.49",
+    "port": 10600,
+    "queryPort": 10601
+  },
+  {
+    "name": "Reloaded | Modded PVP | 5X LOOT | C4 RAID",
+    "ip": "5.83.153.143",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "tubers",
+    "ip": "95.156.198.137",
+    "port": 11400,
+    "queryPort": 11401
+  },
+  {
+    "name": "Viper",
+    "ip": "41.76.213.81",
+    "port": 2395,
+    "queryPort": 2399
+  },
+  {
+    "name": "Frozen Virus|Hard PVE|Terje|Grand Opening 01.07.26",
+    "ip": "45.136.205.173",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[UA] Greenwood Sakhal PVE Test",
+    "ip": "116.202.233.190",
+    "port": 2502,
+    "queryPort": 27018
+  },
+  {
+    "name": "[UA/EU] PidSALO PvE | dsc.gg/pidsalo",
+    "ip": "57.128.211.147",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "零四DayZ PVE多图旅行 车臣 密码加群1014265186",
+    "ip": "112.232.42.94",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "[RU] PROVIN_71 PRIPYAT EXPANSION || TEST ||",
+    "ip": "46.147.193.224",
+    "port": 2848,
+    "queryPort": 28048
+  },
+  {
+    "name": "[DE/EN] Dawn of Dogma 1PP|Clans|Conquest|Territories|BBP Raidin",
+    "ip": "195.201.59.22",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "Endz of the Earth",
+    "ip": "134.255.240.14",
+    "port": 10600,
+    "queryPort": 10601
+  },
+  {
+    "name": "Bigma Salls",
+    "ip": "199.115.76.32",
+    "port": 9020,
+    "queryPort": 9021
+  },
+  {
+    "name": "Westvalley Lietuva - SOON",
+    "ip": "134.255.225.48",
+    "port": 2328,
+    "queryPort": 27016
+  },
+  {
+    "name": "PlayZ Sakhal | Hardcore | sGunplay Terje Inedia Expansion",
+    "ip": "51.255.77.214",
+    "port": 2402,
+    "queryPort": 27017
+  },
+  {
+    "name": "Armata Brancaleone",
+    "ip": "85.190.161.32",
+    "port": 12100,
+    "queryPort": 12101
+  },
+  {
+    "name": "Dead Horizon",
+    "ip": "134.249.166.10",
+    "port": 16261,
+    "queryPort": 16262
+  },
+  {
+    "name": "DayZ Server",
+    "ip": "5.9.78.252",
+    "port": 2356,
+    "queryPort": 27000
+  },
+  {
+    "name": "Fanatical_UA",
+    "ip": "109.87.254.252",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "CHINGS PVE/PVP ZONES (NOWIPE)",
+    "ip": "82.4.49.167",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "DE | PvE | CZA | Trader | LB | RAG | GasMask-Only | Banov",
+    "ip": "23.88.79.68",
+    "port": 2402,
+    "queryPort": 2403
+  },
+  {
+    "name": "NIGHT ZONE | DayZ STALKER RP",
+    "ip": "94.127.218.85",
+    "port": 2302,
+    "queryPort": 2303
+  },
+  {
+    "name": "Apocalyptic101 - Sakhal",
+    "ip": "146.198.84.131",
+    "port": 2402,
+    "queryPort": 27017
+  },
+  {
+    "name": "ROMANIA1234567890QWERTYUIOPASDFGHJKL",
+    "ip": "168.119.212.33",
+    "port": 26033,
+    "queryPort": 26036
+  },
+  {
+    "name": "[GER] ChaotenSchmiede | PVE",
+    "ip": "136.243.151.69",
+    "port": 2306,
+    "queryPort": 27020
+  },
+  {
+    "name": "DCDA Gaming Hardcore Namalsk",
+    "ip": "95.156.198.71",
+    "port": 10100,
+    "queryPort": 10101
+  },
+  {
+    "name": "Just Another DayZ [#2] | Mod+ | 8 Man | PvP | 5x Loot",
+    "ip": "185.218.225.175",
+    "port": 2102,
+    "queryPort": 2112
+  },
+  {
+    "name": "Unrated | Development | unrated.gg",
+    "ip": "84.200.135.93",
+    "port": 2402,
+    "queryPort": 27017
+  },
+  {
+    "name": "FTdayzCZ",
+    "ip": "5.83.171.116",
+    "port": 10300,
+    "queryPort": 10301
+  },
+  {
+    "name": "For me~ PVE",
+    "ip": "178.74.64.223",
+    "port": 2302,
+    "queryPort": 27016
+  },
+  {
+    "name": "TEST1 | BKWD | Light_Livonia",
+    "ip": "212.22.92.3",
+    "port": 2562,
+    "queryPort": 2355
+  },
+  {
+    "name": "No Mercy EU Test server",
+    "ip": "195.201.58.220",
+    "port": 2780,
+    "queryPort": 2781
+  },
+  {
+    "name": "Bora Malukeiros",
+    "ip": "177.74.187.13",
+    "port": 2302,
+    "queryPort": 27016
   }
 ]
