@@ -379,7 +379,7 @@ export function initServerBrowser() {
     });
   }
 
-  const refreshBtn = document.getElementById("refreshBtn");
+  const refreshBtn = document.getElementById("refreshServersBtn");
   if (refreshBtn) {
     refreshBtn.addEventListener("click", () => {
       refreshServers();

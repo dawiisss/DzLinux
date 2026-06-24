@@ -4,6 +4,8 @@ import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
+import { state } from "./state.js";
+import { debounce } from "./utils.js";
 
 let currentPerspFilter = "all";
 let currentCatFilter = "all";
@@ -231,6 +233,15 @@ export function initUIBehavior() {
         .forEach((t) => t.classList.remove("active"));
     }
   });
+
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    const doSearch = debounce(() => {
+      state.filters.name = searchInput.value.trim();
+      triggerFiltering();
+    }, 250);
+    searchInput.addEventListener("input", doSearch);
+  }
 
   // Set initial sort indicator
   document.addEventListener("DOMContentLoaded", () => {
