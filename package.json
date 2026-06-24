@@ -19,7 +19,7 @@
     "publish": {
       "provider": "github",
       "owner": "dawiisss",
-      "repo": "DzLinux-releases"
+      "repo": "DzLinux"
     },
     "linux": {
       "target": [
