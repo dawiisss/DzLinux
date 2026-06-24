@@ -1,6 +1,6 @@
 # DzLinux Acknowledgments
 
-DzLinux is Version 1.0.8.
+DzLinux is Version 1.0.9.
 
 This application uses Open Source components. You can find the source code of their open source projects along with license information below. We acknowledge and are grateful to these developers for their contributions to open source.
 
