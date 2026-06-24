@@ -34,7 +34,7 @@ function compareVersions(v1, v2) {
   return 0;
 }
 
-async function fallbackCheck() {
+async function checkForUpdates() {
   try {
     const { data } = await axios.get(
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`,
@@ -54,6 +54,7 @@ async function fallbackCheck() {
         version: latestVersion,
         releaseNotes: data.body || "",
         releaseDate: data.published_at,
+        downloadUrl: data.html_url,
       },
     };
   } catch (err) {
@@ -112,7 +113,16 @@ function setupAutoUpdater(mainWindow) {
   });
 
   if (app.isPackaged && !isSystemInstall()) {
-    autoUpdater.checkForUpdates().catch((err) => {
+    checkForUpdates().then((result) => {
+      if (result.kind === "available" && mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("update-available", {
+          version: result.updateInfo.version,
+          releaseNotes: result.updateInfo.releaseNotes,
+          releaseDate: result.updateInfo.releaseDate,
+          downloadUrl: result.updateInfo.downloadUrl,
+        });
+      }
+    }).catch((err) => {
       console.error(
         "Auto-update check failed:",
         err ? err.message : "Unknown error",
@@ -124,7 +134,7 @@ function setupAutoUpdater(mainWindow) {
 module.exports = {
   autoUpdater,
   setupAutoUpdater,
-  fallbackCheck,
+  checkForUpdates,
   compareVersions,
   isSystemInstall,
 };

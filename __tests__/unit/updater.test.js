@@ -290,25 +290,37 @@ describe("setupAutoUpdater", () => {
     expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
   });
 
-  test("checks for updates if packaged and not system install", () => {
+  test("checks for updates if packaged and not system install", async () => {
     const originalIsPackaged = electron.app.isPackaged;
     electron.app.isPackaged = true;
     electron.app.getAppPath.mockReturnValue("/home/user/.local/share/dzlinux"); // not a system install
-    autoUpdater.checkForUpdates.mockResolvedValue();
+
+    const axios = require("axios");
+    jest.spyOn(axios, "get").mockResolvedValue({
+      data: {
+        tag_name: "v1.0.7",
+        html_url: "https://example.com",
+        body: "",
+        published_at: "2023-01-01",
+      },
+    });
 
     setupAutoUpdater(mockMainWindow);
 
-    expect(autoUpdater.checkForUpdates).toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(axios.get).toHaveBeenCalled();
 
     // cleanup
     electron.app.isPackaged = originalIsPackaged;
+    jest.restoreAllMocks();
   });
 });
 
-describe("fallbackCheck", () => {
+describe("checkForUpdates", () => {
   const electron = require("electron");
   const axios = require("axios");
-  const { fallbackCheck } = require("../../src/main/updater");
+  const { checkForUpdates } = require("../../src/main/updater");
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -329,7 +341,7 @@ describe("fallbackCheck", () => {
     });
     electron.app.getVersion.mockReturnValue("1.0.0");
 
-    const result = await fallbackCheck();
+    const result = await checkForUpdates();
 
     expect(result.kind).toBe("available");
     expect(result.updateInfo.version).toBe("2.0.0");
@@ -344,7 +356,7 @@ describe("fallbackCheck", () => {
     });
     electron.app.getVersion.mockReturnValue("1.0.0");
 
-    const result = await fallbackCheck();
+    const result = await checkForUpdates();
 
     expect(result.kind).toBe("not-available");
   });
@@ -352,7 +364,7 @@ describe("fallbackCheck", () => {
   test("returns error on network failure", async () => {
     jest.spyOn(axios, "get").mockRejectedValue(new Error("Network Error"));
 
-    const result = await fallbackCheck();
+    const result = await checkForUpdates();
 
     expect(result.kind).toBe("error");
     expect(result.message).toBe("Network Error");

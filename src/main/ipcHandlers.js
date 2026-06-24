@@ -10,8 +10,7 @@ const { pingServer, queryServerGameDig } = require("./serverQuery");
 const modManager = require("./modManager");
 const {
   autoUpdater,
-  fallbackCheck,
-  compareVersions,
+  checkForUpdates,
   isSystemInstall,
 } = require("./updater");
 const logParser = require("./logParser");
@@ -107,30 +106,7 @@ function registerIpcHandlers() {
           "https://github.com/dawiisss/DzLinux/releases/latest",
       };
     }
-    return autoUpdater
-      .checkForUpdates()
-      .then((result) => {
-        const latest = String(result.updateInfo?.version || "0.0.0").replace(
-          /^v/,
-          "",
-        );
-        const current = app.getVersion();
-        if (compareVersions(latest, current) <= 0) {
-          return { kind: "not-available", currentVersion: current };
-        }
-        return {
-          kind: "available",
-          currentVersion: current,
-          updateInfo: result.updateInfo,
-        };
-      })
-      .catch((err) => {
-        console.error(
-          "Update check failed:",
-          err ? err.message : "Unknown error",
-        );
-        return fallbackCheck();
-      });
+    return checkForUpdates();
   });
   ipcMain.handle("download-update", () => {
     return autoUpdater
