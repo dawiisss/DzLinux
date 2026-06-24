@@ -9,7 +9,7 @@ license=('proprietary')
 depends=('libxss' 'nss' 'gtk3' 'libnotify')
 provides=('dzlinux')
 conflicts=('dzlinux')
-source=("https://github.com/dawiisss/DzLinux-releases/releases/download/v${pkgver}/DzLinux-${pkgver}-linux-x64.tar.gz")
+source=("https://github.com/dawiisss/DzLinux/releases/download/v${pkgver}/DzLinux-${pkgver}-linux-x64.tar.gz")
 sha256sums=('SKIP')
 
 package() {

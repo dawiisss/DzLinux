@@ -104,7 +104,7 @@ function registerIpcHandlers() {
         kind: "system-package",
         currentVersion: app.getVersion(),
         releaseUrl:
-          "https://github.com/dawiisss/DzLinux-releases/releases/latest",
+          "https://github.com/dawiisss/DzLinux/releases/latest",
       };
     }
     return autoUpdater

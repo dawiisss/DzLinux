@@ -108,7 +108,7 @@ export function initUpdater() {
         'This installation is managed by your system package manager. Use "apt upgrade" or "dnf update" to update, or download the latest release manually.';
       fallbackDownloadUrl =
         result.releaseUrl ||
-        "https://github.com/dawiisss/DzLinux-releases/releases/latest";
+        "https://github.com/dawiisss/DzLinux/releases/latest";
       elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
       elements.modal.style.display = "flex";
     } else if (result && result.kind === "available") {

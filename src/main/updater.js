@@ -7,7 +7,7 @@ autoUpdater.autoInstallOnAppQuit = false;
 autoUpdater.logger = console;
 
 const REPO_OWNER = "dawiisss";
-const REPO_NAME = "DzLinux-releases";
+const REPO_NAME = "DzLinux";
 
 function isSystemInstall() {
   if (!app.isPackaged) return false;
