@@ -100,34 +100,48 @@ export function initUpdater() {
       };
     }
 
-    const result = await window.api.updater.check();
-    if (result && result.kind === "system-package") {
-      elements.currentVersion.textContent = "v" + (result.currentVersion || "");
+    const showSystemPackage = (info) => {
+      elements.currentVersion.textContent = "v" + (info.currentVersion || "");
       elements.latestVersion.textContent = "System Package";
       elements.releaseNotes.textContent =
         'This installation is managed by your system package manager. Use "apt upgrade" or "dnf update" to update, or download the latest release manually.';
       fallbackDownloadUrl =
-        result.releaseUrl ||
+        info.releaseUrl ||
         "https://github.com/dawiisss/DzLinux/releases/latest";
       elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
       elements.modal.style.display = "flex";
+    };
+
+    const showUpdateAvailable = (info) => {
+      elements.currentVersion.textContent = "v" + (info.currentVersion || "");
+      elements.latestVersion.textContent = "v" + info.version;
+      elements.releaseNotes.textContent =
+        info.releaseNotes || "No release notes provided.";
+      fallbackDownloadUrl = info.downloadUrl || null;
+      if (fallbackDownloadUrl) {
+        elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
+      }
+
+      elements.modal.style.display = "flex";
+      elements.modal.style.animation =
+        "fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+    };
+
+    window.api.updater.onAvailable(async (info) => {
+      const current = await window.api.app.getVersion();
+      showUpdateAvailable({ ...info, currentVersion: current });
+    });
+
+    const result = await window.api.updater.check();
+    if (result && result.kind === "system-package") {
+      showSystemPackage(result);
     } else if (result && result.kind === "available") {
       const info = result.updateInfo;
       if (info && info.version) {
-        elements.currentVersion.textContent =
-          "v" + (result.currentVersion || "");
-        elements.latestVersion.textContent = "v" + info.version;
-        elements.releaseNotes.textContent =
-          info.releaseNotes || "No release notes provided.";
-        fallbackDownloadUrl = result.downloadUrl || null;
-        if (fallbackDownloadUrl) {
-          elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
-        }
-
-        elements.modal.style.display = "flex";
-        elements.modal.style.animation =
-          "fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)";
+        showUpdateAvailable({ ...info, currentVersion: result.currentVersion });
       }
+    } else if (result && result.kind === "error") {
+      showToast("Update check failed. Check your internet connection.", "#ff5a5f", "⚠️");
     }
   });
 }

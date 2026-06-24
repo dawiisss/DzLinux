@@ -129,12 +129,6 @@ function registerIpcHandlers() {
           "Update check failed:",
           err ? err.message : "Unknown error",
         );
-        if (process.env.APPIMAGE)
-          return {
-            kind: "error",
-            currentVersion: app.getVersion(),
-            message: "Primary updater failed",
-          };
         return fallbackCheck();
       });
   });
