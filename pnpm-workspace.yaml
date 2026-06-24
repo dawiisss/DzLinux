@@ -1,0 +1,11 @@
+allowBuilds:
+  electron-winstaller: true
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - app-builder-lib@26.15.2
+  - dmg-builder@26.15.2
+  - electron-builder-squirrel-windows@26.15.2
+  - electron-builder@26.15.2
+
+overrides:
+  form-data: "^4.0.6"

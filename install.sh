@@ -40,7 +40,7 @@ fi
 
 # Fetch release JSON
 echo -e "${BLUE}Fetching latest release info from GitHub...${NC}"
-RELEASE_JSON=$(curl -s "https://api.github.com/repos/dawiisss/DzLinux-releases/releases/latest")
+RELEASE_JSON=$(curl -s "https://api.github.com/repos/dawiisss/DzLinux/releases/latest")
 
 if echo "$RELEASE_JSON" | grep -q '"message":'; then
     MSG=$(echo "$RELEASE_JSON" | grep '"message":' | sed -E 's/.*"message": "([^"]+)".*/\1/')
@@ -156,7 +156,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
     
     # Download icon
     ICON_DIR="/usr/share/icons/hicolor/512x512/apps"
-    curl -s -L -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux-releases/main/icon.png" || true
+    curl -s -L -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux/main/build/icon.png" || true
     if [ -f "$TEMP_DIR/dzlinux.png" ]; then
         sudo mkdir -p "$ICON_DIR"
         sudo mv "$TEMP_DIR/dzlinux.png" "$ICON_DIR/"

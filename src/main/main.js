@@ -1,0 +1,69 @@
+const { app, BrowserWindow, nativeImage } = require("electron");
+const path = require("node:path");
+const settingsManager = require("./settings");
+const { setupAutoUpdater } = require("./updater");
+const steamworksManager = require("./steamworksManager");
+const { registerIpcHandlers } = require("./ipcHandlers");
+
+const settings = settingsManager.loadSettings();
+if (settings.nativeWayland && process.env.XDG_SESSION_TYPE === "wayland") {
+  app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
+  app.commandLine.appendSwitch("ozone-platform", "wayland");
+}
+
+if (process.platform === "linux" && typeof app.setDesktopName === "function") {
+  app.setDesktopName("DzLinux");
+}
+
+const createWindow = () => {
+  const win = new BrowserWindow({
+    width: 1400,
+    height: 800,
+    frame: false,
+    icon: nativeImage.createFromPath(path.join(__dirname, "..", "assets", "icon.png")),
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  });
+
+  win.loadFile(path.join(__dirname, "..", "index.html"));
+  return win;
+};
+
+app.whenReady().then(async () => {
+  registerIpcHandlers();
+
+  const mainWindow = createWindow();
+  setupAutoUpdater(mainWindow);
+
+  app.on("activate", () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+app.on("window-all-closed", () => {
+  if (process.platform !== "darwin") app.quit();
+});
+
+let isQuitting = false;
+app.on("before-quit", (event) => {
+  if (isQuitting) return;
+  isQuitting = true;
+  event.preventDefault();
+  const shutdownTimeout = setTimeout(() => {
+    console.warn("Steamworks shutdown timed out, forcing exit");
+    app.exit(0);
+  }, 5000);
+  steamworksManager
+    .shutdown()
+    .then(() => {
+      clearTimeout(shutdownTimeout);
+      app.exit(0);
+    })
+    .catch(() => {
+      clearTimeout(shutdownTimeout);
+      app.exit(0);
+    });
+});

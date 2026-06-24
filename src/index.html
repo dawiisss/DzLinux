@@ -1,0 +1,1840 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';" />
+    <title>DayZ Linux Server Browser</title>
+    <!-- Google Fonts for Tactical HUD look -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles/main.css" />
+  </head>
+  <body>
+    <!-- Custom Frameless Titlebar -->
+    <div class="titlebar">
+      <div class="titlebar-title">DzLinux SERVER BROWSER</div>
+      <div class="titlebar-controls">
+        <button
+          class="titlebar-btn"
+          aria-label="Minimize Window"
+          title="Minimize Window"
+          onclick="window.api.ui.windowMin()"
+        >
+          &#x2014;
+        </button>
+        <button
+          class="titlebar-btn"
+          aria-label="Maximize Window"
+          title="Maximize Window"
+          onclick="window.api.ui.windowMax()"
+        >
+          &#x25A1;
+        </button>
+        <button
+          class="titlebar-btn close"
+          aria-label="Close Window"
+          title="Close Window"
+          onclick="window.api.ui.windowClose()"
+        >
+          &#x2715;
+        </button>
+      </div>
+    </div>
+    <header>
+      <div class="logo-container">
+        <div class="logo-icon"></div>
+        <div class="logo-text">DZLinux</div>
+        <div class="logo-badge"><span class="app-version-text"></span></div>
+      </div>
+
+      <div id="tabs">
+        <button
+          id="tab-browser"
+          class="active"
+          aria-label="Server Browser Tab"
+          onclick="switchTab('browser')"
+        >
+          Server Browser
+        </button>
+        <button
+          id="tab-mods"
+          aria-label="Mod Manager Tab"
+          onclick="switchTab('mods')"
+        >
+          Mod Manager
+        </button>
+        <button
+          id="tab-favorites"
+          aria-label="Favorites Tab"
+          onclick="switchTab('favorites')"
+        >
+          Favorites
+        </button>
+        <button
+          id="tab-watchlist"
+          aria-label="Watchlist Tab"
+          onclick="switchTab('watchlist')"
+        >
+          Watchlist
+        </button>
+        <button
+          id="tab-diagnostics"
+          aria-label="Diagnostics Tab"
+          onclick="switchTab('diagnostics')"
+        >
+          Diagnostics
+        </button>
+        <button
+          id="tab-settings"
+          aria-label="Settings Tab"
+          onclick="switchTab('settings')"
+        >
+          Settings
+        </button>
+      </div>
+
+      <div id="steamProfile">
+        <span class="steam-profile-label">ACTIVE LINK:</span>
+        <span id="steamUsername" class="steam-profile-name"></span>
+        <span class="steam-profile-icon">🌐</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- SERVER BROWSER TAB -->
+      <div id="browser" class="tab-content active">
+        <div class="browser-toolbar">
+          <div class="search-wrapper">
+            <input
+              type="text"
+              id="searchInput"
+              aria-label="Search servers by name or IP"
+              class="search-input"
+              placeholder="SEARCH SERVERS BY NAME OR IP..."
+            />
+          </div>
+
+          <div class="refresh-group flex gap-2 items-center">
+            <button class="btn" onclick="openDirectConnectModal()">
+              🚀 DIRECT JOIN
+            </button>
+            <button
+              aria-label="Toggle Filter Menu"
+              id="toggleFiltersBtn"
+              class="btn btn-outline"
+              style="padding: 12px 18px"
+              onclick="toggleFilters()"
+              title="Toggle Filter Menu"
+            >
+              ⚙️
+            </button>
+            <button
+              id="refreshServersBtn"
+              class="btn btn-outline"
+              style="padding: 12px 18px"
+            >
+              🔄 REFRESH
+            </button>
+            <span
+              class="countdown-badge"
+              id="countdownBadge"
+              title="Auto-refresh countdown"
+              >60s</span
+            >
+          </div>
+        </div>
+
+        <!-- Advanced Filter Pills Bar -->
+        <div id="filterOptionsBar" class="filter-options-bar">
+          <div class="filter-group">
+            <span class="filter-label">PERSPECTIVE:</span>
+            <button
+              class="filter-pill active"
+              id="filter-persp-all"
+              onclick="setPerspFilter('all')"
+            >
+              ALL
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-persp-1pp"
+              onclick="setPerspFilter('1pp')"
+            >
+              1PP
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-persp-3pp"
+              onclick="setPerspFilter('3pp')"
+            >
+              3PP
+            </button>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">CATEGORY:</span>
+            <button
+              class="filter-pill active"
+              id="filter-cat-all"
+              onclick="setCatFilter('all')"
+            >
+              ALL
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-cat-vanilla"
+              onclick="setCatFilter('vanilla')"
+            >
+              VANILLA
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-cat-modded"
+              onclick="setCatFilter('modded')"
+            >
+              MODDED
+            </button>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">MAP:</span>
+            <div class="multiselect" id="multiselect-map">
+              <button
+                class="filter-pill multiselect-trigger"
+                id="ms-trigger-map"
+                onclick="toggleMultiselect('map')"
+              >
+                🗺️ ALL MAPS ▾
+              </button>
+              <div
+                class="multiselect-dropdown"
+                id="ms-dropdown-map"
+                style="display: none"
+              >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="chernarus"
+                    onchange="toggleMapOption('chernarus')"
+                  />
+                  Chernarus</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="livonia"
+                    onchange="toggleMapOption('livonia')"
+                  />
+                  Livonia</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="namalsk"
+                    onchange="toggleMapOption('namalsk')"
+                  />
+                  Namalsk</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="sakhal"
+                    onchange="toggleMapOption('sakhal')"
+                  />
+                  Sakhal</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="deerisle"
+                    onchange="toggleMapOption('deerisle')"
+                  />
+                  Deer Isle</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="esseker"
+                    onchange="toggleMapOption('esseker')"
+                  />
+                  Esseker</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="takistan"
+                    onchange="toggleMapOption('takistan')"
+                  />
+                  Takistan</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="banov"
+                    onchange="toggleMapOption('banov')"
+                  />
+                  Banov</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="chiemsee"
+                    onchange="toggleMapOption('chiemsee')"
+                  />
+                  Chiemsee</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="deadcity"
+                    onchange="toggleMapOption('deadcity')"
+                  />
+                  DeadCity</label
+                >
+                <label class="ms-item"
+                  ><input
+                    type="checkbox"
+                    data-map="other"
+                    onchange="toggleMapOption('other')"
+                  />
+                  Other / Unknown</label
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">PLAYERS:</span>
+            <button
+              class="filter-pill"
+              id="filter-hide-empty"
+              onclick="toggleHideEmpty()"
+            >
+              HIDE EMPTY
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-hide-full"
+              onclick="toggleHideFull()"
+            >
+              HIDE FULL
+            </button>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">SHORTLISTS:</span>
+            <button
+              class="filter-pill"
+              id="filter-fav-only"
+              onclick="toggleFavFilter()"
+            >
+              ⭐ FAVORITES ONLY
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-history"
+              onclick="toggleHistoryFilter()"
+            >
+              🕓 RECENTLY PLAYED
+            </button>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">CONNECTION:</span>
+            <button
+              class="filter-pill active"
+              id="filter-hide-timeouts"
+              onclick="toggleHideTimeouts()"
+            >
+              HIDE TIMEOUTS
+            </button>
+            <button
+              class="filter-pill active"
+              id="filter-hide-fakes"
+              onclick="toggleHideFakes()"
+            >
+              HIDE FAKES
+            </button>
+          </div>
+        </div>
+
+        <!-- Connection Status Banner -->
+        <div
+          id="connectionBanner"
+          style="
+            display: none;
+            background: rgba(255, 90, 95, 0.1);
+            border: 1px solid #ff5a5f;
+            border-left: 4px solid #ff5a5f;
+            padding: 8px 20px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ff5a5f;
+            font-family: &quot;Share Tech Mono&quot;, monospace;
+          "
+        >
+          ⚠️ CONNECTION LOST — SERVER LIST MAY BE STALE. CHECK YOUR NETWORK
+          CONNECTION.
+        </div>
+        <!-- Stats Bar -->
+        <div class="stats-bar" id="statsBar">
+          <div class="stat-item">
+            SERVERS: <span class="stat-value" id="statTotalServers">0</span>
+          </div>
+          <div class="stat-item">
+            PLAYERS: <span class="stat-value" id="statTotalPlayers">0</span>
+          </div>
+          <div class="stat-item">
+            FILTERED: <span class="stat-value" id="statFilteredServers">0</span>
+          </div>
+        </div>
+
+        <!-- Server List Table -->
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="server-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px; text-align: center">⭐</th>
+                  <th
+                    class="sortable"
+                    id="th-name"
+                    onclick="handleSort('name')"
+                  >
+                    Server Name <span class="sort-indicator"></span>
+                  </th>
+                  <th
+                    class="sortable"
+                    id="th-players"
+                    style="width: 110px"
+                    onclick="handleSort('players')"
+                  >
+                    Players <span class="sort-indicator"></span>
+                  </th>
+                  <th
+                    class="sortable"
+                    id="th-mods"
+                    style="width: 80px; text-align: center"
+                    onclick="handleSort('mods')"
+                  >
+                    Mods <span class="sort-indicator"></span>
+                  </th>
+                  <th
+                    class="sortable"
+                    id="th-ping"
+                    style="width: 80px"
+                    onclick="handleSort('ping')"
+                  >
+                    Ping <span class="sort-indicator"></span>
+                  </th>
+                  <th style="width: 250px">Metadata</th>
+                  <th
+                    class="sortable"
+                    id="th-ip"
+                    style="width: 220px"
+                    onclick="handleSort('ip')"
+                  >
+                    IP Address <span class="sort-indicator"></span>
+                  </th>
+                  <th style="width: 170px; text-align: right">HUD Link</th>
+                </tr>
+              </thead>
+              <tbody id="serverListBody">
+                <!-- Skeletons loaded initially -->
+                <tr class="skeleton-row">
+                  <td colspan="8">
+                    <div class="skeleton-bar" style="width: 60%"></div>
+                  </td>
+                </tr>
+                <tr class="skeleton-row">
+                  <td colspan="8">
+                    <div class="skeleton-bar" style="width: 45%"></div>
+                  </td>
+                </tr>
+                <tr class="skeleton-row">
+                  <td colspan="8">
+                    <div class="skeleton-bar" style="width: 70%"></div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination Controls -->
+          <div class="pagination-bar flex justify-between items-center px-4">
+            <div
+              class="pagination-info"
+              id="paginationInfo"
+              style="
+                font-family: &quot;Share Tech Mono&quot;, monospace;
+                font-size: 0.85rem;
+                color: var(--text-muted);
+              "
+            >
+              SHOWING 0 - 0 OF 0 SERVERS
+            </div>
+            <div class="flex gap-2">
+              <button
+                id="prevPageBtn"
+                class="btn btn-outline"
+                style="padding: 6px 12px; font-size: 0.75rem"
+              >
+                « PREV
+              </button>
+              <button
+                id="nextPageBtn"
+                class="btn btn-outline"
+                style="padding: 6px 12px; font-size: 0.75rem"
+              >
+                NEXT »
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MOD MANAGER TAB -->
+      <div id="mods" class="tab-content">
+        <div
+          class="browser-toolbar"
+          style="
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+          "
+        >
+          <div class="flex items-center gap-5">
+            <h1
+              style="
+                font-size: 1.1rem;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                color: #fff;
+              "
+            >
+              Local Workshop Storage
+            </h1>
+            <div
+              style="
+                display: flex;
+                gap: 20px;
+                border-left: 1px solid var(--border-color);
+                padding-left: 20px;
+              "
+            >
+              <div class="flex items-baseline gap-2">
+                <span
+                  style="
+                    font-size: 1.3rem;
+                    color: var(--accent);
+                    font-family: &quot;Share Tech Mono&quot;, monospace;
+                    font-weight: 700;
+                  "
+                  id="totalModsCount"
+                  >0</span
+                >
+                <span
+                  style="
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                  "
+                  >MODS DETECTED</span
+                >
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span
+                  style="
+                    font-size: 1.3rem;
+                    color: var(--accent-green);
+                    font-family: &quot;Share Tech Mono&quot;, monospace;
+                    font-weight: 700;
+                  "
+                  id="totalModsSize"
+                  >0.0 GB</span
+                >
+                <span
+                  style="
+                    font-size: 0.7rem;
+                    font-weight: 700;
+                    color: var(--text-muted);
+                    text-transform: uppercase;
+                  "
+                  >STORAGE</span
+                >
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px">
+            <button
+              id="refreshModsBtn"
+              class="btn btn-outline"
+              style="padding: 8px 15px; font-size: 0.85rem"
+            >
+              🔄 RE-SCAN LOCAL STORAGE
+            </button>
+            <button
+              id="checkDepsBtn"
+              class="btn btn-outline"
+              style="padding: 8px 15px; font-size: 0.85rem"
+            >
+              🌳 CHECK DEPENDENCIES
+            </button>
+          </div>
+        </div>
+
+        <!-- NEW: Mod Storage Allocator Map -->
+        <div
+          class="storage-map-container"
+          style="
+            background: var(--bg-panel);
+            backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+          "
+        >
+          <div
+            class="flex justify-between text-xs font-bold text-muted uppercase mb-2"
+          >
+            <span class="flex items-center gap-2"
+              ><span style="color: var(--accent)">▤</span> STORAGE ALLOCATION
+              TELEMETRY</span
+            >
+            <span
+              id="diskSpaceReadout"
+              style="
+                font-family: &quot;Share Tech Mono&quot;, monospace;
+                color: var(--accent-green);
+                text-shadow: 0 0 5px rgba(46, 196, 182, 0.5);
+              "
+              >CALCULATING...</span
+            >
+          </div>
+          <div
+            style="
+              width: 100%;
+              height: 24px;
+              background: rgba(0, 0, 0, 0.4);
+              border: 1px solid var(--border);
+              display: flex;
+              position: relative;
+              overflow: hidden;
+              border-radius: 6px;
+            "
+          >
+            <!-- Grid overlay for segmented look -->
+            <div
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: repeating-linear-gradient(
+                  90deg,
+                  transparent,
+                  transparent 4px,
+                  rgba(0, 0, 0, 0.8) 4px,
+                  rgba(0, 0, 0, 0.8) 6px
+                );
+                z-index: 10;
+                pointer-events: none;
+              "
+            ></div>
+            <div
+              id="storageMapUsed"
+              style="
+                width: 0%;
+                background: linear-gradient(
+                  90deg,
+                  rgba(var(--accent-rgb), 0.5),
+                  var(--accent)
+                );
+                transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+                position: relative;
+              "
+            ></div>
+            <div
+              id="storageMapMods"
+              style="
+                width: 0%;
+                background: linear-gradient(
+                  90deg,
+                  rgba(var(--accent-green-rgb), 0.5),
+                  var(--accent-green)
+                );
+                transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 0 10px rgba(var(--accent-green-rgb), 0.5);
+                position: relative;
+                z-index: 5;
+              "
+            ></div>
+            <div
+              id="storageMapFree"
+              style="flex: 1; background: transparent"
+            ></div>
+          </div>
+          <div
+            class="flex gap-4 mt-2 text-dim font-mono uppercase tracking-wide"
+            style="font-size: 0.7rem"
+          >
+            <div class="flex items-center gap-1">
+              <div
+                style="
+                  width: 12px;
+                  height: 12px;
+                  background: var(--accent);
+                  border-radius: 2px;
+                "
+              ></div>
+              SYSTEM / OTHER
+            </div>
+            <div class="flex items-center gap-1">
+              <div
+                style="
+                  width: 12px;
+                  height: 12px;
+                  background: var(--accent-green);
+                  box-shadow: 0 0 8px rgba(var(--accent-green-rgb), 0.5);
+                  border-radius: 2px;
+                "
+              ></div>
+              DAYZ MODS
+            </div>
+            <div class="flex items-center gap-1">
+              <div
+                style="
+                  width: 12px;
+                  height: 12px;
+                  border: 1px solid var(--border);
+                  border-radius: 2px;
+                "
+              ></div>
+              FREE SPACE
+            </div>
+          </div>
+        </div>
+
+        <!-- Enhanced Mismatch Checker Banner -->
+        <div
+          id="mismatchBanner"
+          class="browser-toolbar"
+          style="
+            display: none;
+            margin-bottom: 10px;
+            padding: 10px 20px;
+            border-left: 4px solid #ffb703;
+            background: rgba(255, 183, 3, 0.05);
+          "
+        ></div>
+
+        <!-- Dependency Tree Container -->
+        <div
+          id="dependencyTreeContainer"
+          style="display: none; margin-bottom: 15px"
+        ></div>
+
+        <!-- Mods Management Table -->
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="server-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center">✔️</th>
+                  <th>Modification Name</th>
+                  <th style="width: 160px">Workshop ID</th>
+                  <th style="width: 130px">Size on Disk</th>
+                  <th style="width: 180px">Last Modified Date</th>
+                  <th style="width: 250px; text-align: right">
+                    Storage Management
+                  </th>
+                </tr>
+              </thead>
+              <tbody id="installedModsListBody">
+                <tr>
+                  <td
+                    colspan="6"
+                    style="
+                      text-align: center;
+                      color: var(--text-dim);
+                      padding: 30px;
+                    "
+                  >
+                    NO MODS DETECTED. SPECIFY WORKSHOP MOD PATH IN SETTINGS.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Compact Mod Loadouts Bar -->
+        <div
+          class="browser-toolbar"
+          style="
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 10px 20px;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1">
+            <span
+              style="
+                color: var(--accent);
+                font-size: 0.9rem;
+                font-weight: bold;
+                white-space: nowrap;
+                letter-spacing: 1px;
+              "
+              >🛠️ LOADOUTS</span
+            >
+            <select
+              id="loadoutSelect"
+              class="form-input"
+              style="
+                flex: 1;
+                max-width: 200px;
+                padding: 6px;
+                font-size: 0.85rem;
+              "
+            >
+              <option value="">-- Create New --</option>
+            </select>
+            <input
+              type="text"
+              id="loadoutNameInput"
+              aria-label="Loadout Name"
+              class="form-input"
+              style="
+                flex: 1;
+                max-width: 200px;
+                padding: 6px;
+                font-size: 0.85rem;
+              "
+              placeholder="Loadout Name..."
+            />
+            <button
+              id="saveLoadoutBtn"
+              class="btn btn-outline"
+              style="padding: 6px 12px; font-size: 0.8rem"
+            >
+              💾 SAVE
+            </button>
+            <button
+              id="deleteLoadoutBtn"
+              aria-label="Delete Loadout"
+              title="Delete Loadout"
+              class="btn btn-outline"
+              style="
+                padding: 6px 12px;
+                color: #ff5a5f;
+                border-color: #ff5a5f;
+                display: none;
+                font-size: 0.8rem;
+              "
+            >
+              🗑️
+            </button>
+          </div>
+          <button
+            id="quickLaunchBtn"
+            class="btn btn-primary"
+            style="padding: 8px 15px; font-size: 0.85rem; white-space: nowrap"
+          >
+            🚀 QUICK LAUNCH
+          </button>
+        </div>
+      </div>
+
+      <!-- WATCHLIST TAB -->
+      <div
+        id="watchlist"
+        class="tab-content"
+        style="padding: 20px; overflow-y: auto"
+      >
+        <div
+          class="browser-toolbar"
+          style="
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+          "
+        >
+          <h1
+            style="
+              font-size: 1.1rem;
+              margin: 0;
+              text-transform: uppercase;
+              letter-spacing: 1.5px;
+              color: var(--accent);
+            "
+          >
+            👁️ Server Watchlist
+          </h1>
+          <button
+            id="refreshWatchlistBtn"
+            class="btn btn-outline"
+            style="padding: 8px 15px; font-size: 0.85rem"
+          >
+            🔄 REFRESH
+          </button>
+        </div>
+
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="server-table">
+              <thead>
+                <tr>
+                  <th style="width: 60px; text-align: center">ACT</th>
+                  <th>Server Name</th>
+                  <th style="width: 100px">Players</th>
+                  <th style="width: 280px">Threshold / Mode</th>
+                  <th style="width: 150px">Last Status</th>
+                  <th style="width: 180px">IP Address</th>
+                  <th style="width: 100px; text-align: right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="watchlistListBody">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIAGNOSTICS TAB -->
+      <div
+        id="diagnostics"
+        class="tab-content"
+        style="padding: 20px; overflow-y: auto"
+      >
+        <!-- Session Telemetry Summary Bar -->
+        <div
+          class="stats-bar"
+          id="telemetryStatsBar"
+          style="margin-bottom: 15px"
+        >
+          <div class="stat-item">
+            SESSIONS: <span class="stat-value" id="teleTotalSessions">—</span>
+          </div>
+          <div class="stat-item">
+            TOTAL PLAYTIME:
+            <span class="stat-value" id="teleTotalPlaytime">—</span>
+          </div>
+          <div class="stat-item">
+            AVERAGE SESSION:
+            <span class="stat-value" id="teleAvgSession">—</span>
+          </div>
+          <div class="stat-item">
+            CRASHES: <span class="stat-value" id="teleTotalCrashes">—</span>
+          </div>
+          <div class="stat-item">
+            WARNINGS: <span class="stat-value" id="teleTotalWarnings">—</span>
+          </div>
+          <div class="stat-item">
+            DROPS: <span class="stat-value" id="teleTotalDrops">—</span>
+          </div>
+        </div>
+        <div
+          id="diagnosticsListBody"
+          style="display: flex; flex-direction: column; gap: 15px"
+        >
+          <div
+            style="
+              text-align: center;
+              color: var(--text-dim);
+              padding: 30px;
+              border: 1px solid var(--border);
+              background: var(--bg-card);
+              border-radius: 4px;
+            "
+          >
+            LOADING TELEMETRY...
+          </div>
+        </div>
+      </div>
+
+      <!-- FAVORITES TAB -->
+      <div
+        id="favorites"
+        class="tab-content"
+        style="padding: 20px; overflow-y: auto"
+      >
+        <div class="panel">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 20px;
+            "
+          >
+            <h2 style="margin: 0; color: var(--accent)">
+              <span style="color: #ff9f1c">⭐</span> FAVORITES MANAGER
+            </h2>
+            <div style="display: flex; gap: 10px; align-items: center">
+              <button
+                id="refreshFavPingsBtn"
+                class="btn btn-outline"
+                style="padding: 12px 15px"
+              >
+                🔄 REFRESH
+              </button>
+              <div
+                class="direct-connect-wrapper"
+                style="margin: 0; background: var(--bg-color)"
+              >
+                <input
+                  type="text"
+                  id="favNameInput"
+                  aria-label="Favorite Server Name"
+                  class="search-input"
+                  style="max-width: 200px; padding: 12px 15px"
+                  placeholder="NAME (OPTIONAL)..."
+                />
+                <input
+                  type="text"
+                  id="favIpInput"
+                  aria-label="Favorite Server IP"
+                  class="search-input"
+                  style="
+                    max-width: 200px;
+                    padding: 12px 15px;
+                    border-left: 1px solid var(--border);
+                  "
+                  placeholder="IP ADDRESS..."
+                />
+                <input
+                  type="text"
+                  id="favPortInput"
+                  aria-label="Favorite Server Port"
+                  class="search-input"
+                  style="max-width: 100px; padding: 12px 15px"
+                  placeholder="PORT..."
+                />
+                <button id="addFavBtn" class="btn">➕ ADD</button>
+              </div>
+            </div>
+          </div>
+
+          <table class="server-table">
+            <thead>
+              <tr>
+                <th style="width: 50px; text-align: center">⭐</th>
+                <th>Server Name</th>
+                <th style="width: 110px">Players</th>
+                <th style="width: 80px; text-align: center">Mods</th>
+                <th style="width: 80px">Ping</th>
+                <th style="width: 250px">Metadata</th>
+                <th style="width: 220px">IP Address</th>
+                <th style="width: 170px; text-align: right">HUD Link</th>
+              </tr>
+            </thead>
+            <tbody id="favoritesListBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div
+        id="settings"
+        class="tab-content"
+        style="padding: 20px; overflow-y: auto"
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+          "
+        >
+          <h2 style="margin: 0; color: var(--accent)">⚙️ SETTINGS</h2>
+          <div style="display: flex; gap: 12px">
+            <button
+              id="resetSettingsBtn"
+              class="btn btn-outline"
+              style="color: #ff5a5f; border-color: #ff5a5f"
+            >
+              ⚠️ RESET TO DEFAULTS
+            </button>
+            <button id="saveSettingsBtn" class="btn">💾 SAVE SETTINGS</button>
+          </div>
+        </div>
+
+        <div class="settings-grid" style="grid-template-columns: 1fr 1fr 1fr">
+          <!-- Appearance Card -->
+          <div class="settings-card" style="grid-column: 1; grid-row: 1">
+            <h3>🎨 APPEARANCE & AUDIO</h3>
+            <div class="form-group">
+              <label for="themeSelect">HUD Color Theme</label>
+              <select id="themeSelect" class="form-input">
+                <option value="tactical-dark">Tactical Dark (Default)</option>
+                <option value="toxic">Toxic Wasteland (Lime Green)</option>
+                <option value="amber">Amber Alert (Warm Orange)</option>
+                <option value="deep-sea">Deep Sea (Sub Blue)</option>
+                <option value="vampire">Vampire (Crimson Blood)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="serverListPageSize">Server List Page Size</label>
+              <input
+                type="number"
+                id="serverListPageSize"
+                class="form-input"
+                min="10"
+                max="500"
+                placeholder="50"
+              />
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="serverListMode">Display Mode</label>
+              <select id="serverListMode" class="form-input">
+                <option value="standard">Comfortable</option>
+                <option value="compact">Compact</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="audioFeedback">Ambient HUD Audio Feedback</label>
+              <select id="audioFeedback" class="form-input">
+                <option value="true">Enabled (Clicks & Sweeps)</option>
+                <option value="false">Disabled</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Mod Card -->
+          <div class="settings-card" style="grid-column: 2; grid-row: 1">
+            <h3>📂 STORAGE DIRECTORIES</h3>
+            <div class="form-group">
+              <label for="modDirectory">Workshop Mod Path</label>
+              <input
+                type="text"
+                id="modDirectory"
+                class="form-input"
+                placeholder="/home/username/.steam/steam/steamapps/workshop/content/221100"
+              />
+            </div>
+            <div class="settings-info">
+              DayZ Linux Client looks for server mods inside your Steam workshop
+              directory. Specify the exact directory to let the browser
+              auto-verify local files.
+            </div>
+          </div>
+
+          <!-- Network Card -->
+          <div class="settings-card" style="grid-column: 1; grid-row: 2">
+            <h3>🌐 NETWORK POLLING</h3>
+            <div style="display: flex; gap: 20px; align-items: stretch">
+              <div class="form-group" style="flex: 1; box-sizing: border-box">
+                <label
+                  for="autoRefreshEnabled"
+                  style="height: 2.2em; display: flex; align-items: center"
+                  >Auto-Refresh</label
+                >
+                <select id="autoRefreshEnabled" class="form-input">
+                  <option value="true">Enabled (Auto-Fetch)</option>
+                  <option value="false">Disabled (Manual Only)</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1; box-sizing: border-box">
+                <label
+                  for="autoRefreshTime"
+                  style="height: 2.2em; display: flex; align-items: center"
+                  >Refresh (Seconds)</label
+                >
+                <input
+                  type="number"
+                  id="autoRefreshTime"
+                  class="form-input"
+                  min="30"
+                  max="3600"
+                  placeholder="180"
+                />
+              </div>
+            </div>
+            <div class="settings-info">
+              Configure how often the application fetches fresh global data from
+              the master server list.
+            </div>
+            <hr
+              style="margin: 15px 0; border-color: rgba(255, 255, 255, 0.06)"
+            />
+            <div style="display: flex; gap: 20px; align-items: stretch">
+              <div class="form-group" style="flex: 1; box-sizing: border-box">
+                <label
+                  for="watchlistRefreshEnabled"
+                  style="height: 2.2em; display: flex; align-items: center"
+                  >Watchlist Polling</label
+                >
+                <select id="watchlistRefreshEnabled" class="form-input">
+                  <option value="true">Enabled (Auto-Check)</option>
+                  <option value="false">Disabled (Manual Only)</option>
+                </select>
+              </div>
+              <div class="form-group" style="flex: 1; box-sizing: border-box">
+                <label
+                  for="watchlistRefreshTime"
+                  style="height: 2.2em; display: flex; align-items: center"
+                  >Check Interval (Seconds)</label
+                >
+                <input
+                  type="number"
+                  id="watchlistRefreshTime"
+                  class="form-input"
+                  min="5"
+                  max="600"
+                  placeholder="10"
+                />
+              </div>
+            </div>
+            <div class="settings-info">
+              How often to check watched servers against their player count
+              thresholds. Notifications fire when player counts cross your
+              configured limits.
+            </div>
+          </div>
+
+          <!-- Launch Card -->
+          <div class="settings-card" style="grid-column: 2; grid-row: 2">
+            <h3>🚀 LAUNCH PRESETS</h3>
+            <div class="form-group">
+              <label for="protonPath">Proton Compatibility Layer</label>
+              <div style="display: flex; gap: 8px">
+                <select
+                  id="protonPath"
+                  class="form-input"
+                  style="flex: 1; min-width: 0; max-width: 320px"
+                >
+                  <option value="default">Steam Default Applaunch</option>
+                  <!-- Dynamically populated via IPC -->
+                </select>
+                <button
+                  id="testProtonBtn"
+                  class="btn btn-outline"
+                  style="
+                    padding: 8px 12px;
+                    font-size: 0.75rem;
+                    white-space: nowrap;
+                  "
+                >
+                  🔍 TEST
+                </button>
+              </div>
+            </div>
+
+            <div
+              class="form-group checkbox-group"
+              style="display: flex; gap: 15px; margin-top: 15px"
+            >
+              <label style="display: flex; align-items: center; gap: 5px"
+                ><input type="checkbox" id="flagNoSplash" checked />
+                -nosplash</label
+              >
+              <label style="display: flex; align-items: center; gap: 5px"
+                ><input type="checkbox" id="flagNoPause" /> -noPause</label
+              >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 5px;
+                  color: var(--accent);
+                "
+                ><input type="checkbox" id="flagMangoHud" /> MangoHud</label
+              >
+            </div>
+
+            <div
+              class="form-group"
+              style="display: flex; gap: 15px; margin-top: 15px"
+            >
+              <div style="flex: 1">
+                <label for="flagCpuCount">-cpuCount</label>
+                <input
+                  type="number"
+                  id="flagCpuCount"
+                  class="form-input"
+                  value="4"
+                />
+              </div>
+              <div style="flex: 1">
+                <label for="flagExThreads">-exThreads</label>
+                <input
+                  type="number"
+                  id="flagExThreads"
+                  class="form-input"
+                  value="7"
+                />
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 15px">
+              <label for="launchParams">Extra Launch Parameters</label>
+              <input
+                type="text"
+                id="launchParams"
+                class="form-input"
+                placeholder="-world=empty -limitFPS=144"
+              />
+            </div>
+            <div class="settings-info">
+              Configure Proton layer and DayZ startup optimizations.
+            </div>
+          </div>
+
+          <!-- Performance Card -->
+          <div
+            class="settings-card"
+            style="grid-column: 3; grid-row: 1 / span 2"
+          >
+            <h3>⚙️ PERFORMANCE TUNING</h3>
+            <div
+              class="form-group checkbox-group"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 15px;
+              "
+            >
+              <label style="display: flex; align-items: center; gap: 10px"
+                ><input type="checkbox" id="dxvkAsyncEnabled" /> Enable DXVK
+                Async (Stutter reduction)</label
+              >
+              <label style="display: flex; align-items: center; gap: 10px"
+                ><input type="checkbox" id="disableProtonLogs" /> Disable
+                PROTON_LOG (Saves I/O overhead)</label
+              >
+              <label style="display: flex; align-items: center; gap: 10px">
+                <input type="checkbox" id="enableGameMode" /> Use GameMode
+                (gamemoderun)
+                <span
+                  style="
+                    font-size: 0.7rem;
+                    color: var(--text-dim);
+                    cursor: help;
+                  "
+                  title="Install via: sudo apt install gamemode (Debian/Ubuntu) or sudo pacman -S gamemode (Arch)"
+                  >ⓘ</span
+                >
+              </label>
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  color: var(--accent);
+                "
+                ><input type="checkbox" id="nativeWayland" /> Native Wayland App
+                Support (Requires restart)</label
+              >
+              <label
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 10px;
+                  color: var(--accent-red);
+                  margin-top: 5px;
+                "
+                ><input type="checkbox" id="mallocSystem" /> Force System
+                Allocator (-malloc=system) [Reduces Memory Leak]</label
+              >
+              <label style="display: flex; align-items: center; gap: 10px"
+                ><input type="checkbox" id="mallocTrim" /> Aggressive Memory
+                Trim (MALLOC_TRIM_THRESHOLD_=0)</label
+              >
+              <label style="display: flex; align-items: center; gap: 10px"
+                ><input type="checkbox" id="noEsync" /> Disable Proton Esync
+                (PROTON_NO_ESYNC=1)</label
+              >
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="maxMem"
+                >Max Memory Allocation Limit (-maxMem in MB)</label
+              >
+              <input
+                type="number"
+                id="maxMem"
+                class="form-input"
+                style="max-width: 200px"
+                placeholder="16000"
+              />
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="dxvkThreads">DXVK Compiler Threads</label>
+              <select
+                id="dxvkThreads"
+                class="form-input"
+                style="max-width: 200px"
+              >
+                <option value="0">Auto</option>
+                <option value="2">2 Threads</option>
+                <option value="4">4 Threads</option>
+                <option value="8">8 Threads</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="mangoHudConfig">MangoHud Configuration Preset</label>
+              <input
+                type="text"
+                id="mangoHudConfig"
+                class="form-input"
+                placeholder="cpu_temp,gpu_temp,ram,fps,frame_timing"
+              />
+              <div
+                style="
+                  font-size: 0.7rem;
+                  color: var(--text-dim);
+                  margin-top: 4px;
+                "
+              >
+                Comma-separated MangoHud preset options. Common: cpu_temp,
+                gpu_temp, ram, vram, fps, frame_timing, cpu_power, gpu_power,
+                vulkan_driver
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="dxvkConfig"
+                >Custom DXVK Configuration (dxvk.conf)</label
+              >
+              <textarea
+                id="dxvkConfig"
+                class="form-input"
+                style="
+                  min-height: 80px;
+                  font-family: &quot;Share Tech Mono&quot;, monospace;
+                  font-size: 0.8rem;
+                "
+                placeholder="dxvk.enableAsync = True&#10;dxvk.numCompilerThreads = 4&#10;dxvk.useRawSsbo = True"
+              ></textarea>
+              <div
+                style="
+                  font-size: 0.7rem;
+                  color: var(--text-dim);
+                  margin-top: 4px;
+                "
+              >
+                Advanced: Raw DXVK config lines. Overrides the checkboxes above
+                if set.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-left">
+        <div class="footer-indicator">
+          <div class="footer-dot" id="footerStatusDot"></div>
+          <span id="footerStatusText">CONNECTED</span>
+        </div>
+        <span>DZLINUX <span class="app-version-text"></span></span>
+        <button
+          aria-label="About DzLinux"
+          onclick="openAboutModal()"
+          style="
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--accent);
+            font-size: 1.1rem;
+            margin-left: 10px;
+          "
+          title="About DzLinux"
+        >
+          ℹ️
+        </button>
+      </div>
+      <div class="footer-right">
+        <span id="footerLastRefresh">LAST REFRESH: —</span>
+        <span>Ctrl+R REFRESH · Ctrl+F SEARCH</span>
+      </div>
+    </footer>
+
+    <!-- Modal for Mods Verification Checklist -->
+    <div id="modModal" class="modal-overlay" style="display: none">
+      <div class="modal-box">
+        <div class="modal-header">
+          <h2>SERVER MODS CHECKLIST & DISPATCH</h2>
+        </div>
+        <div class="modal-body">
+          <p class="modal-description">
+            Verifying local mod installations against target server parameters.
+            Highlighted items must be synchronized via Steam Workshop before
+            establishing connection:
+          </p>
+
+          <ul id="missingModsList">
+            <!-- Injected mods verification checklist -->
+          </ul>
+
+          <!-- Console-like auto download feedback log -->
+          <div id="modStatusContainer" class="console-log-box">
+            <span id="modStatusText">READY FOR COMMAND...</span>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="modalCancelBtn" class="btn btn-outline">
+            ABORT MISSION
+          </button>
+          <button id="modalAutoDownloadBtn" class="btn" style="display: none">
+            🚀 SYNC OUT-OF-DATE MODS
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Direct Connect -->
+    <div id="directConnectModal" class="modal-overlay" style="display: none">
+      <div
+        class="modal-box"
+        style="border-color: var(--accent); max-width: 450px"
+      >
+        <div class="modal-header">
+          <h2 style="color: var(--accent)">DIRECT JOIN</h2>
+        </div>
+        <div class="modal-body">
+          <p class="modal-description">
+            Enter the exact IP address and port of the target server to
+            establish a direct telemetry link.
+          </p>
+          <div class="form-group mb-4">
+            <label for="directIpInput">IP ADDRESS</label>
+            <input
+              type="text"
+              id="directIpInput"
+              class="form-input"
+              placeholder="e.g. 192.168.1.100"
+            />
+          </div>
+          <div class="form-group mb-4">
+            <label for="directPortInput">PORT</label>
+            <input
+              type="text"
+              id="directPortInput"
+              class="form-input"
+              placeholder="e.g. 2302"
+            />
+          </div>
+        </div>
+        <div
+          class="modal-actions"
+          style="display: flex; justify-content: flex-end; gap: 15px"
+        >
+          <button onclick="closeDirectConnectModal()" class="btn btn-outline">
+            CANCEL
+          </button>
+          <button
+            id="directConnectBtn"
+            class="btn"
+            onclick="closeDirectConnectModal()"
+          >
+            CONNECT NOW
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Auto-Updater Alerts -->
+    <div id="updateModal" class="modal-overlay" style="display: none">
+      <div class="modal-box" style="border-color: var(--accent)">
+        <div class="modal-header" style="background: rgba(46, 196, 182, 0.1)">
+          <h2 style="color: var(--accent)">UPDATE AVAILABLE</h2>
+        </div>
+        <div class="modal-body">
+          <p class="modal-description">
+            A newer version of the DzLinux client has been deployed to the
+            global repository.
+            <br /><br />
+            <strong>Current Version:</strong>
+            <span id="currentVersionText" class="app-version-text"></span><br />
+            <strong>Latest Version:</strong>
+            <span id="latestVersionText">v1.1.0</span>
+          </p>
+          <div
+            class="console-log-box"
+            style="max-height: 150px; overflow-y: auto"
+          >
+            <pre
+              id="updateReleaseNotes"
+              style="
+                margin: 0;
+                font-family: inherit;
+                font-size: 0.85rem;
+                color: #fff;
+                white-space: pre-wrap;
+              "
+            ></pre>
+          </div>
+          <div
+            id="updateProgressContainer"
+            style="display: none; margin-top: 12px"
+          >
+            <div
+              style="
+                height: 6px;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 3px;
+                overflow: hidden;
+              "
+            >
+              <div
+                id="updateProgressBar"
+                style="
+                  height: 100%;
+                  width: 0%;
+                  background: var(--accent);
+                  border-radius: 3px;
+                  transition: width 0.3s ease;
+                "
+              ></div>
+            </div>
+            <div
+              id="updateProgressText"
+              style="font-size: 0.8rem; color: #888; margin-top: 4px"
+            >
+              Starting download...
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="updateDismissBtn" class="btn btn-outline">DISMISS</button>
+          <button
+            id="updateDownloadBtn"
+            class="btn btn-primary"
+            style="background: var(--accent); color: #000"
+          >
+            DOWNLOAD
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for About & Acknowledgments -->
+    <div id="confirmModal" class="modal-overlay" style="display: none">
+      <div class="modal-box" style="max-width: 480px">
+        <div class="modal-header">
+          <h2>CONFIRM ACTION</h2>
+        </div>
+        <div class="modal-body">
+          <p id="confirmModalMessage" class="modal-description"></p>
+        </div>
+        <div class="modal-actions">
+          <button id="confirmModalCancelBtn" class="btn btn-outline">
+            CANCEL
+          </button>
+          <button id="confirmModalOkBtn" class="btn">CONFIRM</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="aboutModal" class="modal-overlay" style="display: none">
+      <div
+        class="modal-box"
+        style="border-color: var(--accent); max-width: 600px"
+      >
+        <div class="modal-header">
+          <h2 style="color: var(--accent)">ABOUT DZLINUX</h2>
+        </div>
+        <div class="modal-body" style="max-height: 60vh; overflow-y: auto">
+          <p
+            class="modal-description"
+            style="text-align: center; margin-bottom: 20px"
+          >
+            <strong
+              >DzLinux Server Browser
+              <span class="app-version-text"></span></strong
+            ><br />
+            A high-performance, native DayZ Server Browser and Mod Manager built
+            specifically for the Linux gaming ecosystem.
+          </p>
+          <h3
+            style="
+              color: var(--accent);
+              font-size: 0.9rem;
+              margin-top: 15px;
+              margin-bottom: 10px;
+            "
+          >
+            OPEN SOURCE ACKNOWLEDGMENTS
+          </h3>
+          <p
+            style="
+              font-size: 0.8rem;
+              color: var(--text-muted);
+              margin-bottom: 10px;
+            "
+          >
+            We acknowledge and are grateful to these developers for their
+            contributions to open source:
+          </p>
+          <div
+            class="console-log-box"
+            style="
+              text-align: left;
+              font-size: 0.8rem;
+              line-height: 1.4;
+              margin-bottom: 15px;
+            "
+          >
+            <strong>electron</strong> (MIT) -
+            <span
+              onclick="
+                window.api.ui.openExternal(
+                  'https://github.com/electron/electron'
+                )
+              "
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >Source</span
+            ><br />
+            <strong>electron-builder</strong> (MIT) -
+            <span
+              onclick="
+                window.api.ui.openExternal(
+                  'https://github.com/electron-userland/electron-builder'
+                )
+              "
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >Source</span
+            ><br />
+            <strong>axios</strong> (MIT) -
+            <span
+              onclick="
+                window.api.ui.openExternal('https://github.com/axios/axios')
+              "
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >Source</span
+            ><br />
+            <strong>gamedig</strong> (MIT) -
+            <span
+              onclick="
+                window.api.ui.openExternal(
+                  'https://github.com/gamedig/node-gamedig'
+                )
+              "
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >Source</span
+            ><br />
+            <strong>steamworks.js</strong> (MIT) -
+            <span
+              onclick="
+                window.api.ui.openExternal(
+                  'https://github.com/ceifa/steamworks.js'
+                )
+              "
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >Source</span
+            ><br />
+          </div>
+
+          <div
+            style="
+              font-size: 0.75rem;
+              color: var(--text-dim);
+              margin-top: 20px;
+              white-space: pre-wrap;
+              text-align: left;
+            "
+          >
+            Full license terms and details can be found in the
+            <strong>acknowledgments.txt</strong> file in the root directory.
+          </div>
+        </div>
+        <div
+          class="modal-actions"
+          style="display: flex; justify-content: flex-end"
+        >
+          <button onclick="closeAboutModal()" class="btn btn-outline">
+            CLOSE
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Crash Diagnostics Modal -->
+    <div
+      id="crashDiagnosticModal"
+      class="modal-overlay"
+      style="display: none"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="crashDiagnosticTitle"
+    >
+      <div
+        class="modal-box"
+        style="border-color: var(--accent-red); max-width: 600px"
+      >
+        <div class="modal-header">
+          <h2 id="crashDiagnosticTitle" class="text-red">
+            ⚠️ GAME CRASH DETECTED
+          </h2>
+        </div>
+        <div class="modal-body">
+          <p
+            class="modal-description font-bold text-white"
+            id="crashDiagnosticDescription"
+          ></p>
+          <div
+            class="console-log-box text-red"
+            id="crashDiagnosticSnippet"
+          ></div>
+          <p
+            class="modal-description mt-4 text-green"
+            id="crashDiagnosticFix"
+          ></p>
+        </div>
+        <div class="modal-actions">
+          <button id="crashDiagnosticCloseBtn" class="btn btn-outline">
+            CLOSE
+          </button>
+          <button id="crashDiagnosticCopyBtn" class="btn btn-danger">
+            📋 COPY LOG
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Renderer Entry Module -->
+    <script type="module" src="./renderer/index.js"></script>
+  </body>
+</html>

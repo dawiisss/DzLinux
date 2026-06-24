@@ -1,0 +1,36 @@
+# Maintainer: DzLinux Team <dawiisss@github.com>
+pkgname=dzlinux-bin
+pkgver=1.0.8
+pkgrel=1
+pkgdesc="A high-performance DayZ Server Browser and Mod Manager for Linux."
+arch=('x86_64')
+url="https://github.com/dawiisss/DzLinux"
+license=('proprietary')
+depends=('libxss' 'nss' 'gtk3' 'libnotify')
+provides=('dzlinux')
+conflicts=('dzlinux')
+source=("https://github.com/dawiisss/DzLinux-releases/releases/download/v${pkgver}/DzLinux-${pkgver}-linux-x64.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+  install -d "${pkgdir}/opt/dzlinux"
+  # The tar.gz usually extracts to a folder or the root of srcdir. Adjusting based on electron-builder output.
+  cp -r "${srcdir}"/* "${pkgdir}/opt/dzlinux/"
+  
+  install -d "${pkgdir}/usr/bin"
+  ln -s /opt/dzlinux/dzlinux "${pkgdir}/usr/bin/dzlinux"
+  
+  # Ensure executable
+  chmod +x "${pkgdir}/opt/dzlinux/dzlinux"
+  
+  install -d "${pkgdir}/usr/share/applications"
+  echo "[Desktop Entry]
+Name=DzLinux
+Exec=/usr/bin/dzlinux %U
+Terminal=false
+Type=Application
+Icon=dzlinux
+StartupWMClass=DzLinux
+Comment=DayZ Server Browser
+Categories=Game;" > "${pkgdir}/usr/share/applications/dzlinux.desktop"
+}

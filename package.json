@@ -1,0 +1,85 @@
+{
+  "name": "dzlinux",
+  "version": "1.0.8",
+  "description": "DzLinux Server Browser",
+  "desktopName": "DzLinux",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "electron .",
+    "prebuild": "jest",
+    "build": "electron-builder --linux",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "build": {
+    "appId": "com.dawiisss.dzlinux",
+    "productName": "DzLinux",
+    "publish": {
+      "provider": "github",
+      "owner": "dawiisss",
+      "repo": "DzLinux-releases"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "tar.gz",
+        "deb",
+        "rpm"
+      ],
+      "syncDesktopName": true,
+      "category": "Game",
+      "icon": "build/icon.png",
+      "synopsis": "DayZ Server Browser & Mod Manager for Linux",
+      "description": "A standalone desktop application for browsing DayZ servers, managing Steam Workshop mods, and launching the game with Proton support. Features real-time A2S server queries, mod dependency resolution, crash diagnostics, and auto-updates."
+    },
+    "deb": {
+      "depends": [
+        "iputils-ping",
+        "xdg-utils"
+      ]
+    },
+    "rpm": {
+      "depends": [
+        "iputils",
+        "xdg-utils"
+      ]
+    },
+    "extraFiles": [
+      {
+        "from": "acknowledgments.txt",
+        "to": "."
+      }
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dawiisss/DzLinux.git"
+  },
+  "keywords": [],
+  "author": {
+    "name": "dawiisss",
+    "email": "dzlinux@route2place.com"
+  },
+  "license": "MIT",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/dawiisss/DzLinux/issues"
+  },
+  "homepage": "https://github.com/dawiisss/DzLinux#readme",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "electron": "^42.3.3",
+    "electron-builder": "^26.15.2",
+    "eslint": "^10.4.1",
+    "globals": "^17.6.0",
+    "jest": "^30.4.2"
+  },
+  "dependencies": {
+    "axios": "^1.17.0",
+    "electron-updater": "^6.8.9",
+    "gamedig": "^5.3.3",
+    "steamworks.js": "^0.4.0"
+  }
+}

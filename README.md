@@ -1,20 +1,20 @@
-# <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux — DayZ Server Browser, Mod Manager & Launcher for Linux
+# <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux — DayZ Server Browser, Mod Manager and Launcher for Linux
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/dawiisss/DzLinux-releases?color=brightgreen&logo=github)](https://github.com/dawiisss/DzLinux-releases/releases/latest)
-[![Platform support](https://img.shields.io/badge/platform-Linux-orange?logo=linux)](https://github.com/dawiisss/DzLinux-releases)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/dawiisss/DzLinux?color=brightgreen&logo=github)](https://github.com/dawiisss/DzLinux/releases/latest)
+[![Platform support](https://img.shields.io/badge/platform-Linux-orange?logo=linux)](https://github.com/dawiisss/DzLinux)
 
-Welcome to the official public distribution and issue tracking repository for **DzLinux**! 
+Welcome to the official public repository for **DzLinux**! 
 
 **DzLinux** is a premium, high-performance, native **DayZ Server Browser**, **Mod Manager**, and **Launcher** designed specifically for playing **DayZ on Linux**. By combining a hardware-accelerated military-grade Tactical HUD with deep Steam and Proton integration, DzLinux helps you manage your mod loadouts and join servers seamlessly on Linux. If you want to play DayZ on Linux, download our pre-compiled packages below.
 
 > [!NOTE]
-> This repository is used exclusively for distributing compiled binaries (AppImages and tarball packages) and hosting the public bug/issue tracker. The core application codebase is closed-source and maintained in a private repository.
+> This repository contains the official open-source codebase for **DzLinux**, including the launcher, server browser, and build automation setups. Compiled distribution binaries and release assets are hosted directly on the public Releases page.
 
 <img width="1399" height="797" alt="Screenshot_20260610_184145" src="https://github.com/user-attachments/assets/eac881b7-26bf-48ef-8bbc-973c7de97ca8" />
 
 ---
 
-## 📌 Table of Contents
+## Table of Contents
 * [Key Features](#key-features)
 * [Installation and Setup](#installation-and-setup)
 * [Configuration Guide](#configuration-guide)
@@ -25,23 +25,26 @@ Welcome to the official public distribution and issue tracking repository for **
 
 ## Key Features
 
-### 🕶️ GUI Interface
+### GUI Interface
 Experience a beautifully styled, high-contrast user interface designed to be practical.
 
-### 🐧 Proton & Wine Auto-Detection
+### Proton and Wine Auto-Detection
 No more guessing paths or writing bash wrappers. DzLinux automatically scans your local Steam directories and user libraries to detect installed Proton versions (including Proton GE and Experimental), letting you launch the game seamlessly with the optimal compatibility layer in one click.
 
-### 📡 Smart A2S Server Querying
+### Smart A2S Server Querying
 Connect directly to global DayZ aggregators and local servers. Retrieve real-time player counts, server latency, time-of-day cycles, active mods, and specific server rule flags instantly. Add your favorite servers to a custom list for instant redeployment.
 
-> [!TIP]
-> **🚀 Upcoming Feature:** An online **Server Portal** allowing community and private server owners to register and submit their own servers directly to the public list is currently in development.
+### Telemetry and Crash Diagnostics
+Review detailed telemetry summaries and launcher launch logs. Instantly analyze recent session logs, connection drop counts, and view helpful, actionable suggested fixes for game crashes.
 
-### 🧩 Mod Management
+### Custom Server Watchlist
+Add servers to a personal watchlist to track slots availability and target population thresholds. Get real-time native desktop notifications when your rules match.
+
+### Mod Management
 * **Workshop Validation:** Automatically cross-references a target server's required mods list against your local Steam Workshop directory, highlighting missing or outdated mods *before* you attempt to join.
 * **Mod Loadouts:** Create, save, and toggle named loadouts of your local mods.
 
-### 🚀 One-Click Performance Optimizations
+### One-Click Performance Optimizations
 Inject advanced launch arguments directly through a simple toggle interface:
 - **Game Engine Toggles:** `-nosplash`, `-noPause`, `-limitFPS`, `-window`, and more.
 - **Overlay Support:** Instantly hook **MangoHud** for real-time framerate and system metrics.
@@ -51,23 +54,23 @@ Inject advanced launch arguments directly through a simple toggle interface:
 
 ## Installation and Setup
 
-DzLinux requires no installation and is fully portable. You can use our automated install script, or manually download your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases).
+DzLinux requires no installation and is fully portable. You can use our automated install script, or manually download your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux/releases).
 
 ### Method 1: Automated Install Script (Recommended)
 The easiest way to install DzLinux is using our automated install script. It will detect your Linux distribution and automatically download and install the correct format (.deb, .rpm, or AppImage) for your system.
 
 Run the following command in your terminal:
 ```bash
-curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux-releases/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | bash
 ```
 
 ### Method 2: AppImage (Portable)
 The AppImage format is a single, self-contained executable that runs on almost any modern Linux distribution (Ubuntu, Fedora, Arch, Debian, etc.).
 
-1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases/latest) and download `DzLinux-1.0.7.AppImage`.
+1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and download `DzLinux-1.0.8.AppImage`.
 2. Give the file executable permissions via your terminal:
    ```bash
-   chmod +x DzLinux-1.0.7.AppImage
+   chmod +x DzLinux-1.0.8.AppImage
    ```
    *(Or right-click the file in your file manager, open **Properties** -> **Permissions**, and check **Allow executing file as program**).*
 3. Double-click the file to launch the app.
@@ -77,10 +80,10 @@ We recommend using Gear Lever or any other AppImage management app.
 ### Method 3: Portable Archive (.tar.gz)
 If you prefer standard directory structures or like to keep your game utilities in a dedicated folder (e.g., `~/Games/`):
 
-1. Download `dzlinux-1.0.7.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases/latest).
+1. Download `dzlinux-1.0.8.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
 2. Extract the archive:
    ```bash
-   tar -xzf dzlinux-1.0.7.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.0.8.tar.gz -C ~/Games/
    ```
 3. Navigate to the extracted folder and run the binary:
    ```bash
@@ -90,10 +93,10 @@ If you prefer standard directory structures or like to keep your game utilities 
 
 ### Method 4: Debian Package (.deb) — Ubuntu, Debian, Pop!_OS, Mint
 
-1. Download `dzlinux_1.0.7_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases/latest).
+1. Download `dzlinux_1.0.8_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
 2. Install via the terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.0.7_amd64.deb
+   sudo dpkg -i dzlinux_1.0.8_amd64.deb
    sudo apt install -f
    ```
    *(Or double-click the .deb file in your file manager to open with your package installer.)*
@@ -101,17 +104,17 @@ If you prefer standard directory structures or like to keep your game utilities 
 
 ### Method 5: RPM Package (.rpm) — Fedora, RHEL, openSUSE
 
-1. Download `dzlinux-1.0.7.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux-releases/releases/latest).
+1. Download `dzlinux-1.0.8.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
 2. Install via the terminal:
    ```bash
-   sudo rpm -i dzlinux-1.0.7.x86_64.rpm
+   sudo rpm -i dzlinux-1.0.8.x86_64.rpm
    ```
 3. Launch from your app menu or run `dzlinux` in the terminal.
 
-### 📡 Updates
+### Updates
 
 - **AppImage** — The built-in auto-updater handles downloads and installs automatically.
-- **tar.gz / .deb / .rpm** — Updates are manual. The app will notify you when a new version is available with a link to the [Releases page](https://github.com/dawiisss/DzLinux-releases/releases/latest). Re-download the package for your format and install it to update.
+- **tar.gz / .deb / .rpm** — Updates are manual. The app will notify you when a new version is available with a link to the [Releases page](https://github.com/dawiisss/DzLinux/releases/latest). Re-download the package for your format and install it to update.
 
 ---
 
@@ -157,7 +160,7 @@ sudo dnf install gamemode mangohud
 We rely on community feedback in this repository to find and squash bugs!
 
 ### How to open an issue:
-1. Go to the [Issues Page](https://github.com/dawiisss/DzLinux-releases/issues).
+1. Go to the [Issues Page](https://github.com/dawiisss/DzLinux/issues).
 2. Click **New Issue** and select the appropriate template (Bug Report or Feature Request).
 3. Include your Linux distribution, Proton version, Steam library path setup, and any log outputs or screenshots showing the issue.
 
@@ -168,7 +171,7 @@ Have an idea for a performance toggle, layout improvement, or mod-management fea
 
 ## License and Compliance
 
-* **Application License:** DzLinux is distributed as a proprietary, closed-source application. All rights reserved.
+* **Application License:** DzLinux is open-source software licensed under the [MIT License](LICENSE).
 * **Privacy & Telemetry:** DzLinux does not collect, store, or transmit any personal data, analytics, or telemetry. All server queries are done directly from your machine to the public game databases, and your configuration settings remain completely local.
 * **Open Source Acknowledgments:** DzLinux is built on top of incredible open-source libraries (including Electron, Axios, GameDig, and Steamworks.js). A full list of dependencies, their licenses, and source repositories can be found inside the application's **About / Info** pop-up or in the bundled `acknowledgments.txt` file distributed with every release package.
 

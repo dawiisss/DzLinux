@@ -1,0 +1,18 @@
+# Dependency Directories
+node_modules/
+
+# Build and Distribution Directories
+dist/
+
+# Local Configurations & Cache Files
+settings.json
+package-lock.json
+
+# Local Tooling & Scripts
+scripts/
+
+# Test Coverage
+coverage/
+
+#Server portal
+server-portal/

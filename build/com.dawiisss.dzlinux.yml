@@ -1,0 +1,32 @@
+app-id: com.dawiisss.dzlinux
+runtime: org.freedesktop.Platform
+runtime-version: '23.08'
+sdk: org.freedesktop.Sdk
+base: org.electronjs.Electron2.BaseApp
+base-version: '23.08'
+command: dzlinux
+separate-locales: false
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --share=network
+  - --device=dri
+  # Required to read DayZ Workshop mods and run Proton/SteamCMD from standard locations
+  - --filesystem=~/.steam
+  - --filesystem=~/.local/share/Steam
+  - --filesystem=~/.local/share/SteamCMD
+modules:
+  - name: dzlinux
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 dzlinux.sh /app/bin/dzlinux
+      - cp -r * /app/bin/
+    sources:
+      - type: archive
+        url: https://github.com/dawiisss/DzLinux-releases/releases/download/v1.0.8/DzLinux-1.0.8-linux-x64.tar.gz
+        sha256: SKIP
+      - type: script
+        dest-filename: dzlinux.sh
+        commands:
+          - zypak-wrapper /app/bin/dzlinux "$@"
