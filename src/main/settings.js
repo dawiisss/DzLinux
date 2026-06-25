@@ -36,6 +36,8 @@ const defaultSettings = {
   watchlistThreshold: 50,
   watchlistRefreshEnabled: true,
   watchlistRefreshTime: 10,
+  showWatchlistTab: true,
+  showDiagnosticsTab: true,
 };
 
 function findDayzWorkshopFolder() {

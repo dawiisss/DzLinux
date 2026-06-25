@@ -26,6 +26,10 @@ export async function initSettings() {
     settings.theme || "tactical-dark";
   document.getElementById("audioFeedback").value =
     settings.audioFeedback !== false ? "true" : "false";
+  document.getElementById("showWatchlistTab").checked =
+    settings.showWatchlistTab !== false;
+  document.getElementById("showDiagnosticsTab").checked =
+    settings.showDiagnosticsTab !== false;
   document.getElementById("flagMangoHud").checked =
     settings.mangoHudEnabled === true;
 
@@ -128,6 +132,8 @@ export async function initSettings() {
         parseInt(document.getElementById("autoRefreshTime").value) || 180,
       theme: document.getElementById("themeSelect").value,
       audioFeedback: document.getElementById("audioFeedback").value === "true",
+      showWatchlistTab: document.getElementById("showWatchlistTab").checked,
+      showDiagnosticsTab: document.getElementById("showDiagnosticsTab").checked,
       protonPath: document.getElementById("protonPath").value,
       mangoHudEnabled: document.getElementById("flagMangoHud").checked,
       dxvkAsyncEnabled: document.getElementById("dxvkAsyncEnabled").checked,
@@ -156,6 +162,11 @@ export async function initSettings() {
     const success = await window.api.settings.save(newSettings);
     if (success) {
       state.settings = newSettings;
+
+      // Update tab visibility dynamically
+      const { applyTabVisibility } = await import("./ui-behavior.js");
+      applyTabVisibility(newSettings);
+
       // Restart countdown and watchlist polling with new settings
       const { startCountdown } = await import("./serverBrowser.js");
       const { startWatchlistPoll } = await import("./watchlist.js");
@@ -220,6 +231,8 @@ export async function initSettings() {
         theme: "tactical-dark",
         protonPath: "default",
         audioFeedback: true,
+        showWatchlistTab: true,
+        showDiagnosticsTab: true,
         dxvkAsyncEnabled: true,
         dxvkThreads: "0",
         disableProtonLogs: true,

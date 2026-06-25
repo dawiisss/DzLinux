@@ -15,6 +15,10 @@ function isSystemInstall() {
   return appPath.startsWith("/opt/") || appPath.startsWith("/usr/");
 }
 
+function isAppImage() {
+  return !!process.env.APPIMAGE;
+}
+
 function compareVersions(v1, v2) {
   const parsePart = (p) => {
     const n = parseInt(p, 10);
@@ -46,15 +50,25 @@ async function checkForUpdates() {
       return { kind: "not-available", currentVersion };
     }
 
+    const isApp = isAppImage();
+    if (isApp) {
+      const checkPromise = autoUpdater.checkForUpdates();
+      if (checkPromise && typeof checkPromise.catch === "function") {
+        checkPromise.catch((err) => {
+          console.error("Failed to check updates via autoUpdater:", err);
+        });
+      }
+    }
+
     return {
       kind: "available",
       currentVersion,
-      downloadUrl: data.html_url,
+      downloadUrl: isApp ? null : data.html_url,
       updateInfo: {
         version: latestVersion,
         releaseNotes: data.body || "",
         releaseDate: data.published_at,
-        downloadUrl: data.html_url,
+        downloadUrl: isApp ? null : data.html_url,
       },
     };
   } catch (err) {
@@ -113,21 +127,30 @@ function setupAutoUpdater(mainWindow) {
   });
 
   if (app.isPackaged && !isSystemInstall()) {
-    checkForUpdates().then((result) => {
-      if (result.kind === "available" && mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send("update-available", {
-          version: result.updateInfo.version,
-          releaseNotes: result.updateInfo.releaseNotes,
-          releaseDate: result.updateInfo.releaseDate,
-          downloadUrl: result.updateInfo.downloadUrl,
-        });
-      }
-    }).catch((err) => {
-      console.error(
-        "Auto-update check failed:",
-        err ? err.message : "Unknown error",
-      );
-    });
+    if (isAppImage()) {
+      autoUpdater.checkForUpdates().catch((err) => {
+        console.error(
+          "Auto-update check failed on startup:",
+          err ? err.message : "Unknown error",
+        );
+      });
+    } else {
+      checkForUpdates().then((result) => {
+        if (result.kind === "available" && mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send("update-available", {
+            version: result.updateInfo.version,
+            releaseNotes: result.updateInfo.releaseNotes,
+            releaseDate: result.updateInfo.releaseDate,
+            downloadUrl: result.updateInfo.downloadUrl,
+          });
+        }
+      }).catch((err) => {
+        console.error(
+          "Auto-update check failed:",
+          err ? err.message : "Unknown error",
+        );
+      });
+    }
   }
 }
 
@@ -137,4 +160,5 @@ module.exports = {
   checkForUpdates,
   compareVersions,
   isSystemInstall,
+  isAppImage,
 };

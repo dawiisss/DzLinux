@@ -17,14 +17,14 @@ jest.mock("electron-updater", () => ({
     autoDownload: false,
     autoInstallOnAppQuit: false,
     logger: console,
-    checkForUpdates: jest.fn(),
-    downloadUpdate: jest.fn(),
+    checkForUpdates: jest.fn(() => Promise.resolve({ updateInfo: { version: "2.0.0" } })),
+    downloadUpdate: jest.fn(() => Promise.resolve()),
     quitAndInstall: jest.fn(),
     on: jest.fn(),
   },
 }));
 
-const { compareVersions, isSystemInstall } = require("../../src/main/updater");
+const { compareVersions, isSystemInstall, isAppImage } = require("../../src/main/updater");
 
 describe("compareVersions", () => {
   test("equal versions return 0", () => {
@@ -153,6 +153,28 @@ describe("isSystemInstall", () => {
 
     // Assert
     expect(result).toBe(false);
+  });
+});
+
+describe("isAppImage", () => {
+  const originalAppImage = process.env.APPIMAGE;
+
+  afterEach(() => {
+    if (originalAppImage === undefined) {
+      delete process.env.APPIMAGE;
+    } else {
+      process.env.APPIMAGE = originalAppImage;
+    }
+  });
+
+  test("returns true when process.env.APPIMAGE is set", () => {
+    process.env.APPIMAGE = "/path/to/AppImage";
+    expect(isAppImage()).toBe(true);
+  });
+
+  test("returns false when process.env.APPIMAGE is not set", () => {
+    delete process.env.APPIMAGE;
+    expect(isAppImage()).toBe(false);
   });
 });
 
@@ -315,6 +337,29 @@ describe("setupAutoUpdater", () => {
     electron.app.isPackaged = originalIsPackaged;
     jest.restoreAllMocks();
   });
+
+  test("checks for updates via autoUpdater on startup if packaged, not system install, and is AppImage", async () => {
+    const originalAppImage = process.env.APPIMAGE;
+    const originalIsPackaged = electron.app.isPackaged;
+    electron.app.isPackaged = true;
+    electron.app.getAppPath.mockReturnValue("/home/user/.local/share/dzlinux"); // not a system install
+    process.env.APPIMAGE = "/path/to/AppImage";
+
+    const { autoUpdater } = require("electron-updater");
+
+    setupAutoUpdater(mockMainWindow);
+
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalled();
+
+    // cleanup
+    electron.app.isPackaged = originalIsPackaged;
+    if (originalAppImage === undefined) {
+      delete process.env.APPIMAGE;
+    } else {
+      process.env.APPIMAGE = originalAppImage;
+    }
+    jest.restoreAllMocks();
+  });
 });
 
 describe("checkForUpdates", () => {
@@ -368,5 +413,35 @@ describe("checkForUpdates", () => {
 
     expect(result.kind).toBe("error");
     expect(result.message).toBe("Network Error");
+  });
+
+  test("returns available with null downloadUrl and triggers autoUpdater on AppImage", async () => {
+    const originalAppImage = process.env.APPIMAGE;
+    process.env.APPIMAGE = "/path/to/AppImage";
+    const { autoUpdater } = require("electron-updater");
+
+    jest.spyOn(axios, "get").mockResolvedValue({
+      data: {
+        tag_name: "v2.0.0",
+        html_url: "https://example.com",
+        body: "Release notes",
+        published_at: "2023-01-01",
+      },
+    });
+    electron.app.getVersion.mockReturnValue("1.0.0");
+
+    const result = await checkForUpdates();
+
+    expect(result.kind).toBe("available");
+    expect(result.downloadUrl).toBeNull();
+    expect(result.updateInfo.downloadUrl).toBeNull();
+    expect(autoUpdater.checkForUpdates).toHaveBeenCalled();
+
+    // cleanup
+    if (originalAppImage === undefined) {
+      delete process.env.APPIMAGE;
+    } else {
+      process.env.APPIMAGE = originalAppImage;
+    }
   });
 });

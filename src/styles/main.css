@@ -1932,3 +1932,27 @@ select:focus-visible,
   outline: 2px solid var(--accent) !important;
   outline-offset: 2px !important;
 }
+
+/* Pulsating update button animation */
+.update-btn-pulsate {
+  animation: update-button-pulse 1.5s infinite ease-in-out;
+  color: var(--accent) !important;
+}
+
+@keyframes update-button-pulse {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(var(--accent-rgb), 0));
+  }
+  50% {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 8px rgba(var(--accent-rgb), 0.8));
+    color: #fff !important;
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 0px rgba(var(--accent-rgb), 0));
+  }
+}
+
+

@@ -9,7 +9,7 @@ import { initContextMenu } from "./contextMenu.js";
 import { initServerBrowser, refreshServers } from "./serverBrowser.js";
 import { initUpdater } from "./updater.js";
 import { initSteamProfile } from "./steamProfile.js";
-import { initUIBehavior } from "./ui-behavior.js";
+import { initUIBehavior, applyTabVisibility } from "./ui-behavior.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Version
@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const settings = await window.api.settings.load();
   state.settings = settings;
   setFavoritesFromSettings(settings);
+  applyTabVisibility(settings);
 
   // Initialize all modules
   initAudio();

@@ -13,6 +13,7 @@ export function initUpdater() {
     progressContainer: document.getElementById("updateProgressContainer"),
     progressBar: document.getElementById("updateProgressBar"),
     progressText: document.getElementById("updateProgressText"),
+    checkForUpdatesBtn: document.getElementById("checkForUpdatesBtn"),
   };
 
   if (!elements.modal) return;
@@ -20,6 +21,8 @@ export function initUpdater() {
   let downloadInProgress = false;
   let downloaded = false;
   let fallbackDownloadUrl = null;
+  let latestResult = null;
+  let isSilentCheck = false;
 
   const dismiss = () => {
     elements.modal.style.display = "none";
@@ -118,6 +121,8 @@ export function initUpdater() {
     fallbackDownloadUrl = info.downloadUrl || null;
     if (fallbackDownloadUrl) {
       elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
+    } else {
+      elements.downloadBtn.textContent = "DOWNLOAD";
     }
 
     elements.modal.style.display = "flex";
@@ -127,22 +132,115 @@ export function initUpdater() {
 
   window.api.updater.onAvailable(async (info) => {
     const current = await window.api.app.getVersion();
-    showUpdateAvailable({ ...info, currentVersion: current });
+    latestResult = {
+      kind: "available",
+      currentVersion: current,
+      updateInfo: info
+    };
+    if (elements.checkForUpdatesBtn) {
+      elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
+      elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
+    }
+    if (!isSilentCheck) {
+      showUpdateAvailable({ ...info, currentVersion: current });
+    }
   });
 
   const checkAndShow = async () => {
-    const result = await window.api.updater.check();
-    if (result && result.kind === "system-package") {
-      showSystemPackage(result);
-    } else if (result && result.kind === "available") {
-      const info = result.updateInfo;
-      if (info && info.version) {
-        showUpdateAvailable({ ...info, currentVersion: result.currentVersion });
+    isSilentCheck = false;
+    try {
+      const result = await window.api.updater.check();
+      latestResult = result;
+      if (result && result.kind === "system-package") {
+        showSystemPackage(result);
+        if (elements.checkForUpdatesBtn) {
+          elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
+        }
+      } else if (result && result.kind === "available") {
+        const info = result.updateInfo;
+        if (info && info.version) {
+          showUpdateAvailable({ ...info, currentVersion: result.currentVersion });
+        }
+        if (elements.checkForUpdatesBtn) {
+          elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
+        }
       }
-    } else if (result && result.kind === "error") {
-      showToast("Update check failed. Check your internet connection.", "#ff5a5f", "⚠️");
+    } catch (err) {
+      console.error("Startup update check failed:", err);
+    }
+  };
+
+  const performSilentCheck = async () => {
+    isSilentCheck = true;
+    try {
+      const result = await window.api.updater.check();
+      latestResult = result;
+      if (elements.checkForUpdatesBtn) {
+        if (result && (result.kind === "available" || result.kind === "system-package")) {
+          elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
+        } else {
+          elements.checkForUpdatesBtn.classList.remove("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Check for Updates";
+        }
+      }
+    } catch (err) {
+      console.error("Silent background update check failed:", err);
+    } finally {
+      setTimeout(() => {
+        isSilentCheck = false;
+      }, 5000);
     }
   };
 
   checkAndShow();
+
+  // Polling every 60 seconds (1 minute)
+  setInterval(performSilentCheck, 60000);
+
+  if (elements.checkForUpdatesBtn) {
+    elements.checkForUpdatesBtn.onclick = async () => {
+      // If we already know an update is available, open the modal directly without checking again
+      if (latestResult && (latestResult.kind === "available" || latestResult.kind === "system-package")) {
+        if (latestResult.kind === "system-package") {
+          showSystemPackage(latestResult);
+        } else {
+          const info = latestResult.updateInfo;
+          if (info && info.version) {
+            showUpdateAvailable({ ...info, currentVersion: latestResult.currentVersion });
+          }
+        }
+        return;
+      }
+
+      showToast("Checking for updates...", "#2ec4b6", "🔄");
+      try {
+        const result = await window.api.updater.check();
+        latestResult = result;
+        if (result && result.kind === "system-package") {
+          showSystemPackage(result);
+          elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
+        } else if (result && result.kind === "available") {
+          const info = result.updateInfo;
+          if (info && info.version) {
+            showUpdateAvailable({ ...info, currentVersion: result.currentVersion });
+          }
+          elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
+        } else if (result && result.kind === "not-available") {
+          showToast("Your DzLinux client is up to date", "#2ec4b6", "✓");
+          elements.checkForUpdatesBtn.classList.remove("update-btn-pulsate");
+          elements.checkForUpdatesBtn.title = "Check for Updates";
+        } else {
+          showToast("Update check failed. Check your internet connection.", "#ff5a5f", "⚠️");
+        }
+      } catch (err) {
+        console.error("Manual check failed:", err);
+        showToast("Update check failed.", "#ff5a5f", "⚠️");
+      }
+    };
+  }
 }

@@ -252,6 +252,27 @@ export function initUIBehavior() {
       if (ind) ind.textContent = "▼";
     }
   });
+
+  // Global hotkeys: Ctrl+F (focus search) and Ctrl+R (refresh list)
+  window.addEventListener("keydown", (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        switchTab("browser");
+        const searchInput = document.getElementById("searchInput");
+        if (searchInput) {
+          searchInput.focus();
+          searchInput.select();
+        }
+      } else if (e.key === "r" || e.key === "R") {
+        e.preventDefault();
+        const refreshBtn = document.getElementById("refreshServersBtn");
+        if (refreshBtn) {
+          refreshBtn.click();
+        }
+      }
+    }
+  });
 }
 
 // Bridge: attach tab-switching functions to window for inline HTML onclick handlers
@@ -273,3 +294,14 @@ window.toggleHideTimeouts = toggleHideTimeouts;
 window.toggleHideFakes = toggleHideFakes;
 window.handleSort = handleSort;
 window.showConfirmModal = showConfirmModal;
+
+export function applyTabVisibility(settings) {
+  const watchlistTab = document.getElementById("tab-watchlist");
+  const diagnosticsTab = document.getElementById("tab-diagnostics");
+  if (watchlistTab) {
+    watchlistTab.style.display = settings.showWatchlistTab !== false ? "" : "none";
+  }
+  if (diagnosticsTab) {
+    diagnosticsTab.style.display = settings.showDiagnosticsTab !== false ? "" : "none";
+  }
+}

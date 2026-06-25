@@ -37,6 +37,8 @@ describe("settings", () => {
     expect(settings.launchParams).toBe("");
     expect(settings.theme).toBe("tactical-dark");
     expect(settings.audioFeedback).toBe(true);
+    expect(settings.showWatchlistTab).toBe(true);
+    expect(settings.showDiagnosticsTab).toBe(true);
   });
 
   test("saveSettings then loadSettings round-trips correctly", () => {
@@ -45,6 +47,8 @@ describe("settings", () => {
       launchParams: "-nosplash",
       theme: "toxic",
       audioFeedback: false,
+      showWatchlistTab: false,
+      showDiagnosticsTab: false,
       favorites: [{ ip: "1.2.3.4", port: 2302, queryPort: null, name: "" }],
     };
     const success = saveSettings(toSave);
@@ -55,6 +59,8 @@ describe("settings", () => {
     expect(loaded.launchParams).toBe("-nosplash");
     expect(loaded.theme).toBe("toxic");
     expect(loaded.audioFeedback).toBe(false);
+    expect(loaded.showWatchlistTab).toBe(false);
+    expect(loaded.showDiagnosticsTab).toBe(false);
     expect(loaded.favorites).toEqual([
       { ip: "1.2.3.4", port: 2302, queryPort: null, name: "" },
     ]);
