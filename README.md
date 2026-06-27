@@ -10,7 +10,7 @@ Welcome to the official public repository for **DzLinux**!
 > [!NOTE]
 > This repository contains the official open-source codebase for **DzLinux**, including the launcher, server browser, and build automation setups. Compiled distribution binaries and release assets are hosted directly on the public Releases page.
 
-<img width="1396" height="796" alt="v121" src="https://github.com/user-attachments/assets/aa724b5e-2003-4f8f-a5f1-983cfd48452e" />
+<img width="1395" height="799" alt="v130" src="https://github.com/user-attachments/assets/21fdffff-2f95-47d5-a369-308c456885f4" />
 
 ---
 
