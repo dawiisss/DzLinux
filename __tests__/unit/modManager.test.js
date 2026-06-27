@@ -200,7 +200,7 @@ describe("modManager", () => {
       fs.rmSync(tmpDir, { recursive: true, force: true });
     });
 
-    test("deletes existing mod directory", () => {
+    test("deletes existing mod directory", async () => {
       const modDir = path.join(tmpDir, "12345");
       fs.mkdirSync(modDir);
       fs.writeFileSync(path.join(modDir, "test.txt"), "content");
@@ -210,30 +210,30 @@ describe("modManager", () => {
       }));
 
       const modManager = require("../../src/main/modManager");
-      const result = modManager.deleteMod("12345");
+      const result = await modManager.deleteMod("12345");
       expect(result).toBe(true);
       expect(fs.existsSync(modDir)).toBe(false);
     });
 
-    test("returns false for non-existent mod", () => {
+    test("returns false for non-existent mod", async () => {
       jest.doMock("../../src/main/settings", () => ({
         loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
-      const result = modManager.deleteMod("99999");
+      const result = await modManager.deleteMod("99999");
       expect(result).toBe(false);
     });
 
-    test("returns false for invalid mod ID", () => {
+    test("returns false for invalid mod ID", async () => {
       jest.doMock("../../src/main/settings", () => ({
         loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
-      expect(modManager.deleteMod("abc")).toBe(false);
-      expect(modManager.deleteMod("")).toBe(false);
-      expect(modManager.deleteMod(null)).toBe(false);
+      expect(await modManager.deleteMod("abc")).toBe(false);
+      expect(await modManager.deleteMod("")).toBe(false);
+      expect(await modManager.deleteMod(null)).toBe(false);
     });
   });
 });

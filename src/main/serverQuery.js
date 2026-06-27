@@ -31,7 +31,7 @@ function loadQueryPortCache() {
         const validEntries = new Map();
         for (const [key, entry] of Object.entries(data.entries)) {
           if (entry.timestamp && now - entry.timestamp < QUERY_PORT_CACHE_TTL) {
-            validEntries.set(key, entry.port);
+            validEntries.set(key, { port: entry.port, timestamp: entry.timestamp });
           }
         }
         console.log(
@@ -46,74 +46,62 @@ function loadQueryPortCache() {
   return new Map();
 }
 
-let cacheWriteQueue = Promise.resolve();
+let currentWritePromise = Promise.resolve();
+let writePending = false;
+let writeTimeout = null;
 
-// Atomically merge a single entry into the on-disk cache file.
-// Reads current file state first to avoid clobbering entries saved by parallel queries.
-function saveQueryPortCacheEntry(cacheKey, port) {
-  cacheWriteQueue = cacheWriteQueue
-    .then(async () => {
-      try {
-        // Read current disk state to catch any entries saved by concurrent queries
-        let existing = {};
-        if (fs.existsSync(QUERY_PORT_CACHE_FILE)) {
-          try {
-            const fileContent = await fs.promises.readFile(
-              QUERY_PORT_CACHE_FILE,
-              "utf8",
-            );
-            const data = JSON.parse(fileContent);
-            if (data && data.entries) existing = data.entries;
-          } catch {}
-        }
-        // Merge the new entry with whatever is already on disk
-        existing[cacheKey] = { port, timestamp: Date.now() };
-        await fs.promises.writeFile(
-          QUERY_PORT_CACHE_FILE,
-          JSON.stringify({ timestamp: Date.now(), entries: existing }),
-          "utf8",
-        );
-      } catch (e) {
-        console.error("Failed to write query port cache entry:", e.message);
-      }
-    })
-    .catch(() => {});
+function triggerWrite() {
+  writePending = true;
+  if (writeTimeout) return;
+
+  writeTimeout = setTimeout(() => {
+    writeTimeout = null;
+    performWrite();
+  }, 1000);
 }
 
-// Atomically remove a stale entry from the on-disk cache file.
-// Uses the same read-merge-write pattern as saveQueryPortCacheEntry.
-function deleteQueryPortCacheEntry(cacheKey) {
-  cacheWriteQueue = cacheWriteQueue
-    .then(async () => {
-      try {
-        let existing = {};
-        if (fs.existsSync(QUERY_PORT_CACHE_FILE)) {
-          try {
-            const fileContent = await fs.promises.readFile(
-              QUERY_PORT_CACHE_FILE,
-              "utf8",
-            );
-            const data = JSON.parse(fileContent);
-            if (data && data.entries) existing = data.entries;
-          } catch {}
-        }
-        delete existing[cacheKey];
-        await fs.promises.writeFile(
-          QUERY_PORT_CACHE_FILE,
-          JSON.stringify({ timestamp: Date.now(), entries: existing }),
-          "utf8",
-        );
-      } catch (e) {
-        console.error("Failed to delete query port cache entry:", e.message);
+function performWrite() {
+  if (!writePending) return;
+  writePending = false;
+
+  currentWritePromise = currentWritePromise.then(async () => {
+    try {
+      const entries = {};
+      for (const [key, val] of queryPortCache.entries()) {
+        entries[key] = { port: val.port, timestamp: val.timestamp };
       }
-    })
-    .catch(() => {});
+      await fs.promises.writeFile(
+        QUERY_PORT_CACHE_FILE,
+        JSON.stringify({ timestamp: Date.now(), entries }),
+        "utf8",
+      );
+    } catch (e) {
+      console.error("Failed to write query port cache:", e.message);
+    }
+  });
+}
+
+function saveQueryPortCacheEntry(cacheKey, port) {
+  queryPortCache.set(cacheKey, { port, timestamp: Date.now() });
+  triggerWrite();
+}
+
+function deleteQueryPortCacheEntry(cacheKey) {
+  queryPortCache.delete(cacheKey);
+  triggerWrite();
 }
 
 module.exports = {
   pingServer: queryServerGameDig,
   queryServerGameDig,
-  getCacheWriteQueue: () => cacheWriteQueue,
+  getCacheWriteQueue: () => {
+    if (writeTimeout) {
+      clearTimeout(writeTimeout);
+      writeTimeout = null;
+      performWrite();
+    }
+    return currentWritePromise;
+  },
 };
 
 // Shared GameDig query — tries cached port first (30-day TTL), then game port with
@@ -125,7 +113,8 @@ async function queryServerGameDig(ip, port, queryPort) {
   const cacheKey = `${ip}:${p}`;
 
   // Read from the module-level singleton — never loads from disk mid-flight
-  const cachedPort = queryPortCache.get(cacheKey);
+  const cached = queryPortCache.get(cacheKey);
+  const cachedPort = cached ? cached.port : null;
 
   // Build port list: queryPort (from hosted list) first, then cached port, then game port
   const queryPorts = [];
@@ -206,6 +195,7 @@ async function queryServerGameDig(ip, port, queryPort) {
         map,
         thirdPerson,
         modded,
+        password: state.password || false,
         rawRules: raw.rules || null,
         rawTags: raw.tags || null,
       };

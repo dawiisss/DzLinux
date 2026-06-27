@@ -28,6 +28,7 @@ const defaultSettings = {
   mangoHudConfig: "cpu_temp,gpu_temp,ram,fps,frame_timing",
   dxvkConfig: "",
   serverListPageSize: 50,
+  queryConcurrency: 500,
   serverListMode: "compact",
   autoRefreshEnabled: true,
   autoRefreshTime: 360,

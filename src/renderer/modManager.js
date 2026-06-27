@@ -82,7 +82,12 @@ export async function loadInstalledMods() {
     tdName.id = `mod-name-cell-${mod.id}`;
     let nameHTML = `<div style="font-weight: 600;">${escapeHtml(mod.name)}</div>`;
     if (mod.isCorrupted) {
-      nameHTML += `<div style="font-weight: 700; color: #ff5a5f; margin-top: 4px; font-size: 0.8rem;">⚠️ CORRUPTED / MISSING FILES</div>`;
+      nameHTML += `
+        <div style="font-weight: 700; color: #ff5a5f; margin-top: 4px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+          <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ff5a5f; vertical-align: middle;"></app-icon>
+          CORRUPTED / MISSING FILES
+        </div>
+      `;
     }
 
     let metaText = "";
@@ -192,13 +197,16 @@ export async function loadInstalledMods() {
           misMatchBanner.style.display = "flex";
           misMatchBanner.innerHTML = `
           <div style="display:flex;align-items:center;gap:12px;flex:1;">
-            <span style="font-size:1.3rem;">⚠️</span>
+            <app-icon name="alert" style="width: 1.3rem; height: 1.3rem; color: #ffb703; flex-shrink: 0;"></app-icon>
             <div>
               <div style="font-weight:700;color:#ffb703;font-size:0.9rem;">${count} MOD${count > 1 ? "S" : ""} OUTDATED — WORKSHOP MISMATCH DETECTED</div>
               <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">${names}${more}</div>
             </div>
           </div>
-          <button id="updateAllMismatchBtn" class="btn" style="padding:6px 14px;font-size:0.8rem;white-space:nowrap;">⬇️ UPDATE ALL</button>
+          <button id="updateAllMismatchBtn" class="btn" style="padding:6px 14px;font-size:0.8rem;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
+            <app-icon name="download" style="width: 0.95rem; height: 0.95rem;"></app-icon>
+            UPDATE ALL
+          </button>
           <button aria-label="Dismiss Mismatch Banner" title="Dismiss" id="dismissMismatchBtn" class="btn btn-outline" style="padding:6px 10px;font-size:0.75rem;">✕</button>
         `;
 
@@ -212,14 +220,20 @@ export async function loadInstalledMods() {
             .getElementById("updateAllMismatchBtn")
             .addEventListener("click", async () => {
               const btn = document.getElementById("updateAllMismatchBtn");
-              btn.textContent = "UPDATING...";
+              btn.innerHTML = `
+                <app-icon name="loader" style="width: 0.95rem; height: 0.95rem;"></app-icon>
+                UPDATING...
+              `;
               btn.disabled = true;
               for (const mod of result.outdatedMods) {
-                showToast(`UPDATING ${mod.name}...`, "#ff9f1c", "⬇️");
+                showToast(`UPDATING ${mod.name}...`, "#ff9f1c", `<app-icon name="download" style="width: 1.1rem; height: 1.1rem; color: #ff9f1c;"></app-icon>`);
                 await window.api.steamworks.subscribe(mod.id);
                 await new Promise((r) => setTimeout(r, 500));
               }
-              btn.textContent = "⬇️ UPDATE ALL";
+              btn.innerHTML = `
+                <app-icon name="download" style="width: 0.95rem; height: 0.95rem;"></app-icon>
+                UPDATE ALL
+              `;
               btn.disabled = false;
               showToast("ALL OUTDATED MODS QUEUED FOR UPDATE", "#2ec4b6", "✓");
             });
@@ -233,7 +247,10 @@ export async function loadInstalledMods() {
               warning.style.marginTop = "4px";
               warning.style.fontSize = "0.8rem";
               const days = mod.daysOutdated || 0;
-              warning.innerHTML = `⚠️ WORKSHOP MISMATCH (OUTDATED ${days > 0 ? days + " DAYS" : "RECENTLY"})`;
+              warning.innerHTML = `
+                <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ffb703; margin-right: 4px; vertical-align: middle;"></app-icon>
+                WORKSHOP MISMATCH (OUTDATED ${days > 0 ? days + " DAYS" : "RECENTLY"})
+              `;
               nameCell.appendChild(warning);
             }
           });

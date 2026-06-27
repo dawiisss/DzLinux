@@ -3,6 +3,9 @@ import { showToast, copyToClipboard } from "./feedback.js";
 import { countryToFlag, MAP_NAMES, renderPingBadge } from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
 
+const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
+const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
+
 // Helper to resolve callbacks to avoid circular dependencies
 function getRenderers() {
   return Promise.all([
@@ -27,17 +30,26 @@ export function buildDetailRow(server, isFavoritesView = false) {
 
   const headerDiv = document.createElement("div");
   headerDiv.className = "detail-header";
-  headerDiv.innerHTML = `<span>🧩</span> Mods (${server.mods ? server.mods.length : 0})`;
+  headerDiv.innerHTML = `
+    <app-icon name="cube" style="width: 1.1rem; height: 1.1rem; color: var(--accent); vertical-align: middle;"></app-icon>
+    Mods (${server.mods ? server.mods.length : 0})
+  `;
 
   const refreshModsBtn = document.createElement("button");
   refreshModsBtn.className = "btn-refresh-mods";
   refreshModsBtn.title =
     "Refresh mods for this server via A2S query (replaces cached record)";
-  refreshModsBtn.textContent = "🔄 REFRESH";
+  refreshModsBtn.innerHTML = `
+    <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
+    REFRESH
+  `;
   refreshModsBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
     refreshModsBtn.disabled = true;
-    refreshModsBtn.textContent = "⏳ FETCHING...";
+    refreshModsBtn.innerHTML = `
+      <app-icon name="loader" style="width: 0.8rem; height: 0.8rem;"></app-icon>
+      FETCHING...
+    `;
     try {
       const freshMods = await window.api.servers.refreshModCache(
         server.ip,
@@ -51,7 +63,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         showToast(
           `MODS REFRESHED: ${freshMods.length} MODS FOUND`,
           "#2ec4b6",
-          "🧩",
+          `<app-icon name="cube" style="width: 1.1rem; height: 1.1rem; color: #2ec4b6;"></app-icon>`,
         );
       } else {
         server.mods = [];
@@ -61,7 +73,10 @@ export function buildDetailRow(server, isFavoritesView = false) {
       }
     } catch {
       refreshModsBtn.disabled = false;
-      refreshModsBtn.textContent = "🔄 REFRESH";
+      refreshModsBtn.innerHTML = `
+        <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
+        REFRESH
+      `;
       showToast("FAILED TO REFRESH MODS", "#ff5a5f", "⚠️");
       return;
     }
@@ -246,7 +261,7 @@ export function buildServerRow(server, isFavoritesView = false) {
   tdStar.style.textAlign = "center";
   const starBtn = document.createElement("button");
   starBtn.className = `star-btn ${isFav ? "active" : ""}`;
-  starBtn.innerHTML = isFav ? "★" : "☆";
+  starBtn.innerHTML = isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG;
   starBtn.title = isFav ? "Remove from Favorites" : "Add to Favorites";
   starBtn.setAttribute(
     "aria-label",
@@ -257,11 +272,11 @@ export function buildServerRow(server, isFavoritesView = false) {
     const { renderServers, renderFavoritesManager } = await getRenderers();
     if (state.favoritesSet.has(serverKey)) {
       await removeFavorite(server.ip, server.port);
-      starBtn.innerHTML = "☆";
+      starBtn.innerHTML = STAR_UNFAV_SVG;
       starBtn.className = "star-btn";
       starBtn.title = "Add to Favorites";
       starBtn.setAttribute("aria-label", "Add to Favorites");
-      showToast("REMOVED FROM FAVORITES", "#ff5a5f", "☆");
+      showToast("REMOVED FROM FAVORITES", "#ff5a5f", STAR_UNFAV_SVG);
     } else {
       await addFavorite(
         server.ip,
@@ -269,11 +284,11 @@ export function buildServerRow(server, isFavoritesView = false) {
         server.queryPort,
         server.name,
       );
-      starBtn.innerHTML = "★";
+      starBtn.innerHTML = STAR_FAV_SVG;
       starBtn.className = "star-btn active";
       starBtn.title = "Remove from Favorites";
       starBtn.setAttribute("aria-label", "Remove from Favorites");
-      showToast("ADDED TO FAVORITES", "#ffd700", "★");
+      showToast("ADDED TO FAVORITES", "#ffd700", STAR_FAV_SVG);
     }
     renderServers();
     const favTab = document.getElementById("favorites");
@@ -471,12 +486,17 @@ export function buildServerRow(server, isFavoritesView = false) {
   tdAction.style.whiteSpace = "nowrap";
   const pingBtn = document.createElement("button");
   pingBtn.className = "btn-ping";
-  pingBtn.textContent = "\u{1F4F6}";
+  pingBtn.innerHTML = `
+    <app-icon name="signal" style="width: 0.95rem; height: 0.95rem;"></app-icon>
+  `;
   pingBtn.setAttribute("aria-label", "Ping Server");
-  pingBtn.addEventListener("click", async () => {
-    if (pingBtn.disabled) return;
-    pingBtn.disabled = true;
-    pingBtn.textContent = "...";
+  pingBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    if (pingBtn.classList.contains("disabled")) return;
+    pingBtn.classList.add("disabled");
+    pingBtn.innerHTML = `
+      <app-icon name="loader" style="width: 0.95rem; height: 0.95rem;"></app-icon>
+    `;
     const isFirstPing = server.realPing === undefined;
     try {
       const statusObj = await window.api.servers.ping(
@@ -510,8 +530,10 @@ export function buildServerRow(server, isFavoritesView = false) {
     if (isFirstPing) {
       state.totalPingedCount = (state.totalPingedCount || 0) + 1;
     }
-    pingBtn.disabled = false;
-    pingBtn.textContent = "\u{1F4F6}";
+    pingBtn.classList.remove("disabled");
+    pingBtn.innerHTML = `
+      <app-icon name="signal" style="width: 0.95rem; height: 0.95rem;"></app-icon>
+    `;
     const pingCell = document.getElementById(pingCellId);
     if (pingCell) {
       pingCell.innerHTML = "";

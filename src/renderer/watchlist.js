@@ -299,14 +299,14 @@ export async function renderWatchlist() {
       delBtn.className = "btn-ping";
       delBtn.style.color = "var(--accent-red)";
       delBtn.style.borderColor = "var(--accent-red)";
-      delBtn.textContent = "🗑️";
+      delBtn.innerHTML = `<app-icon name="trash" stroke-width="2.2" style="width: 1rem; height: 1rem;"></app-icon>`;
       delBtn.title = "Remove from Watchlist";
       delBtn.setAttribute("aria-label", "Remove from Watchlist");
       delBtn.addEventListener("click", async () => {
         watchlist.splice(index, 1);
         await window.api.watchlist.save(watchlist);
         renderWatchlist();
-        showToast("REMOVED FROM WATCHLIST", "var(--accent-red)", "🗑️");
+        showToast("REMOVED FROM WATCHLIST", "var(--accent-red)", `<app-icon name="trash" stroke-width="2.2" style="width: 1.1rem; height: 1.1rem; color: var(--accent-red);"></app-icon>`);
       });
       tdAction.appendChild(delBtn);
 

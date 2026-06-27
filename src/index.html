@@ -22,11 +22,7 @@
           aria-label="Check for Updates"
           title="Check for Updates"
         >
-          <svg id="updateBtnIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;">
-            <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/>
-            <polyline points="8 16 12 20 16 16"/>
-            <line x1="12" y1="12" x2="12" y2="20"/>
-          </svg>
+          <app-icon name="download-cloud" id="updateBtnIcon" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
         </button>
         <button
           id="aboutBtn"
@@ -35,11 +31,7 @@
           title="About DzLinux"
           onclick="openAboutModal()"
         >
-          <svg id="aboutBtnIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="16" x2="12" y2="12"/>
-            <line x1="12" y1="8" x2="12.01" y2="8"/>
-          </svg>
+          <app-icon name="info" id="aboutBtnIcon" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
         </button>
         <button
           class="titlebar-btn"
@@ -47,7 +39,7 @@
           title="Minimize Window"
           onclick="window.api.ui.windowMin()"
         >
-          &#x2014;
+          <app-icon name="minus" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
         </button>
         <button
           class="titlebar-btn"
@@ -55,7 +47,7 @@
           title="Maximize Window"
           onclick="window.api.ui.windowMax()"
         >
-          &#x25A1;
+          <app-icon name="square" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
         </button>
         <button
           class="titlebar-btn close"
@@ -63,7 +55,7 @@
           title="Close Window"
           onclick="window.api.ui.windowClose()"
         >
-          &#x2715;
+          <app-icon name="x" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
         </button>
       </div>
     </div>
@@ -123,7 +115,9 @@
       <div id="steamProfile">
         <span class="steam-profile-label">ACTIVE LINK:</span>
         <span id="steamUsername" class="steam-profile-name"></span>
-        <span class="steam-profile-icon">🌐</span>
+        <span class="steam-profile-icon" style="display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
+          <app-icon name="globe" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+        </span>
       </div>
     </header>
 
@@ -142,25 +136,27 @@
           </div>
 
           <div class="refresh-group flex gap-2 items-center">
-            <button class="btn" onclick="openDirectConnectModal()">
-              🚀 DIRECT JOIN
+            <button class="btn" onclick="openDirectConnectModal()" style="display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="play" style="width: 1rem; height: 1rem;" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+              DIRECT JOIN
             </button>
             <button
               aria-label="Toggle Filter Menu"
               id="toggleFiltersBtn"
               class="btn btn-outline"
-              style="padding: 12px 18px"
+              style="padding: 12px 18px; display: inline-flex; align-items: center; justify-content: center;"
               onclick="toggleFilters()"
               title="Toggle Filter Menu"
             >
-              ⚙️
+              <app-icon name="settings" style="width: 1.1rem; height: 1.1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
             </button>
             <button
               id="refreshServersBtn"
               class="btn btn-outline"
-              style="padding: 12px 18px"
+              style="padding: 12px 18px; display: inline-flex; align-items: center; gap: 8px;"
             >
-              🔄 REFRESH
+              <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              REFRESH
             </button>
             <span
               class="countdown-badge"
@@ -230,8 +226,10 @@
                 class="filter-pill multiselect-trigger"
                 id="ms-trigger-map"
                 onclick="toggleMultiselect('map')"
+                style="display: inline-flex; align-items: center; gap: 6px;"
               >
-                🗺️ ALL MAPS ▾
+                <app-icon name="map" style="width: 0.95rem; height: 0.95rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                ALL MAPS ▾
               </button>
               <div
                 class="multiselect-dropdown"
@@ -354,15 +352,19 @@
               class="filter-pill"
               id="filter-fav-only"
               onclick="toggleFavFilter()"
+              style="display: inline-flex; align-items: center; gap: 6px;"
             >
-              ⭐ FAVORITES ONLY
+              <app-icon name="star" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              FAVORITES ONLY
             </button>
             <button
               class="filter-pill"
               id="filter-history"
               onclick="toggleHistoryFilter()"
+              style="display: inline-flex; align-items: center; gap: 6px;"
             >
-              🕓 RECENTLY PLAYED
+              <app-icon name="clock" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              RECENTLY PLAYED
             </button>
           </div>
 
@@ -381,6 +383,13 @@
               onclick="toggleHideFakes()"
             >
               HIDE FAKES
+            </button>
+            <button
+              class="filter-pill"
+              id="filter-hide-locked"
+              onclick="toggleHideLocked()"
+            >
+              HIDE LOCKED
             </button>
           </div>
         </div>
@@ -401,8 +410,10 @@
             font-family: &quot;Share Tech Mono&quot;, monospace;
           "
         >
-          ⚠️ CONNECTION LOST — SERVER LIST MAY BE STALE. CHECK YOUR NETWORK
-          CONNECTION.
+          <span style="display: inline-flex; align-items: center; gap: 8px;">
+            <app-icon name="alert" style="width: 1.1rem; height: 1.1rem; flex-shrink: 0;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            CONNECTION LOST — SERVER LIST MAY BE STALE. CHECK YOUR NETWORK CONNECTION.
+          </span>
         </div>
         <!-- Stats Bar -->
         <div class="stats-bar" id="statsBar">
@@ -423,7 +434,9 @@
             <table class="server-table">
               <thead>
                 <tr>
-                  <th style="width: 50px; text-align: center">⭐</th>
+                  <th style="width: 50px; text-align: center">
+                    <app-icon name="star" style="width: 0.95rem; height: 0.95rem; vertical-align: middle; color: var(--text-muted);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                  </th>
                   <th
                     class="sortable"
                     id="th-name"
@@ -601,16 +614,18 @@
             <button
               id="refreshModsBtn"
               class="btn btn-outline"
-              style="padding: 8px 15px; font-size: 0.85rem"
+              style="padding: 8px 15px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;"
             >
-              🔄 RE-SCAN LOCAL STORAGE
+              <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              RE-SCAN LOCAL STORAGE
             </button>
             <button
               id="checkDepsBtn"
               class="btn btn-outline"
-              style="padding: 8px 15px; font-size: 0.85rem"
+              style="padding: 8px 15px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;"
             >
-              🌳 CHECK DEPENDENCIES
+              <app-icon name="git-branch" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              CHECK DEPENDENCIES
             </button>
           </div>
         </div>
@@ -632,10 +647,10 @@
           <div
             class="flex justify-between text-xs font-bold text-muted uppercase mb-2"
           >
-            <span class="flex items-center gap-2"
-              ><span style="color: var(--accent)">▤</span> STORAGE ALLOCATION
-              TELEMETRY</span
-            >
+            <span class="flex items-center gap-2">
+              <app-icon name="columns" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              STORAGE ALLOCATION TELEMETRY
+            </span>
             <span
               id="diskSpaceReadout"
               style="
@@ -776,7 +791,9 @@
             <table class="server-table">
               <thead>
                 <tr>
-                  <th style="width: 40px; text-align: center">✔️</th>
+                  <th style="width: 40px; text-align: center">
+                    <app-icon name="check" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                  </th>
                   <th>Modification Name</th>
                   <th style="width: 160px">Workshop ID</th>
                   <th style="width: 130px">Size on Disk</th>
@@ -824,9 +841,14 @@
                 font-weight: bold;
                 white-space: nowrap;
                 letter-spacing: 1px;
+                display: flex;
+                align-items: center;
+                gap: 5px;
               "
-              >🛠️ LOADOUTS</span
             >
+              <app-icon name="wrench" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              LOADOUTS
+            </span>
             <select
               id="loadoutSelect"
               class="form-input"
@@ -855,9 +877,10 @@
             <button
               id="saveLoadoutBtn"
               class="btn btn-outline"
-              style="padding: 6px 12px; font-size: 0.8rem"
+              style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"
             >
-              💾 SAVE
+              <app-icon name="save" style="width: 0.9rem; height: 0.9rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              SAVE
             </button>
             <button
               id="deleteLoadoutBtn"
@@ -870,17 +893,20 @@
                 border-color: #ff5a5f;
                 display: none;
                 font-size: 0.8rem;
+                align-items: center;
+                justify-content: center;
               "
             >
-              🗑️
+              <app-icon name="trash" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
             </button>
           </div>
           <button
             id="quickLaunchBtn"
             class="btn btn-primary"
-            style="padding: 8px 15px; font-size: 0.85rem; white-space: nowrap"
+            style="padding: 8px 15px; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;"
           >
-            🚀 QUICK LAUNCH
+            <app-icon name="play" style="width: 1rem; height: 1rem;" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+            QUICK LAUNCH
           </button>
         </div>
       </div>
@@ -908,16 +934,21 @@
               text-transform: uppercase;
               letter-spacing: 1.5px;
               color: var(--accent);
+              display: flex;
+              align-items: center;
+              gap: 8px;
             "
           >
-            👁️ Server Watchlist
+            <app-icon name="eye" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            Server Watchlist
           </h1>
           <button
             id="refreshWatchlistBtn"
             class="btn btn-outline"
-            style="padding: 8px 15px; font-size: 0.85rem"
+            style="padding: 8px 15px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;"
           >
-            🔄 REFRESH
+            <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            REFRESH
           </button>
         </div>
 
@@ -1010,16 +1041,18 @@
               margin-bottom: 20px;
             "
           >
-            <h2 style="margin: 0; color: var(--accent)">
-              <span style="color: #ff9f1c">⭐</span> FAVORITES MANAGER
+            <h2 style="margin: 0; color: var(--accent); display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="star" style="width: 1.2rem; height: 1.2rem; color: #ff9f1c;" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+              FAVORITES MANAGER
             </h2>
             <div style="display: flex; gap: 10px; align-items: center">
               <button
                 id="refreshFavPingsBtn"
                 class="btn btn-outline"
-                style="padding: 12px 15px"
+                style="padding: 12px 15px; display: inline-flex; align-items: center; gap: 8px;"
               >
-                🔄 REFRESH
+                <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                REFRESH
               </button>
               <div
                 class="direct-connect-wrapper"
@@ -1053,7 +1086,10 @@
                   style="max-width: 100px; padding: 12px 15px"
                   placeholder="PORT..."
                 />
-                <button id="addFavBtn" class="btn">➕ ADD</button>
+                <button id="addFavBtn" class="btn" style="display: inline-flex; align-items: center; gap: 6px;">
+                  <app-icon name="plus" style="width: 0.9rem; height: 0.9rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                  ADD
+                </button>
               </div>
             </div>
           </div>
@@ -1061,7 +1097,9 @@
           <table class="server-table">
             <thead>
               <tr>
-                <th style="width: 50px; text-align: center">⭐</th>
+                <th style="width: 50px; text-align: center">
+                  <app-icon name="star" style="width: 0.95rem; height: 0.95rem; vertical-align: middle; color: var(--text-muted);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                </th>
                 <th>Server Name</th>
                 <th style="width: 110px">Players</th>
                 <th style="width: 80px; text-align: center">Mods</th>
@@ -1091,23 +1129,33 @@
             margin-bottom: 20px;
           "
         >
-          <h2 style="margin: 0; color: var(--accent)">⚙️ SETTINGS</h2>
+          <h2 style="margin: 0; color: var(--accent); display: inline-flex; align-items: center; gap: 8px;">
+            <app-icon name="settings" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            SETTINGS
+          </h2>
           <div style="display: flex; gap: 12px">
             <button
               id="resetSettingsBtn"
               class="btn btn-outline"
-              style="color: #ff5a5f; border-color: #ff5a5f"
+              style="color: #ff5a5f; border-color: #ff5a5f; display: inline-flex; align-items: center; gap: 6px;"
             >
-              ⚠️ RESET TO DEFAULTS
+              <app-icon name="alert" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              RESET TO DEFAULTS
             </button>
-            <button id="saveSettingsBtn" class="btn">💾 SAVE SETTINGS</button>
+            <button id="saveSettingsBtn" class="btn" style="display: inline-flex; align-items: center; gap: 6px;">
+              <app-icon name="save" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              SAVE SETTINGS
+            </button>
           </div>
         </div>
 
         <div class="settings-grid" style="grid-template-columns: 1fr 1fr 1fr">
           <!-- Appearance Card -->
           <div class="settings-card" style="grid-column: 1; grid-row: 1">
-            <h3>🎨 APPEARANCE & AUDIO</h3>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="palette" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              APPEARANCE & AUDIO
+            </h3>
             <div class="form-group">
               <label for="themeSelect">HUD Color Theme</label>
               <select id="themeSelect" class="form-input">
@@ -1127,6 +1175,17 @@
                 min="10"
                 max="500"
                 placeholder="50"
+              />
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="queryConcurrency">Background Query Concurrency</label>
+              <input
+                type="number"
+                id="queryConcurrency"
+                class="form-input"
+                min="10"
+                max="1000"
+                placeholder="500"
               />
             </div>
             <div class="form-group" style="margin-top: 15px">
@@ -1163,7 +1222,10 @@
 
           <!-- Mod Card -->
           <div class="settings-card" style="grid-column: 2; grid-row: 1">
-            <h3>📂 STORAGE DIRECTORIES</h3>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="folder" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              STORAGE DIRECTORIES
+            </h3>
             <div class="form-group">
               <label for="modDirectory">Workshop Mod Path</label>
               <input
@@ -1182,7 +1244,10 @@
 
           <!-- Network Card -->
           <div class="settings-card" style="grid-column: 1; grid-row: 2">
-            <h3>🌐 NETWORK POLLING</h3>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="globe" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              NETWORK POLLING
+            </h3>
             <div style="display: flex; gap: 20px; align-items: stretch">
               <div class="form-group" style="flex: 1; box-sizing: border-box">
                 <label
@@ -1255,7 +1320,10 @@
 
           <!-- Launch Card -->
           <div class="settings-card" style="grid-column: 2; grid-row: 2">
-            <h3>🚀 LAUNCH PRESETS</h3>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="play" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+              LAUNCH PRESETS
+            </h3>
             <div class="form-group">
               <label for="protonPath">Proton Compatibility Layer</label>
               <div style="display: flex; gap: 8px">
@@ -1274,9 +1342,13 @@
                     padding: 8px 12px;
                     font-size: 0.75rem;
                     white-space: nowrap;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 6px;
                   "
                 >
-                  🔍 TEST
+                  <app-icon name="search" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                  TEST
                 </button>
               </div>
             </div>
@@ -1346,7 +1418,10 @@
             class="settings-card"
             style="grid-column: 3; grid-row: 1 / span 2"
           >
-            <h3>⚙️ PERFORMANCE TUNING</h3>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
+              <app-icon name="settings" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              PERFORMANCE TUNING
+            </h3>
             <div
               class="form-group checkbox-group"
               style="
@@ -1523,8 +1598,9 @@
           <button id="modalCancelBtn" class="btn btn-outline">
             ABORT MISSION
           </button>
-          <button id="modalAutoDownloadBtn" class="btn" style="display: none">
-            🚀 SYNC OUT-OF-DATE MODS
+          <button id="modalAutoDownloadBtn" class="btn" style="display: none; align-items: center; gap: 8px;">
+            <app-icon name="download" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            SYNC OUT-OF-DATE MODS
           </button>
         </div>
       </div>
@@ -1831,8 +1907,9 @@
         style="border-color: var(--accent-red); max-width: 600px"
       >
         <div class="modal-header">
-          <h2 id="crashDiagnosticTitle" class="text-red">
-            ⚠️ GAME CRASH DETECTED
+          <h2 id="crashDiagnosticTitle" class="text-red" style="display: inline-flex; align-items: center; gap: 8px;">
+            <app-icon name="alert" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            GAME CRASH DETECTED
           </h2>
         </div>
         <div class="modal-body">
@@ -1853,8 +1930,9 @@
           <button id="crashDiagnosticCloseBtn" class="btn btn-outline">
             CLOSE
           </button>
-          <button id="crashDiagnosticCopyBtn" class="btn btn-danger">
-            📋 COPY LOG
+          <button id="crashDiagnosticCopyBtn" class="btn btn-danger" style="display: inline-flex; align-items: center; gap: 6px;">
+            <app-icon name="clipboard" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            COPY LOG
           </button>
         </div>
       </div>

@@ -11,7 +11,6 @@ let _renderTimer = null;
 let _statsPending = false;
 let _statsTimer = null;
 
-const POOL_CONCURRENCY = 50;
 const PING_TIMEOUT_MS = 10000;
 
 export async function refreshExpandedServerMods() {
@@ -164,9 +163,12 @@ export function insertServerRow(server) {
     state.pagination.page >= totalPages;
 }
 
-async function asyncPool(iterable, iteratorFn, concurrency) {
+async function asyncPool(iterable, iteratorFn, concurrency, shouldAbortFn) {
   const executing = new Set();
   for (const item of iterable) {
+    if (shouldAbortFn && shouldAbortFn()) {
+      break;
+    }
     const p = Promise.resolve().then(() => iteratorFn(item));
     executing.add(p);
     const clean = () => executing.delete(p);
@@ -308,7 +310,8 @@ export async function startBackgroundPinging() {
       updateStatsInline();
       insertServerRow(server);
     },
-    POOL_CONCURRENCY
+    state.settings?.queryConcurrency || 500,
+    () => myGeneration !== state.bgPing.generation
   );
 
   state.bgPing.isRunning = false;

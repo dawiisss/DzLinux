@@ -35,6 +35,7 @@ export function serverPassesFilters(server) {
 
   if (state.flags.hideEmpty && server.players === 0) return false;
   if (state.flags.hideFull && server.players >= server.maxPlayers) return false;
+  if (state.flags.hideLocked && server.password) return false;
 
   if (state.flags.historyOnly) {
     const inHistory = state.historySet.has(`${server.ip}:${server.port}`);
@@ -72,6 +73,7 @@ export function applyFilters({
   sortDir,
   hideTimeouts,
   hideFakes,
+  hideLocked,
 }) {
   state.filters.perspective = persp;
   state.filters.category = cat;
@@ -84,6 +86,7 @@ export function applyFilters({
   state.sort.direction = sortDir;
   state.flags.hideTimeouts = hideTimeouts;
   state.flags.hideFakes = hideFakes;
+  state.flags.hideLocked = hideLocked;
   state.filters.nameLower = state.filters.name.toLowerCase();
 
   state.pagination.page = 1;

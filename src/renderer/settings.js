@@ -18,6 +18,8 @@ export async function initSettings() {
     settings.watchlistRefreshTime || 10;
   document.getElementById("serverListPageSize").value =
     settings.serverListPageSize || 50;
+  document.getElementById("queryConcurrency").value =
+    settings.queryConcurrency || 500;
   document.getElementById("serverListMode").value =
     settings.serverListMode || "standard";
   applyServerListMode(settings.serverListMode || "standard");
@@ -149,6 +151,8 @@ export async function initSettings() {
       dxvkConfig: document.getElementById("dxvkConfig").value,
       serverListPageSize:
         parseInt(document.getElementById("serverListPageSize").value) || 50,
+      queryConcurrency:
+        parseInt(document.getElementById("queryConcurrency").value) || 500,
       serverListMode: document.getElementById("serverListMode").value,
       watchlistRefreshEnabled:
         document.getElementById("watchlistRefreshEnabled").value === "true",
@@ -230,6 +234,7 @@ export async function initSettings() {
         history: [],
         theme: "tactical-dark",
         protonPath: "default",
+        queryConcurrency: 500,
         audioFeedback: true,
         showWatchlistTab: true,
         showDiagnosticsTab: true,

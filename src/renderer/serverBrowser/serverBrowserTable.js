@@ -3,6 +3,9 @@ import { escapeHtml } from "../utils.js";
 import { showToast } from "../feedback.js";
 import { triggerSteamworksSync, refreshLocalModsCache } from "../modManager.js";
 import { buildServerRow, buildDetailRow } from "../serverRow.js";
+
+const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
+const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
 import { getCombinedAndFilteredServers } from "./serverBrowserCore.js";
 import { updateStatsBar, refreshServers } from "./serverBrowserRender.js";
 
@@ -153,7 +156,7 @@ export function renderServers() {
       const starBtn = tr.querySelector(".star-btn");
       if (starBtn) {
         const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
-        starBtn.innerHTML = isFav ? "★" : "☆";
+        starBtn.innerHTML = isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG;
         starBtn.className = `star-btn ${isFav ? "active" : ""}`;
         starBtn.title = isFav ? "Remove from Favorites" : "Add to Favorites";
         starBtn.setAttribute(
@@ -284,15 +287,21 @@ export async function connectToServer(ip, port) {
 
     const autoBtn = document.getElementById("modalAutoDownloadBtn");
     if (missingMods.length > 0) {
-      autoBtn.style.display = "inline-block";
+      autoBtn.style.display = "inline-flex";
       autoBtn.disabled = false;
       autoBtn.removeAttribute("aria-disabled");
       autoBtn.style.opacity = "1";
-      autoBtn.textContent = "🚀 SUBSCRIBE ALL & CONNECT";
+      autoBtn.innerHTML = `
+        <app-icon name="download" style="width: 1rem; height: 1rem;"></app-icon>
+        SUBSCRIBE ALL & CONNECT
+      `;
       autoBtn.onclick = () => {
         autoBtn.disabled = true;
         autoBtn.setAttribute("aria-disabled", "true");
-        autoBtn.textContent = "⏳ SYNCING...";
+        autoBtn.innerHTML = `
+          <app-icon name="loader" style="width: 1rem; height: 1rem;"></app-icon>
+          SYNCING...
+        `;
         autoBtn.style.opacity = "0.7";
         missingMods.forEach((mod) => {
           triggerSteamworksSync(mod.id, mod.name, null);

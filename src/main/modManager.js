@@ -12,12 +12,16 @@ async function getInstalledMods() {
   const settings = settingsManager.loadSettings();
   const modDir = settings.modDirectory;
 
-  if (!modDir || !fs.existsSync(modDir)) {
+  if (!modDir) {
+    return [];
+  }
+  const dirExists = await fs.promises.access(modDir).then(() => true).catch(() => false);
+  if (!dirExists) {
     return [];
   }
 
   try {
-    const folders = fs.readdirSync(modDir);
+    const folders = await fs.promises.readdir(modDir);
     const mods = [];
 
     const subscribedItems = await steamworksManager.getSubscribedMods();
@@ -30,7 +34,7 @@ async function getInstalledMods() {
       const folderPath = path.join(modDir, folder);
       let stat;
       try {
-        stat = fs.statSync(folderPath);
+        stat = await fs.promises.stat(folderPath);
       } catch {
         return null;
       }
@@ -50,14 +54,15 @@ async function getInstalledMods() {
         const modInfoPath = path.join(folderPath, "mod.cpp");
 
         // Try parsing the real name from meta.cpp
-        if (fs.existsSync(metaPath)) {
-          try {
-            const metaContent = fs.readFileSync(metaPath, "utf8");
-            const nameMatch = metaContent.match(/name\s*=\s*"([^"]+)"/i);
-            if (nameMatch && nameMatch[1]) {
-              name = nameMatch[1];
-            }
-          } catch (err) {
+        let metaContent = null;
+        try {
+          metaContent = await fs.promises.readFile(metaPath, "utf8");
+          const nameMatch = metaContent.match(/name\s*=\s*"([^"]+)"/i);
+          if (nameMatch && nameMatch[1]) {
+            name = nameMatch[1];
+          }
+        } catch (err) {
+          if (err.code !== "ENOENT") {
             console.error(
               `Failed to parse meta.cpp for mod ${folder}`,
               err.message,
@@ -65,25 +70,24 @@ async function getInstalledMods() {
           }
         }
 
-        if (fs.existsSync(modInfoPath)) {
-          try {
-            const infoContent = fs.readFileSync(modInfoPath, "utf8");
-            const nameMatch = infoContent.match(/name\s*=\s*"([^"]+)"/i);
-            if (nameMatch) name = nameMatch[1];
+        let infoContent = null;
+        try {
+          infoContent = await fs.promises.readFile(modInfoPath, "utf8");
+          const nameMatch = infoContent.match(/name\s*=\s*"([^"]+)"/i);
+          if (nameMatch) name = nameMatch[1];
 
-            const authorMatch = infoContent.match(/author\s*=\s*"([^"]+)"/i);
-            if (authorMatch) author = authorMatch[1];
+          const authorMatch = infoContent.match(/author\s*=\s*"([^"]+)"/i);
+          if (authorMatch) author = authorMatch[1];
 
-            const versionMatch = infoContent.match(/version\s*=\s*"([^"]+)"/i);
-            if (versionMatch) version = versionMatch[1];
+          const versionMatch = infoContent.match(/version\s*=\s*"([^"]+)"/i);
+          if (versionMatch) version = versionMatch[1];
 
-            const overviewMatch = infoContent.match(
-              /overview\s*=\s*"([\s\S]*?)"/i,
-            );
-            if (overviewMatch)
-              overview = overviewMatch[1].replace(/\r?\n/g, " ").trim();
-          } catch {}
-        }
+          const overviewMatch = infoContent.match(
+            /overview\s*=\s*"([\s\S]*?)"/i,
+          );
+          if (overviewMatch)
+            overview = overviewMatch[1].replace(/\r?\n/g, " ").trim();
+        } catch {}
 
         // Estimate folder size in MB recursively (asynchronous)
         let sizeBytes = 0;
@@ -94,7 +98,7 @@ async function getInstalledMods() {
         }
 
         // Integrity Check: A valid mod should at least have a meta.cpp and not be empty
-        const isCorrupted = !fs.existsSync(metaPath) || sizeBytes < 1024;
+        const isCorrupted = metaContent === null || sizeBytes < 1024;
 
         return {
           id: folder,
@@ -183,23 +187,27 @@ function safeModPath(modDirectory, modId) {
 }
 
 // Open folder in system file explorer
-function openModFolder(modId) {
+async function openModFolder(modId) {
   if (!validateModId(modId)) return false;
   const settings = settingsManager.loadSettings();
   const modPath = safeModPath(settings.modDirectory, modId);
-  if (!modPath || !fs.existsSync(modPath)) return false;
+  if (!modPath) return false;
+  const pathExists = await fs.promises.access(modPath).then(() => true).catch(() => false);
+  if (!pathExists) return false;
   shell.openPath(modPath).catch(console.error);
   return true;
 }
 
 // Safely delete a mod folder recursively
-function deleteMod(modId) {
+async function deleteMod(modId) {
   if (!validateModId(modId)) return false;
   const settings = settingsManager.loadSettings();
   const modPath = safeModPath(settings.modDirectory, modId);
-  if (!modPath || !fs.existsSync(modPath)) return false;
+  if (!modPath) return false;
+  const pathExists = await fs.promises.access(modPath).then(() => true).catch(() => false);
+  if (!pathExists) return false;
   try {
-    fs.rmSync(modPath, { recursive: true, force: true });
+    await fs.promises.rm(modPath, { recursive: true, force: true });
     return true;
   } catch (e) {
     console.error(`Failed to delete mod ${modId}`, e.message);
@@ -245,7 +253,7 @@ async function checkModUpdates(mods, detailed = false) {
         response.data.response &&
         response.data.response.publishedfiledetails
       ) {
-        response.data.response.publishedfiledetails.forEach((detail) => {
+        for (const detail of response.data.response.publishedfiledetails) {
           if (detail.result === 1) {
             totalChecked++;
             const modId = detail.publishedfileid;
@@ -257,8 +265,8 @@ async function checkModUpdates(mods, detailed = false) {
               modId,
               "meta.cpp",
             );
-            if (fs.existsSync(metaPath)) {
-              const stat = fs.statSync(metaPath);
+            try {
+              const stat = await fs.promises.stat(metaPath);
               const localTime = Math.floor(stat.mtimeMs / 1000);
 
               // If workshop time is newer than local time by more than 1 hour, flag it
@@ -277,9 +285,11 @@ async function checkModUpdates(mods, detailed = false) {
                   outdatedMods.push(modId);
                 }
               }
+            } catch {
+              // Ignore if file doesn't exist
             }
           }
-        });
+        }
       }
     } catch (e) {
       console.error(

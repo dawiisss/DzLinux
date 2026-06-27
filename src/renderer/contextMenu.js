@@ -2,6 +2,13 @@ import { state, addFavorite, removeFavorite } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
 import { renderFavoritesManager } from "./favorites.js";
 
+const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
+const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
+const PLUG_SVG = `<app-icon name="plug" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
+const EYE_SVG = `<app-icon name="eye" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent-green);"></app-icon>`;
+const COPY_SVG = `<app-icon name="copy" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
+const INFO_SVG = `<app-icon name="info" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
+
 let currentContextMenu = null;
 
 export function hideContextMenu() {
@@ -36,7 +43,11 @@ export function initContextMenu() {
       const item = document.createElement("div");
       item.className = "context-menu-item";
       const iconSpan = document.createElement("span");
-      iconSpan.textContent = icon;
+      if (icon.trim().startsWith("<")) {
+        iconSpan.innerHTML = icon;
+      } else {
+        iconSpan.textContent = icon;
+      }
       item.appendChild(iconSpan);
       item.appendChild(document.createTextNode(` ${label}`));
       item.addEventListener("click", () => {
@@ -46,7 +57,7 @@ export function initContextMenu() {
       menu.appendChild(item);
     };
 
-    addMenuItem("QUICK CONNECT", "🔌", () => {
+    addMenuItem("QUICK CONNECT", PLUG_SVG, () => {
       import("./serverBrowser.js").then(({ connectToServer }) =>
         connectToServer(server.ip, server.port),
       );
@@ -55,7 +66,7 @@ export function initContextMenu() {
     const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
     addMenuItem(
       isFav ? "REMOVE FAVORITE" : "ADD FAVORITE",
-      isFav ? "⭐" : "☆",
+      isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG,
       async () => {
         if (isFav) {
           await removeFavorite(server.ip, server.port);
@@ -74,7 +85,7 @@ export function initContextMenu() {
 
         const starBtn = document.querySelector(`#row-${server.id} .star-btn`);
         if (starBtn) {
-          starBtn.innerHTML = isFav ? "☆" : "★";
+          starBtn.innerHTML = isFav ? STAR_UNFAV_SVG : STAR_FAV_SVG;
           starBtn.className = isFav ? "star-btn" : "star-btn active";
           starBtn.title = isFav ? "Add to Favorites" : "Remove from Favorites";
           starBtn.setAttribute(
@@ -90,14 +101,14 @@ export function initContextMenu() {
     divider.className = "context-menu-divider";
     menu.appendChild(divider);
 
-    addMenuItem("WATCH SERVER", "👁️", async () => {
+    addMenuItem("WATCH SERVER", EYE_SVG, async () => {
       const watchlist = await window.api.watchlist.load();
       if (
         watchlist.some(
           (item) => item.ip === server.ip && item.port === server.port,
         )
       ) {
-        showToast("ALREADY ON WATCHLIST", "var(--accent)", "ℹ️");
+        showToast("ALREADY ON WATCHLIST", "var(--accent)", INFO_SVG);
         return;
       }
       watchlist.push({
@@ -111,10 +122,10 @@ export function initContextMenu() {
         lastStatus: "idle",
       });
       await window.api.watchlist.save(watchlist);
-      showToast(`WATCHING: ${server.name}`, "var(--accent-green)", "👁️");
+      showToast(`WATCHING: ${server.name}`, "var(--accent-green)", EYE_SVG);
     });
 
-    addMenuItem("COPY ADDRESS", "📋", () =>
+    addMenuItem("COPY ADDRESS", COPY_SVG, () =>
       copyToClipboard(`${server.ip}:${server.port}`),
     );
 

@@ -1,4 +1,5 @@
 import { state, setFavoritesFromSettings } from "./state.js";
+import "./components/app-icon.js";
 import { initAudio } from "./audio.js";
 import { initTheme } from "./theme.js";
 import { initSettings } from "./settings.js";

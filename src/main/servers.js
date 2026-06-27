@@ -25,7 +25,29 @@ async function loadServerCache() {
       Date.now() - data.timestamp < CACHE_TTL_MS &&
       Array.isArray(data.servers)
     ) {
-      return data.servers;
+      return data.servers.map((s, idx) => ({
+        id: `custom-${s.ip.replace(/\./g, "-")}-${s.port}`,
+        originalIndex: idx,
+        name: s.name || "Unknown Server",
+        ip: s.ip,
+        port: s.port,
+        queryPort: s.queryPort || null,
+        players: s.players || 0,
+        maxPlayers: s.maxPlayers !== undefined ? s.maxPlayers : 60,
+        status: s.status || "offline",
+        mods: s.mods || [],
+        customList: s.customList !== false,
+        ping: s.ping,
+        country: s.country || "",
+        thirdPerson: s.thirdPerson !== false,
+        modded: s.modded !== false,
+        time: s.time || "",
+        map: s.map || "",
+        password: s.password === true,
+        monetized: s.monetized,
+        realPing: s.realPing,
+        failedPing: s.failedPing,
+      }));
     }
   } catch (e) {
     if (e.code !== "ENOENT") {
@@ -37,11 +59,36 @@ async function loadServerCache() {
 
 async function saveServerCache(servers) {
   try {
+    const optimized = servers.map((s) => {
+      const opt = {
+        name: s.name,
+        ip: s.ip,
+        port: s.port,
+      };
+      if (s.queryPort) opt.queryPort = s.queryPort;
+      if (s.players) opt.players = s.players;
+      if (s.maxPlayers !== undefined && s.maxPlayers !== 60) opt.maxPlayers = s.maxPlayers;
+      if (s.status && s.status !== "offline") opt.status = s.status;
+      if (s.mods && s.mods.length > 0) opt.mods = s.mods;
+      if (s.customList === false) opt.customList = false;
+      if (s.ping !== undefined) opt.ping = s.ping;
+      if (s.country) opt.country = s.country;
+      if (s.thirdPerson === false) opt.thirdPerson = false;
+      if (s.modded === false) opt.modded = false;
+      if (s.time) opt.time = s.time;
+      if (s.map) opt.map = s.map;
+      if (s.password === true) opt.password = true;
+      if (s.monetized) opt.monetized = s.monetized;
+      if (s.realPing !== undefined) opt.realPing = s.realPing;
+      if (s.failedPing) opt.failedPing = s.failedPing;
+      return opt;
+    });
+
     // Optimize: Use asynchronous write to prevent blocking the Node.js event loop
     // during potentially large JSON stringification and file I/O operations.
     await fs.promises.writeFile(
       CACHE_FILE,
-      JSON.stringify({ timestamp: Date.now(), servers }),
+      JSON.stringify({ timestamp: Date.now(), servers: optimized }),
       "utf8",
     );
   } catch (e) {
@@ -154,7 +201,7 @@ async function refreshServerModCache(ip, port, queryPort) {
         mods: result.mods,
         country: "",
         thirdPerson: result.thirdPerson,
-        password: false,
+        password: !!result.password,
         time: result.time || "",
         modded: result.modded,
         map: result.map || "",
@@ -317,6 +364,12 @@ function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
           custom.modded !== false,
         time: custom.time || (cachedEntry ? cachedEntry.time : "") || "",
         map: custom.map || (cachedEntry ? cachedEntry.map : "") || "",
+        password:
+          custom.password !== undefined
+            ? custom.password
+            : (cachedEntry && cachedEntry.password !== undefined
+                ? cachedEntry.password
+                : false),
       });
       serversMap.set(mapKey, servers.length - 1);
     }

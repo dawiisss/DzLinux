@@ -9,7 +9,11 @@ export function showToast(message, borderHex = "#2ec4b6", icon = "📋") {
   toast.style.borderLeftColor = borderHex;
 
   const iconSpan = document.createElement("span");
-  iconSpan.textContent = icon;
+  if (icon.trim().startsWith("<")) {
+    iconSpan.innerHTML = icon;
+  } else {
+    iconSpan.textContent = icon;
+  }
   toast.appendChild(iconSpan);
   toast.appendChild(document.createTextNode("\u00A0 \u00A0 "));
   toast.appendChild(document.createTextNode(message));

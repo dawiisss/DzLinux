@@ -29,6 +29,7 @@ export const state = {
     historyOnly: false,
     hideTimeouts: true,
     hideFakes: true,
+    hideLocked: false,
   },
   sort: {
     column: "players",

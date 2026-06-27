@@ -771,6 +771,7 @@ body.compact-mode .btn-ping,
 body.compact-mode .btn-connect {
   padding: 5px 10px;
   font-size: 0.7rem;
+  height: 24px;
 }
 
 body.compact-mode .detail-container {
@@ -980,6 +981,9 @@ body.compact-mode .settings-info {
   color: var(--accent);
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .btn-refresh-mods:hover {
@@ -1288,7 +1292,11 @@ footer {
 .btn-ping,
 .btn-connect {
   white-space: nowrap;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  vertical-align: middle;
 }
 
 .btn-ping {
@@ -1302,7 +1310,6 @@ footer {
   cursor: pointer;
   transition: all 0.25s ease;
   margin-right: 6px;
-  line-height: 1;
 }
 
 .btn-ping:hover {
@@ -1312,7 +1319,8 @@ footer {
   transform: translateY(-1px);
 }
 
-.btn-ping:disabled {
+.btn-ping:disabled,
+.btn-ping.disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
@@ -1954,5 +1962,32 @@ select:focus-visible,
     filter: drop-shadow(0 0 0px rgba(var(--accent-rgb), 0));
   }
 }
+
+/* Custom app-icon Web Component Styling */
+app-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
+app-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+app-icon[name="loader"] svg {
+  animation: spin 1s linear infinite;
+  transform-origin: center;
+}
+
+
 
 

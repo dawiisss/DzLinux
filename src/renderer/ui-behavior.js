@@ -18,6 +18,7 @@ let currentSortColumn = "players";
 let currentSortDirection = "desc";
 let currentHideTimeouts = true;
 let currentHideFakes = true;
+let currentHideLocked = false;
 
 // --- Modals ---
 export function openDirectConnectModal() {
@@ -120,13 +121,14 @@ export function updateMapTrigger() {
   checkboxes.forEach((cb) => {
     cb.checked = currentMapFilter.has(cb.dataset.map);
   });
+  const mapSvg = `<app-icon name="map" style="width: 0.95rem; height: 0.95rem;"></app-icon>`;
   if (currentMapFilter.size === 0) {
-    tr.textContent = "🗺️ ALL MAPS ▾";
+    tr.innerHTML = `${mapSvg} ALL MAPS ▾`;
     tr.classList.remove("active");
   } else if (currentMapFilter.size >= checkboxes.length) {
-    tr.textContent = "🗺️ ALL MAPS ▾";
+    tr.innerHTML = `${mapSvg} ALL MAPS ▾`;
   } else {
-    tr.textContent = `🗺️ ${currentMapFilter.size} MAPS ▾`;
+    tr.innerHTML = `${mapSvg} ${currentMapFilter.size} MAPS ▾`;
     tr.classList.add("active");
   }
 }
@@ -178,6 +180,14 @@ export function toggleHideFakes() {
   triggerFiltering();
 }
 
+export function toggleHideLocked() {
+  currentHideLocked = !currentHideLocked;
+  document
+    .getElementById("filter-hide-locked")
+    .classList.toggle("active", currentHideLocked);
+  triggerFiltering();
+}
+
 export function triggerFiltering() {
   applyFilters({
     persp: currentPerspFilter,
@@ -191,6 +201,7 @@ export function triggerFiltering() {
     sortDir: currentSortDirection,
     hideTimeouts: currentHideTimeouts,
     hideFakes: currentHideFakes,
+    hideLocked: currentHideLocked,
   });
 }
 
@@ -292,6 +303,7 @@ window.toggleHideFull = toggleHideFull;
 window.toggleHistoryFilter = toggleHistoryFilter;
 window.toggleHideTimeouts = toggleHideTimeouts;
 window.toggleHideFakes = toggleHideFakes;
+window.toggleHideLocked = toggleHideLocked;
 window.handleSort = handleSort;
 window.showConfirmModal = showConfirmModal;
 

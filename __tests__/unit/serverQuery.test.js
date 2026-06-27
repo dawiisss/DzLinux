@@ -36,6 +36,7 @@ describe("serverQuery", () => {
         players: [{ name: "player1" }, { name: "player2" }],
         maxplayers: 60,
         name: "Test Server",
+        password: true,
         raw: {
           numplayers: 2,
           dayzMods: [{ workshopId: "12345", title: "Test Mod" }],
@@ -52,6 +53,7 @@ describe("serverQuery", () => {
       expect(result.maxPlayers).toBe(60);
       expect(result.name).toBe("Test Server");
       expect(result.status).toBe("online");
+      expect(result.password).toBe(true);
     });
 
     test("returns null when all ports fail", async () => {
