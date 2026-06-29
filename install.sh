@@ -164,7 +164,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
     
     # Create desktop file globally
     DESKTOP_DIR="/usr/share/applications"
-    cat <<EOF > "$TEMP_DIR/com.dawiisss.dzlinux.desktop"
+    cat <<EOF > "$TEMP_DIR/dzlinux.desktop"
 [Desktop Entry]
 Name=DzLinux
 Exec=/usr/local/bin/dzlinux
@@ -172,16 +172,16 @@ Icon=dzlinux
 Type=Application
 Categories=Game;
 Comment=DayZ Linux Server Browser & Mod Manager
-StartupWMClass=com.dawiisss.dzlinux
+StartupWMClass=DzLinux
 Terminal=false
 EOF
     sudo mkdir -p "$DESKTOP_DIR"
-    # Clean up old shortcut name if it exists to avoid duplicates
-    if [ -f "$DESKTOP_DIR/dzlinux.desktop" ]; then
-        sudo rm -f "$DESKTOP_DIR/dzlinux.desktop"
+    # Clean up old shortcut names if they exist to avoid duplicates
+    if [ -f "$DESKTOP_DIR/com.dawiisss.dzlinux.desktop" ]; then
+        sudo rm -f "$DESKTOP_DIR/com.dawiisss.dzlinux.desktop"
     fi
-    sudo mv "$TEMP_DIR/com.dawiisss.dzlinux.desktop" "$DESKTOP_DIR/"
-    sudo chmod +x "$DESKTOP_DIR/com.dawiisss.dzlinux.desktop"
+    sudo mv "$TEMP_DIR/dzlinux.desktop" "$DESKTOP_DIR/"
+    sudo chmod +x "$DESKTOP_DIR/dzlinux.desktop"
     
     # Update desktop database so the menu picks it up immediately
     if command -v update-desktop-database &> /dev/null; then

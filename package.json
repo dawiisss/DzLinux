@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",
@@ -30,7 +30,7 @@
       ],
       "syncDesktopName": true,
       "category": "Game",
-      "icon": "build/icon.png",
+      "icon": "build/icons",
       "synopsis": "DayZ Server Browser & Mod Manager for Linux",
       "description": "A standalone desktop application for browsing DayZ servers, managing Steam Workshop mods, and launching the game with Proton support. Features real-time A2S server queries, mod dependency resolution, crash diagnostics, and auto-updates."
     },

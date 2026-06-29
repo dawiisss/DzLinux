@@ -4,6 +4,12 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-06-29
+
+### Fixed
+- **System Package Update Prompts**: Fixed a bug where system-managed packages (Flatpaks, .deb, and .rpm installs under /usr or /opt) would unconditionally trigger false update prompts on startup. The client now verifies version metadata against GitHub releases before warning that an update is available.
+- **Desktop Launcher and Menu Icon**: Fixed the app launcher icon not showing up in standard Linux desktop environments (like Ubuntu/GNOME applications menu). Generated a complete set of standard-sized icons under `build/icons/` and aligned the desktop launcher name (`dzlinux.desktop`), `StartupWMClass` (`DzLinux`), and the runtime Electron desktop identifier (`dzlinux`).
+
 ## [1.3.1] - 2026-06-29
 
 ### Added

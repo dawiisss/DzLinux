@@ -97,16 +97,18 @@ function registerIpcHandlers() {
   ipcMain.handle("scan-proton-versions", () =>
     gameManager.scanProtonVersions(),
   );
-  ipcMain.handle("check-for-updates", () => {
-    if (isSystemInstall()) {
+  ipcMain.handle("check-for-updates", async () => {
+    const result = await checkForUpdates();
+    if (result.kind === "available" && isSystemInstall()) {
       return {
         kind: "system-package",
-        currentVersion: app.getVersion(),
+        currentVersion: result.currentVersion,
         releaseUrl:
+          result.updateInfo.downloadUrl ||
           "https://github.com/dawiisss/DzLinux/releases/latest",
       };
     }
-    return checkForUpdates();
+    return result;
   });
   ipcMain.handle("download-update", () => {
     return autoUpdater
