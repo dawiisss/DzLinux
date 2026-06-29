@@ -67,10 +67,10 @@ curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | b
 ### Method 2: AppImage (Portable)
 The AppImage format is a single, self-contained executable that runs on almost any modern Linux distribution (Ubuntu, Fedora, Arch, Debian, etc.).
 
-1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and download `DzLinux-1.3.2.AppImage`.
+1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and download `DzLinux-1.3.3.AppImage`.
 2. Give the file executable permissions via your terminal:
    ```bash
-   chmod +x DzLinux-1.3.2.AppImage
+   chmod +x DzLinux-1.3.3.AppImage
    ```
    *(Or right-click the file in your file manager, open **Properties** -> **Permissions**, and check **Allow executing file as program**).*
 3. Double-click the file to launch the app.
@@ -80,10 +80,10 @@ We recommend using Gear Lever or any other AppImage management app.
 ### Method 3: Portable Archive (.tar.gz)
 If you prefer standard directory structures or like to keep your game utilities in a dedicated folder (e.g., `~/Games/`):
 
-1. Download `dzlinux-1.3.2.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
+1. Download `dzlinux-1.3.3.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
 2. Extract the archive:
    ```bash
-   tar -xzf dzlinux-1.3.2.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.3.3.tar.gz -C ~/Games/
    ```
 3. Navigate to the extracted folder and run the binary:
    ```bash
@@ -93,10 +93,10 @@ If you prefer standard directory structures or like to keep your game utilities 
 
 ### Method 4: Debian Package (.deb) — Ubuntu, Debian, Pop!_OS, Mint
 
-1. Download `dzlinux_1.3.2_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
+1. Download `dzlinux_1.3.3_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
 2. Install via the terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.3.2_amd64.deb
+   sudo dpkg -i dzlinux_1.3.3_amd64.deb
    sudo apt install -f
    ```
    *(Or double-click the .deb file in your file manager to open with your package installer.)*
@@ -104,10 +104,10 @@ If you prefer standard directory structures or like to keep your game utilities 
 
 ### Method 5: RPM Package (.rpm) — Fedora, RHEL, openSUSE
 
-1. Download `dzlinux-1.3.2.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
+1. Download `dzlinux-1.3.3.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
 2. Install via the terminal:
    ```bash
-   sudo rpm -i dzlinux-1.3.2.x86_64.rpm
+   sudo rpm -i dzlinux-1.3.3.x86_64.rpm
    ```
 3. Launch from your app menu or run `dzlinux` in the terminal.
 

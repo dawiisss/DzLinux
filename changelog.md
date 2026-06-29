@@ -4,6 +4,11 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-06-29
+
+### Fixed
+- **Fedora/GNOME Start Menu Icon**: Fixed an issue where the launcher icon remained blank on Fedora and other GTK/GNOME desktop environments after installation/upgrade. Aligned the packaging desktop name configuration to lowercase `dzlinux` and added a `gtk-update-icon-cache` cache flush trigger to `install.sh`.
+
 ## [1.3.2] - 2026-06-29
 
 ### Fixed

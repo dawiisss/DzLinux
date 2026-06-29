@@ -164,7 +164,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
     
     # Create desktop file globally
     DESKTOP_DIR="/usr/share/applications"
-    cat <<EOF > "$TEMP_DIR/dzlinux.desktop"
+    cat <<EOF > "$TEMP_DIR/DzLinux.desktop"
 [Desktop Entry]
 Name=DzLinux
 Exec=/usr/local/bin/dzlinux
@@ -180,12 +180,18 @@ EOF
     if [ -f "$DESKTOP_DIR/com.dawiisss.dzlinux.desktop" ]; then
         sudo rm -f "$DESKTOP_DIR/com.dawiisss.dzlinux.desktop"
     fi
-    sudo mv "$TEMP_DIR/dzlinux.desktop" "$DESKTOP_DIR/"
-    sudo chmod +x "$DESKTOP_DIR/dzlinux.desktop"
+    if [ -f "$DESKTOP_DIR/dzlinux.desktop" ]; then
+        sudo rm -f "$DESKTOP_DIR/dzlinux.desktop"
+    fi
+    sudo mv "$TEMP_DIR/DzLinux.desktop" "$DESKTOP_DIR/"
+    sudo chmod +x "$DESKTOP_DIR/DzLinux.desktop"
     
     # Update desktop database so the menu picks it up immediately
     if command -v update-desktop-database &> /dev/null; then
         sudo update-desktop-database "$DESKTOP_DIR" || true
+    fi
+    if command -v gtk-update-icon-cache &> /dev/null; then
+        sudo gtk-update-icon-cache -f -t /usr/share/icons/hicolor || true
     fi
     
     # Make sure we recommend dependencies for AppImage

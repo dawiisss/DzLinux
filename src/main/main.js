@@ -15,7 +15,7 @@ if (settings.nativeWayland && process.env.XDG_SESSION_TYPE === "wayland") {
 app.commandLine.appendSwitch("js-flags", "--max-old-space-size=512 --optimize-for-size");
 
 if (process.platform === "linux" && typeof app.setDesktopName === "function") {
-  app.setDesktopName("dzlinux");
+  app.setDesktopName("DzLinux");
 }
 
 const createWindow = () => {
