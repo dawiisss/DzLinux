@@ -202,6 +202,9 @@ export function buildServerRow(server, isFavoritesView = false) {
   const serverKey = `${server.ip}:${server.port}`;
   const isFav = state.favoritesSet.has(serverKey);
   const isExpanded = state.expandedServerId === server.id;
+  const metaCellId = isFavoritesView
+    ? `fav-meta-cell-${server.id}`
+    : `meta-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
 
   const tr = document.createElement("tr");
   tr.id = isFavoritesView ? `fav-row-${server.id}` : `row-${server.id}`;
@@ -381,6 +384,9 @@ export function buildServerRow(server, isFavoritesView = false) {
             if (statusObj.map) server.map = statusObj.map;
             server.thirdPerson = statusObj.thirdPerson;
             server.modded = statusObj.modded;
+            if (statusObj.password !== undefined) {
+              server.password = statusObj.password;
+            }
             server.failedPing = false;
           } else {
             server.realPing = server.ping || 120;
@@ -400,6 +406,11 @@ export function buildServerRow(server, isFavoritesView = false) {
             } else {
               cell.appendChild(renderPingBadge(server.realPing));
             }
+          }
+          const metaCell = document.getElementById(metaCellId);
+          if (metaCell) {
+            metaCell.innerHTML = "";
+            metaCell.appendChild(renderMetadataBadges(server));
           }
         })
         .catch(() => {
@@ -423,53 +434,8 @@ export function buildServerRow(server, isFavoritesView = false) {
 
   // Metadata
   const tdMetadata = document.createElement("td");
-  const badgesWrapper = document.createElement("div");
-  badgesWrapper.className = "badges-wrapper";
-  if (server.monetized) {
-    const monetizedBadge = document.createElement("span");
-    monetizedBadge.className = "hud-badge badge-approved";
-    monetizedBadge.innerHTML = "\u{1F4B0} APPROVED";
-    monetizedBadge.title =
-      "Officially Approved by Bohemia Interactive for Monetization";
-    badgesWrapper.appendChild(monetizedBadge);
-  }
-  if (server.country) {
-    const flagBadge = document.createElement("span");
-    flagBadge.className = "hud-badge badge-country";
-    flagBadge.textContent = `${countryToFlag(server.country)} ${server.country.toUpperCase()}`;
-    flagBadge.title = server.country.toUpperCase();
-    badgesWrapper.appendChild(flagBadge);
-  }
-  const pBadge = document.createElement("span");
-  pBadge.className = `hud-badge badge-${server.thirdPerson ? "3pp" : "1pp"}`;
-  pBadge.textContent = server.thirdPerson ? "3PP" : "1PP";
-  badgesWrapper.appendChild(pBadge);
-  const cBadge = document.createElement("span");
-  cBadge.className = `hud-badge badge-${server.modded ? "modded" : "vanilla"}`;
-  cBadge.textContent = server.modded ? "MODDED" : "VANILLA";
-  badgesWrapper.appendChild(cBadge);
-  if (server.time) {
-    const tBadge = document.createElement("span");
-    tBadge.className = "hud-badge badge-time";
-    const hr = parseInt(server.time.split(":")[0]);
-    const sun = hr >= 6 && hr <= 18 ? "\u2600\uFE0F" : "\uD83C\uDF19";
-    tBadge.textContent = `${sun} ${server.time}`;
-    badgesWrapper.appendChild(tBadge);
-  }
-  if (server.map) {
-    const mapName = MAP_NAMES[server.map.toLowerCase()] || server.map;
-    const mapBadge = document.createElement("span");
-    mapBadge.className = "hud-badge badge-map";
-    mapBadge.textContent = `\uD83D\uDDFA\uFE0F ${mapName}`;
-    badgesWrapper.appendChild(mapBadge);
-  }
-  if (server.password) {
-    const lockBadge = document.createElement("span");
-    lockBadge.className = "hud-badge badge-lock";
-    lockBadge.textContent = "\uD83D\uDD12 LOCKED";
-    badgesWrapper.appendChild(lockBadge);
-  }
-  tdMetadata.appendChild(badgesWrapper);
+  tdMetadata.id = metaCellId;
+  tdMetadata.appendChild(renderMetadataBadges(server));
 
   // IP
   const tdIp = document.createElement("td");
@@ -518,6 +484,9 @@ export function buildServerRow(server, isFavoritesView = false) {
         if (statusObj.map) server.map = statusObj.map;
         server.thirdPerson = statusObj.thirdPerson;
         server.modded = statusObj.modded;
+        if (statusObj.password !== undefined) {
+          server.password = statusObj.password;
+        }
         server.failedPing = false;
       } else {
         server.realPing = -1;
@@ -546,6 +515,11 @@ export function buildServerRow(server, isFavoritesView = false) {
         pingCell.appendChild(renderPingBadge(server.realPing));
       }
     }
+    const metaCell = document.getElementById(metaCellId);
+    if (metaCell) {
+      metaCell.innerHTML = "";
+      metaCell.appendChild(renderMetadataBadges(server));
+    }
   });
   tdAction.appendChild(pingBtn);
   const btn = document.createElement("button");
@@ -567,4 +541,54 @@ export function buildServerRow(server, isFavoritesView = false) {
   tr.appendChild(tdAction);
 
   return tr;
+}
+
+export function renderMetadataBadges(server) {
+  const badgesWrapper = document.createElement("div");
+  badgesWrapper.className = "badges-wrapper";
+  if (server.monetized) {
+    const monetizedBadge = document.createElement("span");
+    monetizedBadge.className = "hud-badge badge-approved";
+    monetizedBadge.innerHTML = "\u{1F4B0} APPROVED";
+    monetizedBadge.title =
+      "Officially Approved by Bohemia Interactive for Monetization";
+    badgesWrapper.appendChild(monetizedBadge);
+  }
+  if (server.country) {
+    const flagBadge = document.createElement("span");
+    flagBadge.className = "hud-badge badge-country";
+    flagBadge.textContent = `${countryToFlag(server.country)} ${server.country.toUpperCase()}`;
+    flagBadge.title = server.country.toUpperCase();
+    badgesWrapper.appendChild(flagBadge);
+  }
+  const pBadge = document.createElement("span");
+  pBadge.className = `hud-badge badge-${server.thirdPerson ? "3pp" : "1pp"}`;
+  pBadge.textContent = server.thirdPerson ? "3PP" : "1PP";
+  badgesWrapper.appendChild(pBadge);
+  const cBadge = document.createElement("span");
+  cBadge.className = `hud-badge badge-${server.modded ? "modded" : "vanilla"}`;
+  cBadge.textContent = server.modded ? "MODDED" : "VANILLA";
+  badgesWrapper.appendChild(cBadge);
+  if (server.time) {
+    const tBadge = document.createElement("span");
+    tBadge.className = "hud-badge badge-time";
+    const hr = parseInt(server.time.split(":")[0]);
+    const sun = hr >= 6 && hr <= 18 ? "\u2600\uFE0F" : "\uD83C\uDF19";
+    tBadge.textContent = `${sun} ${server.time}`;
+    badgesWrapper.appendChild(tBadge);
+  }
+  if (server.map) {
+    const mapName = MAP_NAMES[server.map.toLowerCase()] || server.map;
+    const mapBadge = document.createElement("span");
+    mapBadge.className = "hud-badge badge-map";
+    mapBadge.textContent = `\uD83D\uDDFA\uFE0F ${mapName}`;
+    badgesWrapper.appendChild(mapBadge);
+  }
+  if (server.password) {
+    const lockBadge = document.createElement("span");
+    lockBadge.className = "hud-badge badge-lock";
+    lockBadge.textContent = "\uD83D\uDD12 LOCKED";
+    badgesWrapper.appendChild(lockBadge);
+  }
+  return badgesWrapper;
 }

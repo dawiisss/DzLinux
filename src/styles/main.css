@@ -6,6 +6,8 @@
   --accent-rgb: 255, 159, 28;
   --accent-green: #2ec4b6;
   --accent-green-rgb: 46, 196, 182;
+  --accent-orange: #ff9f1c;
+  --accent-orange-rgb: 255, 159, 28;
   --accent-red: #ff5a5f;
   --border: rgba(255, 255, 255, 0.12);
   --border-hover: rgba(255, 159, 28, 0.4);
@@ -1117,9 +1119,9 @@ body.compact-mode .settings-info {
 }
 
 .player-badge.medium {
-  background: rgba(var(--accent-rgb), 0.1);
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
-  color: var(--accent);
+  background: rgba(var(--accent-orange-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-orange-rgb), 0.3);
+  color: var(--accent-orange);
 }
 
 .player-badge.low {
@@ -1144,9 +1146,9 @@ body.compact-mode .settings-info {
 }
 
 .ping-badge.ping-ok {
-  background: rgba(var(--accent-rgb), 0.1);
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
-  color: var(--accent);
+  background: rgba(var(--accent-orange-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-orange-rgb), 0.3);
+  color: var(--accent-orange);
 }
 
 .ping-badge.ping-bad {

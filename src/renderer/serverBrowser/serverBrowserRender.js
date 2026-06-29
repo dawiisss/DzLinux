@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { refreshLocalModsCache } from "../modManager.js";
 import { serverPassesFilters } from "./serverBrowserCore.js";
-import { buildServerRow } from "../serverRow.js";
+import { buildServerRow, renderMetadataBadges } from "../serverRow.js";
 
 let isServersBatchListenerAdded = false;
 let _needsResort = false;
@@ -238,6 +238,23 @@ export async function startBackgroundPinging() {
         if (statusObj.map) server.map = statusObj.map;
         server.thirdPerson = statusObj.thirdPerson;
         server.modded = statusObj.modded;
+        if (statusObj.password !== undefined) {
+          server.password = statusObj.password;
+        }
+
+        const rowId =
+          server.id ||
+          `${server.ip}:${server.port}`.replace(/[^a-zA-Z0-9]/g, "-");
+        const metaCell = document.getElementById(`meta-cell-${rowId}`);
+        if (metaCell) {
+          metaCell.innerHTML = "";
+          metaCell.appendChild(renderMetadataBadges(server));
+        }
+        const favMetaCell = document.getElementById(`fav-meta-cell-${rowId}`);
+        if (favMetaCell) {
+          favMetaCell.innerHTML = "";
+          favMetaCell.appendChild(renderMetadataBadges(server));
+        }
       } else {
         server.realPing = server.ping || 120;
         server.failedPing = true;
