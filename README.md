@@ -1,141 +1,117 @@
-# <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux — DayZ Server Browser, Mod Manager and Launcher for Linux
+# <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux — DayZ Launcher, Server Browser and Mod Manager for Linux
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/dawiisss/DzLinux?color=brightgreen&logo=github)](https://github.com/dawiisss/DzLinux/releases/latest)
 [![Platform support](https://img.shields.io/badge/platform-Linux-orange?logo=linux)](https://github.com/dawiisss/DzLinux)
 
-Welcome to the official public repository for **DzLinux**! 
+DzLinux is a high-performance, native launcher, server browser, and mod manager for playing **DayZ on Linux**. It features dynamic Proton version detection, real-time server querying via A2S, automatic Steam Workshop mod verification, performance tuning (MangoHud, GameMode), and native desktop watchlist notifications.
 
-**DzLinux** is a premium, high-performance, native **DayZ Server Browser**, **Mod Manager**, and **Launcher** designed specifically for playing **DayZ on Linux**. By combining a hardware-accelerated military-grade Tactical HUD with deep Steam and Proton integration, DzLinux helps you manage your mod loadouts and join servers seamlessly on Linux. If you want to play DayZ on Linux, download our pre-compiled packages below.
+Play modded and vanilla DayZ on Linux with a zero-setup, optimized launcher.
 
-> [!NOTE]
-> This repository contains the official open-source codebase for **DzLinux**, including the launcher, server browser, and build automation setups. Compiled distribution binaries and release assets are hosted directly on the public Releases page.
+---
 
-<img width="1397" height="799" alt="v131" src="https://github.com/user-attachments/assets/935d14ce-414c-48a8-8ddb-3e2f5d84819e" />
+## Quick Install
+
+Run this command in your terminal to automatically detect your system and install the latest version (.deb, .rpm, or AppImage):
+
+```bash
+curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | bash
+```
 
 ---
 
 ## Table of Contents
 * [Key Features](#key-features)
-* [Installation and Setup](#installation-and-setup)
-* [Configuration Guide](#configuration-guide)
+* [Installation Options](#installation-options)
+* [System Requirements](#system-requirements)
+* [Quick Start Guide](#quick-start-guide)
 * [Bug Reporting and Feedback](#bug-reporting-and-feedback)
-* [License and Compliance](#license-and-compliance)
+* [License and Privacy](#license-and-privacy)
 
 ---
 
 ## Key Features
 
-### GUI Interface
-Experience a beautifully styled, high-contrast user interface designed to be practical.
+### Dynamic Server Browser
+- Connects directly to global DayZ master lists and local servers.
+- Displays real-time player counts, ping latency, time-of-day, active mods, maps, and password protection status.
+- Automatically hides unreachable/offline servers to keep the list clean.
+- Favorites system with real-time ping updates.
+
+### Native Mod Manager
+- **Workshop Validation**: Automatically checks server-required mods against your local Steam Workshop directory, highlighting missing or outdated mods *before* you connect.
+- **Mod Loadouts**: Save, rename, and toggle custom mod configurations.
+- Native Steam integration for one-click mod subscriptions.
 
 ### Proton and Wine Auto-Detection
-No more guessing paths or writing bash wrappers. DzLinux automatically scans your local Steam directories and user libraries to detect installed Proton versions (including Proton GE and Experimental), letting you launch the game seamlessly with the optimal compatibility layer in one click.
+- Automatically scans your Steam directories to detect installed Proton versions (Proton GE, Experimental, etc.).
+- Launch DayZ with the best compatibility layer in one click.
 
-### Smart A2S Server Querying
-Connect directly to global DayZ aggregators and local servers. Retrieve real-time player counts, server latency, time-of-day cycles, active mods, and specific server rule flags instantly. Add your favorite servers to a custom list for instant redeployment.
+### Performance Tuning and Game Optimization
+- Inject optimal launch arguments with simple toggles: `-nosplash`, `-noPause`, `-limitFPS`, etc.
+- Native **MangoHud** integration for real-time FPS and hardware monitoring.
+- **Feral GameMode** and custom allocator support to maximize performance and prevent micro-stutters.
 
 ### Telemetry and Crash Diagnostics
-Review detailed telemetry summaries and launcher launch logs. Instantly analyze recent session logs, connection drop counts, and view helpful, actionable suggested fixes for game crashes.
+- View launch logs, telemetry charts, and session summaries.
+- Analyzes crash logs automatically and suggests actionable fixes.
 
 ### Custom Server Watchlist
-Add servers to a personal watchlist to track slots availability and target population thresholds. Get real-time native desktop notifications when your rules match.
-
-### Mod Management
-* **Workshop Validation:** Automatically cross-references a target server's required mods list against your local Steam Workshop directory, highlighting missing or outdated mods *before* you attempt to join.
-* **Mod Loadouts:** Create, save, and toggle named loadouts of your local mods.
-
-### One-Click Performance Optimizations
-Inject advanced launch arguments directly through a simple toggle interface:
-- **Game Engine Toggles:** `-nosplash`, `-noPause`, `-limitFPS`, `-window`, and more.
-- **Overlay Support:** Instantly hook **MangoHud** for real-time framerate and system metrics.
-- **System Optimizations:** Enable **Feral GameMode** and custom memory allocators to maximize client performance and prevent Linux micro-stutters.
+- Track specific servers for player count thresholds and slot availability.
+- Triggers native desktop notifications when your target rules are matched.
 
 ---
 
-## Installation and Setup
+## Installation Options
 
-DzLinux requires no installation and is fully portable. You can use our automated install script, or manually download your preferred distribution format from our [Releases Page](https://github.com/dawiisss/DzLinux/releases).
+If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
-### Method 1: Automated Install Script (Recommended)
-The easiest way to install DzLinux is using our automated install script. It will detect your Linux distribution and automatically download and install the correct format (.deb, .rpm, or AppImage) for your system.
-
-Run the following command in your terminal:
-```bash
-curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | bash
-```
-
-### Method 2: AppImage (Portable)
-The AppImage format is a single, self-contained executable that runs on almost any modern Linux distribution (Ubuntu, Fedora, Arch, Debian, etc.).
-
-1. Head to the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and download `DzLinux-1.3.3.AppImage`.
-2. Give the file executable permissions via your terminal:
+### AppImage (Portable)
+1. Download `DzLinux-1.3.4.AppImage`.
+2. Make it executable:
    ```bash
-   chmod +x DzLinux-1.3.3.AppImage
+   chmod +x DzLinux-1.3.4.AppImage
    ```
-   *(Or right-click the file in your file manager, open **Properties** -> **Permissions**, and check **Allow executing file as program**).*
-3. Double-click the file to launch the app.
+3. Run or double-click to launch.
 
-We recommend using Gear Lever or any other AppImage management app.
-
-### Method 3: Portable Archive (.tar.gz)
-If you prefer standard directory structures or like to keep your game utilities in a dedicated folder (e.g., `~/Games/`):
-
-1. Download `dzlinux-1.3.3.tar.gz` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
-2. Extract the archive:
+### Portable Archive (tar.gz)
+1. Download `dzlinux-1.3.4.tar.gz`.
+2. Extract to your games directory:
    ```bash
-   tar -xzf dzlinux-1.3.3.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.3.4.tar.gz -C ~/Games/
    ```
-3. Navigate to the extracted folder and run the binary:
+3. Run the binary:
    ```bash
    cd ~/Games/DzLinux
    ./dzlinux
    ```
 
-### Method 4: Debian Package (.deb) — Ubuntu, Debian, Pop!_OS, Mint
-
-1. Download `dzlinux_1.3.3_amd64.deb` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
-2. Install via the terminal:
+### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
+1. Download `dzlinux_1.3.4_amd64.deb`.
+2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.3.3_amd64.deb
+   sudo dpkg -i dzlinux_1.3.4_amd64.deb
    sudo apt install -f
    ```
-   *(Or double-click the .deb file in your file manager to open with your package installer.)*
-3. Launch from your app menu or run `dzlinux` in the terminal.
 
-### Method 5: RPM Package (.rpm) — Fedora, RHEL, openSUSE
-
-1. Download `dzlinux-1.3.3.x86_64.rpm` from the [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest).
-2. Install via the terminal:
+### RPM Package (rpm) - Fedora, RHEL, openSUSE
+1. Download `dzlinux-1.3.4.x86_64.rpm`.
+2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-1.3.3.x86_64.rpm
+   sudo rpm -i dzlinux-1.3.4.x86_64.rpm
    ```
-3. Launch from your app menu or run `dzlinux` in the terminal.
-
-### Updates
-
-- **AppImage** — The built-in auto-updater handles downloads and installs automatically.
-- **tar.gz / .deb / .rpm** — Updates are manual. The app will notify you when a new version is available with a link to the [Releases page](https://github.com/dawiisss/DzLinux/releases/latest). Re-download the package for your format and install it to update.
 
 ---
 
-## Requirements
+## System Requirements
 
-The application will launch without any of these installed, but certain features will be unavailable if the corresponding dependency is missing.
-
-### Required for full functionality
-| Dependency | Purpose | Effect if missing |
+| Dependency | Purpose | Status |
 |---|---|---|
-| **Steam client** | Game launching, Workshop mod management via native API | Launching via "Steam Default" method fails; Proton direct mode still works |
-| `ping` (iputils) | Server latency measurement via ICMP | Servers display "TIMEOUT" instead of ping ms until GameDig responds |
+| **Steam client** | Game launching, Workshop mod management via native API | Required for full functionality |
+| **Proton / GE-Proton** | Custom compatibility layer | Highly Recommended |
+| **GameMode** (`gamemode`) | CPU governor optimization | Optional (Enhancement) |
+| **MangoHud** (`mangohud`) | Performance overlay | Optional (Enhancement) |
 
-### Optional enhancements
-| Dependency | Purpose |
-|---|---|
-| **GameMode** (`gamemode`) | CPU governor optimization at game launch |
-| **MangoHud** (`mangohud`) | On-screen performance overlay (fps, temps, RAM) |
-| **Proton / GE-Proton** | Custom Proton launch mode (auto-detected from Steam if installed) |
-
-Install optional dependencies via your package manager:
+Install performance dependencies:
 ```bash
 # Ubuntu / Debian
 sudo apt install gamemode mangohud
@@ -146,35 +122,23 @@ sudo dnf install gamemode mangohud
 
 ---
 
-## Configuration Guide
+## Quick Start Guide
 
-1. **Set Paths:** On your first launch, click the **Settings** gear icon. DzLinux will attempt to auto-detect your Steam library and DayZ Workshop folders. If they are installed on a secondary drive, manually browse and select your standard `steamapps/common/DayZ` and `steamapps/workshop/content/221100` directories.
-2. **Choose Proton:** Select your preferred Proton version from the auto-detected dropdown list.
-3. **Customize Arguments:** Toggle performance arguments (GameMode, MangoHud, nosplash) based on your system configuration.
-4. **Connect:** Browse the Server Browser, choose a server, let the mod manager verify your mods, and click **LAUNCH** to deploy.
+1. **Auto-Detection**: Launch DzLinux. Click the **Settings** icon to verify your DayZ paths. DzLinux auto-detects standard locations, but you can manually choose paths if installed on secondary drives.
+2. **Select Proton**: Choose your preferred Proton version from the dropdown list.
+3. **Toggle Optimizations**: Enable performance features (GameMode, MangoHud) based on your system.
+4. **Connect**: Browse the Server Browser, choose a server (missing mods will be identified for syncing), and click **CONNECT** to play.
 
 ---
 
 ## Bug Reporting and Feedback
 
-We rely on community feedback in this repository to find and squash bugs!
-
-### How to open an issue:
-1. Go to the [Issues Page](https://github.com/dawiisss/DzLinux/issues).
-2. Click **New Issue** and select the appropriate template (Bug Report or Feature Request).
-3. Include your Linux distribution, Proton version, Steam library path setup, and any log outputs or screenshots showing the issue.
-
-### Contributing Feature Requests:
-Have an idea for a performance toggle, layout improvement, or mod-management feature? Please feel free to open a ticket! We actively monitor the issues tracker to prioritize community-requested features.
+Report issues and suggest features on our [Issues Page](https://github.com/dawiisss/DzLinux/issues). Please include your Linux distribution, Proton version, Steam path configuration, and any crash log outputs.
 
 ---
 
-## License and Compliance
+## License and Privacy
 
-* **Application License:** DzLinux is open-source software licensed under the [MIT License](LICENSE).
-* **Privacy & Telemetry:** DzLinux does not collect, store, or transmit any personal data, analytics, or telemetry. All server queries are done directly from your machine to the public game databases, and your configuration settings remain completely local.
-* **Open Source Acknowledgments:** DzLinux is built on top of incredible open-source libraries (including Electron, Axios, GameDig, and Steamworks.js). A full list of dependencies, their licenses, and source repositories can be found inside the application's **About / Info** pop-up or in the bundled `acknowledgments.txt` file distributed with every release package.
-
----
-
-*DayZ is a registered trademark of Bohemia Interactive. DzLinux is an independent third-party tool and is not affiliated with or endorsed by Bohemia Interactive.*
+- **License**: DzLinux is open-source software distributed under the [MIT License](LICENSE).
+- **Privacy**: No telemetry, analytics, or personal data collection. All queries and settings remain entirely local on your machine.
+- **Compliance**: Independent third-party tool not affiliated with or endorsed by Bohemia Interactive. DayZ is a trademark of Bohemia Interactive.

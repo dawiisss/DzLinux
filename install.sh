@@ -195,6 +195,6 @@ EOF
     fi
     
     # Make sure we recommend dependencies for AppImage
-    echo -e "${YELLOW}Please ensure you have 'iputils-ping' (or 'iputils') and 'xdg-utils' installed on your system for all network and launcher features to function properly.${NC}"
+    echo -e "${YELLOW}Please ensure you have 'xdg-utils' installed on your system for all launcher features to function properly.${NC}"
     echo -e "${GREEN}${BOLD}DzLinux AppImage installer completed. Launch via your desktop application list or command line 'dzlinux'.${NC}"
 fi

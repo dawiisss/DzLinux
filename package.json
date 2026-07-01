@@ -36,13 +36,11 @@
     },
     "deb": {
       "depends": [
-        "iputils-ping",
         "xdg-utils"
       ]
     },
     "rpm": {
       "depends": [
-        "iputils",
         "xdg-utils"
       ]
     },
