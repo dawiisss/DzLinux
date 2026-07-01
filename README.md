@@ -33,7 +33,7 @@ curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | b
 ## Key Features
 
 ### Dynamic Server Browser
-- Connects directly to global DayZ master lists and local servers.
+- Connects directly to global DayZ master list.
 - Displays real-time player counts, ping latency, time-of-day, active mods, maps, and password protection status.
 - Automatically hides unreachable/offline servers to keep the list clean.
 - Favorites system with real-time ping updates.
