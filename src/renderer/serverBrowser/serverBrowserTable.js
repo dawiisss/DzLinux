@@ -164,6 +164,11 @@ export function renderServers() {
           isFav ? "Remove from Favorites" : "Add to Favorites"
         );
       }
+      const nameCell = tr.querySelector(".server-name-cell");
+      if (nameCell && nameCell.textContent !== server.name) {
+        nameCell.textContent = server.name;
+        nameCell.title = server.name;
+      }
     } else {
       tr = buildServerRow(server);
     }

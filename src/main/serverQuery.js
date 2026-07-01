@@ -207,9 +207,6 @@ async function queryServerGameDig(ip, port, queryPort) {
       if (cachedPort !== null && qp === cachedPort) {
         queryPortCache.delete(cacheKey);
         deleteQueryPortCacheEntry(cacheKey);
-        console.log(
-          `Stale query port cache removed for ${cacheKey} (port ${cachedPort} no longer responds)`,
-        );
       }
     }
   }

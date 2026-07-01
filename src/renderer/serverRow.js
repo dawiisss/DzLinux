@@ -376,8 +376,25 @@ export function buildServerRow(server, isFavoritesView = false) {
               server.players = statusObj.players;
             if (statusObj.maxPlayers !== null)
               server.maxPlayers = statusObj.maxPlayers;
-            if (statusObj.name && server.name === "Unknown Server")
+            if (statusObj.name) {
               server.name = statusObj.name;
+              const favRowEl = document.getElementById(`fav-row-${server.id}`);
+              if (favRowEl) {
+                const favNameCell = favRowEl.querySelector(".server-name-cell");
+                if (favNameCell) {
+                  favNameCell.textContent = statusObj.name;
+                  favNameCell.title = statusObj.name;
+                }
+              }
+              const rowEl = document.getElementById(`row-${server.id}`);
+              if (rowEl) {
+                const nameCell = rowEl.querySelector(".server-name-cell");
+                if (nameCell) {
+                  nameCell.textContent = statusObj.name;
+                  nameCell.title = statusObj.name;
+                }
+              }
+            }
             if (statusObj.mods && statusObj.mods.length > 0)
               server.mods = statusObj.mods;
             if (statusObj.time) server.time = statusObj.time;

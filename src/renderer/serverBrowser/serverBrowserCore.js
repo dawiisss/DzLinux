@@ -3,6 +3,7 @@ import { MAP_NORMALIZE } from "../utils.js";
 
 export function serverPassesFilters(server) {
   if (server.realPing === undefined) return false;
+  if (server.failedPing || server.realPing === -1) return false;
 
   const term = state.filters.nameLower;
   if (term) {
@@ -42,22 +43,6 @@ export function serverPassesFilters(server) {
     if (!inHistory) return false;
   }
 
-  if (
-    !isFav &&
-    state.flags.hideTimeouts &&
-    server.realPing === -1 &&
-    state.expandedServerId !== server.id
-  )
-    return false;
-  if (
-    !isFav &&
-    state.flags.hideFakes &&
-    server.failedPing &&
-    server.players >= 60 &&
-    state.expandedServerId !== server.id
-  )
-    return false;
-
   return true;
 }
 
@@ -71,7 +56,6 @@ export function applyFilters({
   history,
   sortCol,
   sortDir,
-  hideTimeouts,
   hideFakes,
   hideLocked,
 }) {
@@ -84,7 +68,6 @@ export function applyFilters({
   state.flags.historyOnly = history;
   state.sort.column = sortCol;
   state.sort.direction = sortDir;
-  state.flags.hideTimeouts = hideTimeouts;
   state.flags.hideFakes = hideFakes;
   state.flags.hideLocked = hideLocked;
   state.filters.nameLower = state.filters.name.toLowerCase();

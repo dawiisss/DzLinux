@@ -16,7 +16,6 @@ let currentHideFull = false;
 let currentHistoryFilter = false;
 let currentSortColumn = "players";
 let currentSortDirection = "desc";
-let currentHideTimeouts = true;
 let currentHideFakes = true;
 let currentHideLocked = false;
 
@@ -164,14 +163,6 @@ export function toggleHistoryFilter() {
   triggerFiltering();
 }
 
-export function toggleHideTimeouts() {
-  currentHideTimeouts = !currentHideTimeouts;
-  document
-    .getElementById("filter-hide-timeouts")
-    .classList.toggle("active", currentHideTimeouts);
-  triggerFiltering();
-}
-
 export function toggleHideFakes() {
   currentHideFakes = !currentHideFakes;
   document
@@ -199,7 +190,6 @@ export function triggerFiltering() {
     history: currentHistoryFilter,
     sortCol: currentSortColumn,
     sortDir: currentSortDirection,
-    hideTimeouts: currentHideTimeouts,
     hideFakes: currentHideFakes,
     hideLocked: currentHideLocked,
   });
@@ -301,7 +291,6 @@ window.toggleFavFilter = toggleFavFilter;
 window.toggleHideEmpty = toggleHideEmpty;
 window.toggleHideFull = toggleHideFull;
 window.toggleHistoryFilter = toggleHistoryFilter;
-window.toggleHideTimeouts = toggleHideTimeouts;
 window.toggleHideFakes = toggleHideFakes;
 window.toggleHideLocked = toggleHideLocked;
 window.handleSort = handleSort;

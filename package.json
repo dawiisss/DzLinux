@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",

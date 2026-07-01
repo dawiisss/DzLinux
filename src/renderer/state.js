@@ -27,7 +27,6 @@ export const state = {
     hideEmpty: false,
     hideFull: false,
     historyOnly: false,
-    hideTimeouts: true,
     hideFakes: true,
     hideLocked: false,
   },

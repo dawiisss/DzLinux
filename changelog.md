@@ -4,14 +4,28 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ## [Unreleased]
 
+## [1.3.4] - 2026-07-01
+
+### Changed
+
+- **Dynamic Server Name Updating**: Server names are now retrieved and updated dynamically in real-time when the client pings/queries each server using GameDig, rather than relying on the static cached/hosted JSON server list names.
+- **Offline Server Filtering**: Unconditionally filter out servers that fail to query (offline/timed-out servers) from the main server browser list, ensuring only active, reachable servers are displayed.
+- **Verbose Log Cleanup**: Disabled verbose eviction logging from `queryPortCache` when stale ports fail to respond.
+
+### Removed
+
+- **Redundant Timeout Filter**: Removed the now-redundant `HIDE TIMEOUTS` button from the HTML, as well as its associated state flags, UI behavior handlers, and window bindings.
+
 ## [1.3.3] - 2026-06-29
 
 ### Fixed
+
 - **Fedora/GNOME Start Menu Icon**: Fixed an issue where the launcher icon remained blank on Fedora and other GTK/GNOME desktop environments after installation/upgrade. Aligned the packaging desktop name configuration to lowercase `dzlinux` and added a `gtk-update-icon-cache` cache flush trigger to `install.sh`.
 
 ## [1.3.2] - 2026-06-29
 
 ### Fixed
+
 - **System Package Update Prompts**: Fixed a bug where system-managed packages (Flatpaks, .deb, and .rpm installs under /usr or /opt) would unconditionally trigger false update prompts on startup. The client now verifies version metadata against GitHub releases before warning that an update is available.
 - **Desktop Launcher and Menu Icon**: Fixed the app launcher icon not showing up in standard Linux desktop environments (like Ubuntu/GNOME applications menu). Generated a complete set of standard-sized icons under `build/icons/` and aligned the desktop launcher name (`dzlinux.desktop`), `StartupWMClass` (`DzLinux`), and the runtime Electron desktop identifier (`dzlinux`).
 

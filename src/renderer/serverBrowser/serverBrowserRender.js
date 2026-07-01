@@ -24,7 +24,7 @@ export async function refreshExpandedServerMods() {
 
 export function updateStatsBar(filtered) {
   const pingedServers = state.allServers.filter(
-    (s) => s.realPing !== undefined
+    (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
   );
   const totalPlayers = pingedServers.reduce(
     (sum, s) => sum + (s.players || 0),
@@ -121,7 +121,9 @@ export function updateStatsInline() {
 }
 
 export function updateStatsInlineSync() {
-  const allPinged = state.allServers.filter((s) => s.realPing !== undefined);
+  const allPinged = state.allServers.filter(
+    (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
+  );
   const filteredCount = allPinged.filter(serverPassesFilters).length;
   document.getElementById("statTotalServers").textContent = allPinged.length;
   document.getElementById("statTotalPlayers").textContent = allPinged.reduce(
@@ -153,12 +155,15 @@ export function insertServerRow(server) {
   const tr = buildServerRow(server);
   tbody.appendChild(tr);
 
-  const totalPinged = state.totalPingedCount;
+  const allPinged = state.allServers.filter(
+    (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
+  );
+  const filteredCount = allPinged.filter(serverPassesFilters).length;
   const startIdx = (state.pagination.page - 1) * state.pagination.size;
-  const endIdx = Math.min(startIdx + visibleRows + 1, totalPinged);
-  const totalPages = Math.ceil(totalPinged / state.pagination.size) || 1;
+  const endIdx = Math.min(startIdx + visibleRows + 1, filteredCount);
+  const totalPages = Math.ceil(filteredCount / state.pagination.size) || 1;
   document.getElementById("paginationInfo").textContent =
-    `SHOWING ${totalPinged ? startIdx + 1 : 0} - ${endIdx} OF ${totalPinged} SERVERS (PAGE ${state.pagination.page}/${totalPages})`;
+    `SHOWING ${filteredCount ? startIdx + 1 : 0} - ${endIdx} OF ${filteredCount} SERVERS (PAGE ${state.pagination.page}/${totalPages})`;
   document.getElementById("nextPageBtn").disabled =
     state.pagination.page >= totalPages;
 }
@@ -229,8 +234,25 @@ export async function startBackgroundPinging() {
         if (statusObj.players !== null) server.players = statusObj.players;
         if (statusObj.maxPlayers !== null)
           server.maxPlayers = statusObj.maxPlayers;
-        if (statusObj.name && server.name === "Unknown Server")
+        if (statusObj.name) {
           server.name = statusObj.name;
+          const rowEl = document.getElementById(`row-${server.id}`);
+          if (rowEl) {
+            const nameCell = rowEl.querySelector(".server-name-cell");
+            if (nameCell) {
+              nameCell.textContent = statusObj.name;
+              nameCell.title = statusObj.name;
+            }
+          }
+          const favRowEl = document.getElementById(`fav-row-${server.id}`);
+          if (favRowEl) {
+            const favNameCell = favRowEl.querySelector(".server-name-cell");
+            if (favNameCell) {
+              favNameCell.textContent = statusObj.name;
+              favNameCell.title = statusObj.name;
+            }
+          }
+        }
         server.failedPing = false;
         if (statusObj.mods && statusObj.mods.length > 0)
           server.mods = statusObj.mods;
