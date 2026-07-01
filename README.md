@@ -6,6 +6,7 @@
 DzLinux is a high-performance, native launcher, server browser, and mod manager for playing **DayZ on Linux**. It features dynamic Proton version detection, real-time server querying via A2S, automatic Steam Workshop mod verification, performance tuning (MangoHud, GameMode), and native desktop watchlist notifications.
 
 Play modded and vanilla DayZ on Linux with a zero-setup, optimized launcher.
+<img width="1396" height="799" alt="v134" src="https://github.com/user-attachments/assets/5a946260-3c69-4f97-9aa3-d9ab8c06c775" />
 
 ---
 
