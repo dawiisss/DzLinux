@@ -18,6 +18,8 @@ Run this command in your terminal to automatically detect your system and instal
 curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | bash
 ```
 
+This command can also be used to update the version if you are using .deb / .rpm
+
 ---
 
 ## Table of Contents
@@ -52,14 +54,18 @@ curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | b
 - Native **MangoHud** integration for real-time FPS and hardware monitoring.
 - **Feral GameMode** and custom allocator support to maximize performance and prevent micro-stutters.
 
-### Telemetry and Crash Diagnostics
-- View launch logs, telemetry charts, and session summaries.
-- Analyzes crash logs automatically and suggests actionable fixes.
-
+### Premium Customization and Layout Modes
+- **Layout Selection**: Switch instantly between the traditional **Classic Navigation** and a sleek **Modern Sidebar Layout** with collapsible, pinnable navigation.
+- **HUD Color Themes**: Includes 8+ curated color themes (including high-contrast dark profiles like *Tactical Dark*, *Vampire*, *Toxic*, *Cyberpunk*, *Forest Moss*, and clean light-mode themes like *Frostbite* and *Solar Sand*).
+  
 ### Custom Server Watchlist
 - Track specific servers for player count thresholds and slot availability.
 - Triggers native desktop notifications when your target rules are matched.
 
+### Telemetry and Crash Diagnostics
+- View launch logs, telemetry charts, and session summaries.
+- Analyzes crash logs automatically and suggests actionable fixes.
+  
 ---
 
 ## Installation Options
