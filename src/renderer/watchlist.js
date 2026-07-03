@@ -306,7 +306,7 @@ export async function renderWatchlist() {
         watchlist.splice(index, 1);
         await window.api.watchlist.save(watchlist);
         renderWatchlist();
-        showToast("REMOVED FROM WATCHLIST", "var(--accent-red)", `<app-icon name="trash" stroke-width="2.2" style="width: 1.1rem; height: 1.1rem; color: var(--accent-red);"></app-icon>`);
+        showToast("Removed from watchlist", "var(--accent-red)", `<app-icon name="trash" stroke-width="2.2" style="width: 1.1rem; height: 1.1rem; color: var(--accent-red);"></app-icon>`);
       });
       tdAction.appendChild(delBtn);
 

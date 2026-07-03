@@ -9,7 +9,7 @@ export async function initSettings() {
   launchParamsInput.value = settings.launchParams || "";
   document.getElementById("modDirectory").value = settings.modDirectory || "";
   document.getElementById("autoRefreshEnabled").value =
-    settings.autoRefreshEnabled !== false ? "true" : "false";
+    settings.autoRefreshEnabled ? "true" : "false";
   document.getElementById("autoRefreshTime").value =
     settings.autoRefreshTime || 180;
   document.getElementById("watchlistRefreshEnabled").value =
@@ -21,11 +21,13 @@ export async function initSettings() {
   document.getElementById("queryConcurrency").value =
     settings.queryConcurrency || 500;
   document.getElementById("serverListMode").value =
-    settings.serverListMode || "standard";
-  applyServerListMode(settings.serverListMode || "standard");
+    settings.serverListMode || "compact";
+  applyServerListMode(settings.serverListMode || "compact");
 
   document.getElementById("themeSelect").value =
     settings.theme || "tactical-dark";
+  document.getElementById("layoutModeSelect").value =
+    settings.layoutMode || "modern";
   document.getElementById("audioFeedback").value =
     settings.audioFeedback !== false ? "true" : "false";
   document.getElementById("showWatchlistTab").checked =
@@ -133,6 +135,7 @@ export async function initSettings() {
       autoRefreshTime:
         parseInt(document.getElementById("autoRefreshTime").value) || 180,
       theme: document.getElementById("themeSelect").value,
+      layoutMode: document.getElementById("layoutModeSelect").value,
       audioFeedback: document.getElementById("audioFeedback").value === "true",
       showWatchlistTab: document.getElementById("showWatchlistTab").checked,
       showDiagnosticsTab: document.getElementById("showDiagnosticsTab").checked,
@@ -171,15 +174,18 @@ export async function initSettings() {
       const { applyTabVisibility } = await import("./ui-behavior.js");
       applyTabVisibility(newSettings);
 
+      const { applyLayoutMode } = await import("./theme.js");
+      applyLayoutMode(newSettings.layoutMode);
+
       // Restart countdown and watchlist polling with new settings
       const { startCountdown } = await import("./serverBrowser.js");
       const { startWatchlistPoll } = await import("./watchlist.js");
       startCountdown();
       startWatchlistPoll();
       if (!silent)
-        showToast("SETTINGS COMMITTED TO LOCAL STORAGE", "#ff9f1c", "💾");
+        showToast("Settings committed to local storage", "#ff9f1c", "💾");
     } else {
-      if (!silent) showToast("ERROR COMMITTING SETTINGS", "#ff5a5f", "❌");
+      if (!silent) showToast("Error committing settings", "#ff5a5f", "❌");
     }
   };
 
@@ -196,7 +202,7 @@ export async function initSettings() {
       const selectedPath = document.getElementById("protonPath").value;
       if (!selectedPath || selectedPath === "default") {
         showToast(
-          "USING STEAM DEFAULT APPLAUNCH — NO CUSTOM PROTON PATH TO TEST",
+          "Using Steam default applaunch — no custom Proton path to test",
           "#ff9f1c",
           "ℹ️",
         );
@@ -205,13 +211,13 @@ export async function initSettings() {
       const exists = await window.api.ui.checkPathExists(selectedPath);
       if (exists) {
         showToast(
-          "PROTON PATH VERIFIED — COMPATIBILITY LAYER FOUND",
+          "Proton path verified — compatibility layer found",
           "#2ec4b6",
           "✓",
         );
       } else {
         showToast(
-          "PROTON PATH NOT FOUND! CHECK YOUR COMPATIBILITYTOOLS.D DIRECTORY.",
+          "Proton path not found. Check your compatibilitytools.d directory.",
           "#ff5a5f",
           "⚠️",
         );
@@ -233,6 +239,10 @@ export async function initSettings() {
         favorites: [],
         history: [],
         theme: "tactical-dark",
+        layoutMode: "modern",
+        sidebarPinned: false,
+        serverListMode: "compact",
+        autoRefreshEnabled: false,
         protonPath: "default",
         queryConcurrency: 500,
         audioFeedback: true,
@@ -256,7 +266,7 @@ export async function initSettings() {
         state.settings = defaultSettings;
         location.reload();
       } else {
-        showToast("ERROR RESETTING SETTINGS", "#ff5a5f", "❌");
+        showToast("Error resetting settings", "#ff5a5f", "❌");
       }
     });
 
@@ -306,7 +316,7 @@ export async function initSettings() {
   saveLoadoutBtn.addEventListener("click", async () => {
     const name = loadoutNameInput.value.trim();
     if (!name) {
-      showToast("PLEASE ENTER A LOADOUT NAME", "#ff5a5f", "⚠️");
+      showToast("Please enter a loadout name", "#ff5a5f", "⚠️");
       return;
     }
 
@@ -321,7 +331,7 @@ export async function initSettings() {
     loadoutSelect.value = name;
     deleteLoadoutBtn.style.display = "inline-block";
 
-    showToast(`LOADOUT "${name}" SAVED`, "#2ec4b6", "💾");
+    showToast(`Loadout "${name}" saved`, "#2ec4b6", "💾");
   });
 
   deleteLoadoutBtn.addEventListener("click", async () => {
@@ -337,7 +347,7 @@ export async function initSettings() {
       const checkboxes = document.querySelectorAll(".mod-select-checkbox");
       checkboxes.forEach((cb) => (cb.checked = false));
 
-      showToast(`LOADOUT "${name}" DELETED`, "#ff5a5f", "🗑️");
+      showToast(`Loadout "${name}" deleted`, "#ff5a5f", "🗑️");
     }
   });
 
@@ -350,7 +360,7 @@ export async function initSettings() {
       })
       .filter(Boolean);
 
-    showToast("INITIALIZING DIRECT LAUNCH FROM LOADOUT...", "#2ec4b6", "🚀");
+    showToast("Initializing direct launch from loadout...", "#2ec4b6", "🚀");
     window.api.game.launch("", "", selectedMods);
   });
 }

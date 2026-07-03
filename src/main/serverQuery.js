@@ -1,7 +1,7 @@
 const { GameDig } = require("gamedig");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+const fs = require("node:fs");
+const path = require("node:path");
+const os = require("node:os");
 
 let userDataPath;
 if (process.versions && process.versions.electron) {

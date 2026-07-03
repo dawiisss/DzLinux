@@ -199,5 +199,34 @@ describe("IPC handler registration", () => {
     for (const handler of expectedHandlers) {
       expect(handleCalls).toContain(handler);
     }
+
+    // Test launch-game validation
+    const launchGameHandler = ipcMain.handle.mock.calls.find(
+      (c) => c[0] === "launch-game",
+    )[1];
+
+    // 1. Should accept valid args with connection details and numeric mod IDs
+    const mockGame = require("../../src/main/game");
+    mockGame.launchDayZ.mockResolvedValueOnce(true);
+    await expect(
+      launchGameHandler(null, "1.1.1.1", 2302, [{ id: "12345" }]),
+    ).resolves.toBe(true);
+    expect(mockGame.launchDayZ).toHaveBeenCalledWith("1.1.1.1", 2302, [{ id: "12345" }]);
+
+    // 2. Should accept empty connection details for Quick Launch
+    mockGame.launchDayZ.mockResolvedValueOnce(true);
+    await expect(
+      launchGameHandler(null, "", "", [{ id: 12345 }, "67890"]),
+    ).resolves.toBe(true);
+
+    // 3. Should reject invalid connection details when provided
+    await expect(
+      launchGameHandler(null, "invalid_ip@host", 2302, []),
+    ).rejects.toThrow("Invalid arguments");
+
+    // 4. Should reject invalid mod IDs
+    await expect(
+      launchGameHandler(null, "", "", [{ id: "invalid_id" }]),
+    ).rejects.toThrow("Invalid mod IDs");
   });
 });

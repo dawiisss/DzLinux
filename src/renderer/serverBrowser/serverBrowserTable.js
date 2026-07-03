@@ -215,7 +215,7 @@ export async function connectToServer(ip, port) {
     requiredMods = serverObj.mods;
   } else {
     console.log("Querying server for detailed rules via GameDig...");
-    showToast("QUERYING SERVER FOR DETAILED RULES...", "#ff9f1c", "🛰️");
+    showToast("Querying server for detailed rules...", "#ff9f1c", "🛰️");
     requiredMods = await window.api.servers.queryMods(
       ip,
       port,
@@ -227,10 +227,10 @@ export async function connectToServer(ip, port) {
     await window.api.game.checkRequired(requiredMods);
 
   if (hasAllMods) {
-    showToast("ALL MODS SYNCED! LAUNCHING DayZ CLIENT...", "#2ec4b6", "🚀");
+    showToast("All mods synced! Launching DayZ client...", "#2ec4b6", "🚀");
     if (state.settings.enableGameMode) {
       showToast(
-        "GameMode ACTIVE — SYSTEM PRIORITIZATION ENGAGED",
+        "GameMode active — system prioritization engaged",
         "#48cae4",
         "⚡"
       );

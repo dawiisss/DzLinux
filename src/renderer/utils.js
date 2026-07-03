@@ -125,3 +125,37 @@ export function renderPingBadge(pingValue) {
   pingSpan.textContent = `${pingValue}ms`;
   return pingSpan;
 }
+
+export function applyPingResult(server, statusObj) {
+  if (statusObj !== null && statusObj !== undefined) {
+    server.realPing = statusObj.ping;
+    if (statusObj.status) server.status = statusObj.status;
+    if (statusObj.players !== null && statusObj.players !== undefined) {
+      server.players = statusObj.players;
+    }
+    if (statusObj.maxPlayers !== null && statusObj.maxPlayers !== undefined) {
+      server.maxPlayers = statusObj.maxPlayers;
+    }
+    if (statusObj.name) {
+      if (server.name === "Unknown Server" || !server.id) {
+        server.name = statusObj.name;
+      }
+    }
+    server.failedPing = false;
+    if (statusObj.mods && statusObj.mods.length > 0) {
+      server.mods = statusObj.mods;
+    }
+    if (statusObj.time) server.time = statusObj.time;
+    if (statusObj.map) server.map = statusObj.map;
+    server.thirdPerson = statusObj.thirdPerson;
+    server.modded = statusObj.modded;
+    if (statusObj.password !== undefined) {
+      server.password = statusObj.password;
+    }
+    return true;
+  } else {
+    server.realPing = server.ping || 120;
+    server.failedPing = true;
+    return false;
+  }
+}

@@ -4,6 +4,57 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-07-02
+
+### Added
+
+- **Modern Left-Hand Sidebar Layout**: Designed and implemented a left navigation sidebar containing tab items, Steam profile status card, and a pin toggle, switchable from settings (this is the default for new installs from now on).
+- **Titlebar Brand Icon**: Added the application brand icon next to the titlebar text for enhanced styling.
+- **New HUD Color Themes**: Introduced five new rich color schemes: Frostbite (Light Ice Blue), Solar Sand (Light Warm Gold), Cyberpunk (Neon Pink/Cyan), Forest Moss (Deep Green), and Classic (Tactical Red accent on standard dark background).
+- **Background Color Shifting**: Changed background styling in CSS to support dynamic color shifting, background-glow transitions, and theme-compliant light/dark mode text input variables. Upgraded all original dark themes (Toxic, Amber, Deep Sea, Vampire) to feature subtle, color-tinted background shifts.
+- **Pre-commit Hook Automation**: Configured Husky and lint-staged to run automatic linter checks and test validation before every commit.
+- **Comprehensive Test Coverage**: Added robust unit and integration tests across the codebase, targeting exposed Electron preloads (`preload.test.js`), Steam path discovery (`steamPaths.test.js`), and worker message channel lifecycle management (`steamworksManager.test.js`), achieving over 60% test coverage.
+- **GitHub Actions CI Workflow**: Set up a consolidated workflow to automatically validate dependencies, lint syntax, and run tests on every push/pull request.
+- **IPC Input Validation**: Implemented strict validation checks for server IP addresses and port numbers on all Electron IPC handler endpoints.
+- **Path Traversal Protection**: Restructured path-checking operations to restrict files to allowed Steam and system directories.
+- **About Modal GitHub Link**: Added a link to the project's main GitHub repository page within the About modal.
+- **Persistent File Logging**: Console output (log, warn, error) is now written to a persistent timestamped log file under the application data directory (`logs/dzlinux.log`). Log entries older than 7 days are automatically pruned on startup (This should make it much easier for users to raise issues).
+- **View Application Logs Link**: Added a "View application logs" link in the About modal that opens the log file location in the system file manager.
+
+### Changed
+
+- **Titlebar Title Simplification**: Renamed the titlebar heading from "DzLinux SERVER BROWSER" to a clean "DzLinux".
+- **Redundant Headers Removal**: Removed duplicate brand names and version badges from both classic top-header and modern sidebar menus.
+- **Classic Navigation Layout Expansion**: Redesigned the top navigation header in classic view to expand tabs horizontally across the header using a 1fr auto grid, utilizing the reclaimed brand logo space.
+- **Settings Panel Reorganization**: Repositioned Display Mode below Layout Mode in the Appearance tab, and moved Background Query Concurrency into the Network Polling card.
+- **Factory Default settings adjustments**: Configured Compact display mode and disabled Auto-refresh by default on fresh installations. Added automated Steam Workshop mod directory path auto-discovery scanning whenever settings are reset to factory defaults.
+- **Top Header Gradient & Shadow Removal**: Removed the hardcoded dark gradient and heavy box-shadow from the top menu bar, replacing it with a theme-compliant panel background variable.
+- **Unified Theme Compliance**: Refactored the modern layout sidebar (making the expanded/collapsed pinned state persistent across application sessions), table pagination bar (adding 20px of padding to the left/right to keep page count text off the border), diagnostics console boxes, toast notifications (making text colors dynamic and removing the heavy left green border for flat borders), workshop download status logs, footer status bar, filter dropdown popups (e.g. Map, Slots, Ping, Sort), Local Workshop Storage header, and watchlist threshold slider track to adapt color palettes, text contrast, and background opacity dynamically based on the active HUD theme.
+- **Expanded Row Background Cleaning**: Replaced the hardcoded grey background overlay from the expanded server details rows with transparent backgrounds to match selected HUD theme color schemes seamlessly.
+- **Background Shadow Removal**: Removed hardcoded inset and dark background box-shadows on `.table-card`, `.settings-card`, diagnostics crash cards, and the modern sidebar during hover/expand actions, replacing them with a flat design style or soft, theme-compliant 5% opacity card shadows to clean up the user interface under light modes.
+- **CSP Hardening**: Hardened the renderer Content Security Policy by completely removing `'unsafe-inline'` from the `script-src` directive.
+- **Dynamic Event Listeners**: Refactored all inline HTML event handlers (`onclick` and `onchange`) into dynamic listeners inside the UI controller script, preventing global window namespace pollution.
+- **serverRow Monolith Decomposition**: Refactored the long `buildServerRow` monolith into small, maintainable helper functions (`createRowSkeleton`, `buildStarCell`, `buildPingCell`, and `buildActionCell`).
+- **Keyboard and Screen Reader Accessibility**: Enhanced user interface accessibility by adding tab indexing, button roles, and Enter/Space event handlers to copy IP tags, and dynamically updating standard `aria-pressed` attributes on toggle inputs.
+- **In-Memory Settings and Watchlist Caching**: Improved settings and watchlist lookup performance by caching records in memory and converting all synchronous file writes to non-blocking asynchronous operations.
+- **Standardized Require Scheme**: Prefixed all native Node.js requires with the standard `node:` scheme across all backend source files.
+- **Casing Changes**: Rewrote all-uppercase copy in toast notifications, button states, and context menu actions to use standard title/sentence casing.
+- **Ping Parsing De-duplication**: Extracted duplicate GameDig ping mapping routines into a centralized `applyPingResult` helper.
+- **SVG Icon Standardization**: Replaced text/emoji-based pseudo-elements and button labels (`📋`, `🌐`, `⬇️`) with native SVG icons from the central icon registry component.
+- **Modal Header SVG Icons**: Added contextual SVG icons to all modal headers (Server Mods Checklist, Direct Join, Update Available, Confirm Action) using the centralized `<app-icon>` component.
+- **Mod Status Label Simplification**: Shortened the local mod installed status label in the server row mod list from `✓ READY` to a clean checkmark (`✓`).
+- **Filter Bar Highlight Removal**: Removed the left-side accent glow effect from the server browser filter options bar for a cleaner appearance.
+- **Diagnostics Section Glow Removal**: Removed the left-side accent glow effect from the diagnostics panel for a cleaner appearance.
+
+### Fixed
+
+- **Modern Sidebar z-index Overlay**: Increased sidebar z-index to overlay the bottom status bar and footer correctly when expanded.
+- **Server Merge Index Corruption**: Resolved index conflicts when merging duplicate custom and hosted servers during parsing.
+- **Steamworks Launch Lock De-duplication**: Consolidated duplicate launch timer delay and unlock hooks inside a reusable `lockAndDelayForLaunch` routine.
+- **Server Portal Thread Safety**: Secured server repository writes against concurrent registration conflicts using a promise-based mutex queue.
+- **Steam Workshop Mod Page Navigation**: Fixed the mod list interaction so clicking a numeric Workshop ID directly launches the Steam Community Workshop page in the client.
+- **Disk Capacity Telemetry**: Fixed the mod manager storage allocation graph displaying "Unknown disk capacity" when the workshop mod path was not yet resolved.
+
 ## [1.3.4] - 2026-07-01
 
 ### Changed

@@ -1,6 +1,6 @@
 import { state, addFavorite, removeFavorite } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
-import { countryToFlag, MAP_NAMES, renderPingBadge } from "./utils.js";
+import { countryToFlag, MAP_NAMES, renderPingBadge, applyPingResult } from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
 
 const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
@@ -48,7 +48,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
     refreshModsBtn.disabled = true;
     refreshModsBtn.innerHTML = `
       <app-icon name="loader" style="width: 0.8rem; height: 0.8rem;"></app-icon>
-      FETCHING...
+      Fetching...
     `;
     try {
       const freshMods = await window.api.servers.refreshModCache(
@@ -61,7 +61,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         server.hasQueriedMods = true;
         server.isQueryingMods = false;
         showToast(
-          `MODS REFRESHED: ${freshMods.length} MODS FOUND`,
+          `Mods refreshed: ${freshMods.length} mods found`,
           "#2ec4b6",
           `<app-icon name="cube" style="width: 1.1rem; height: 1.1rem; color: #2ec4b6;"></app-icon>`,
         );
@@ -69,15 +69,15 @@ export function buildDetailRow(server, isFavoritesView = false) {
         server.mods = [];
         server.hasQueriedMods = true;
         server.isQueryingMods = false;
-        showToast("NO MODS FOUND FOR THIS SERVER", "#ff9f1c", "⚠️");
+        showToast("No mods found for this server", "#ff9f1c", "⚠️");
       }
     } catch {
       refreshModsBtn.disabled = false;
       refreshModsBtn.innerHTML = `
         <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
-        REFRESH
+        Refresh
       `;
-      showToast("FAILED TO REFRESH MODS", "#ff5a5f", "⚠️");
+      showToast("Failed to refresh mods", "#ff5a5f", "⚠️");
       return;
     }
     if (state.expandedServerId === server.id) {
@@ -172,12 +172,12 @@ export function buildDetailRow(server, isFavoritesView = false) {
         statusLabel.style.color = "var(--accent)";
       } else if (isInstalledLocal) {
         statusLabel.className = "mod-pill-status installed";
-        statusLabel.textContent = "✓ READY";
+        statusLabel.textContent = "✓";
       } else {
         statusLabel.className = "mod-pill-status missing";
         statusLabel.textContent = "NOT SUBSCRIBED";
         const downloadBtn = document.createElement("button");
-        downloadBtn.innerHTML = "⬇️";
+        downloadBtn.innerHTML = '<app-icon name="download"></app-icon>';
         downloadBtn.title = "Sync Mod natively via Steam Client";
         downloadBtn.setAttribute("aria-label", "Subscribe and Download");
         downloadBtn.addEventListener("click", (e) => {
@@ -198,18 +198,10 @@ export function buildDetailRow(server, isFavoritesView = false) {
   return trDetail;
 }
 
-export function buildServerRow(server, isFavoritesView = false) {
-  const serverKey = `${server.ip}:${server.port}`;
-  const isFav = state.favoritesSet.has(serverKey);
+function createRowSkeleton(server, isFavoritesView, canExpand) {
   const isExpanded = state.expandedServerId === server.id;
-  const metaCellId = isFavoritesView
-    ? `fav-meta-cell-${server.id}`
-    : `meta-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
-
   const tr = document.createElement("tr");
   tr.id = isFavoritesView ? `fav-row-${server.id}` : `row-${server.id}`;
-  const hasMods = server.mods && server.mods.length > 0;
-  const canExpand = hasMods || server.modded;
   tr.className = `server-row ${isExpanded ? "expanded" : ""} ${canExpand ? "has-mods" : "no-mods"}`;
 
   tr.addEventListener("mouseenter", () => {
@@ -259,7 +251,10 @@ export function buildServerRow(server, isFavoritesView = false) {
     }
   });
 
-  // Star
+  return tr;
+}
+
+function buildStarCell(server, serverKey, isFav) {
   const tdStar = document.createElement("td");
   tdStar.style.textAlign = "center";
   const starBtn = document.createElement("button");
@@ -279,7 +274,7 @@ export function buildServerRow(server, isFavoritesView = false) {
       starBtn.className = "star-btn";
       starBtn.title = "Add to Favorites";
       starBtn.setAttribute("aria-label", "Add to Favorites");
-      showToast("REMOVED FROM FAVORITES", "#ff5a5f", STAR_UNFAV_SVG);
+      showToast("Removed from favorites", "#ff5a5f", STAR_UNFAV_SVG);
     } else {
       await addFavorite(
         server.ip,
@@ -291,7 +286,7 @@ export function buildServerRow(server, isFavoritesView = false) {
       starBtn.className = "star-btn active";
       starBtn.title = "Remove from Favorites";
       starBtn.setAttribute("aria-label", "Remove from Favorites");
-      showToast("ADDED TO FAVORITES", "#ffd700", STAR_FAV_SVG);
+      showToast("Added to favorites", "#ffd700", STAR_FAV_SVG);
     }
     renderServers();
     const favTab = document.getElementById("favorites");
@@ -300,43 +295,11 @@ export function buildServerRow(server, isFavoritesView = false) {
     }
   });
   tdStar.appendChild(starBtn);
+  return tdStar;
+}
 
-  // Name
-  const tdName = document.createElement("td");
-  tdName.className = "server-name-cell";
-  tdName.textContent = server.name;
-  tdName.title = server.name;
-  if (isFavoritesView && !state.allServers.find(s => s.ip === server.ip && s.port.toString() === server.port.toString())) {
-    tdName.style.color = "var(--text-dim)";
-  }
-
-  // Players
-  const tdPlayers = document.createElement("td");
-  tdPlayers.id = isFavoritesView ? `fav-player-cell-${server.id}` : `player-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
-  const playerSpan = document.createElement("span");
-  const pct = server.maxPlayers ? server.players / server.maxPlayers : 0;
-  let badgeClass = "low";
-  if (
-    (pct >= 0.95 || server.players >= server.maxPlayers) &&
-    server.maxPlayers > 0
-  ) {
-    badgeClass = "high";
-  } else if (pct >= 0.7) {
-    badgeClass = "medium";
-  }
-  playerSpan.className = `player-badge ${badgeClass}`;
-  playerSpan.textContent = `${server.players}/${server.maxPlayers}`;
-  tdPlayers.appendChild(playerSpan);
-
-  // Mods
-  const tdMods = document.createElement("td");
-  tdMods.style.textAlign = "center";
-  tdMods.style.fontFamily = "'Share Tech Mono', monospace";
-  tdMods.textContent = server.mods ? server.mods.length : "0";
-
-  // Ping
+function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
   const tdPing = document.createElement("td");
-  const pingCellId = isFavoritesView ? `fav-ping-cell-${server.id}` : `ping-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
   tdPing.id = pingCellId;
 
   if (server.realPing !== undefined && server.realPing !== null) {
@@ -369,15 +332,9 @@ export function buildServerRow(server, isFavoritesView = false) {
         .ping(server.ip, server.port, server.queryPort)
         .then(async (statusObj) => {
           server.isPinging = false;
+          applyPingResult(server, statusObj);
           if (statusObj !== null) {
-            server.realPing = statusObj.ping;
-            if (statusObj.status) server.status = statusObj.status;
-            if (statusObj.players !== null)
-              server.players = statusObj.players;
-            if (statusObj.maxPlayers !== null)
-              server.maxPlayers = statusObj.maxPlayers;
             if (statusObj.name) {
-              server.name = statusObj.name;
               const favRowEl = document.getElementById(`fav-row-${server.id}`);
               if (favRowEl) {
                 const favNameCell = favRowEl.querySelector(".server-name-cell");
@@ -395,19 +352,6 @@ export function buildServerRow(server, isFavoritesView = false) {
                 }
               }
             }
-            if (statusObj.mods && statusObj.mods.length > 0)
-              server.mods = statusObj.mods;
-            if (statusObj.time) server.time = statusObj.time;
-            if (statusObj.map) server.map = statusObj.map;
-            server.thirdPerson = statusObj.thirdPerson;
-            server.modded = statusObj.modded;
-            if (statusObj.password !== undefined) {
-              server.password = statusObj.password;
-            }
-            server.failedPing = false;
-          } else {
-            server.realPing = server.ping || 120;
-            server.failedPing = true;
           }
           if (isFirstPing) {
             state.totalPingedCount = (state.totalPingedCount || 0) + 1;
@@ -448,22 +392,10 @@ export function buildServerRow(server, isFavoritesView = false) {
         });
     }
   }
+  return tdPing;
+}
 
-  // Metadata
-  const tdMetadata = document.createElement("td");
-  tdMetadata.id = metaCellId;
-  tdMetadata.appendChild(renderMetadataBadges(server));
-
-  // IP
-  const tdIp = document.createElement("td");
-  const ipSpan = document.createElement("span");
-  ipSpan.className = "ip-cell";
-  ipSpan.title = "Click to copy address";
-  ipSpan.textContent = serverKey;
-  ipSpan.addEventListener("click", () => copyToClipboard(serverKey));
-  tdIp.appendChild(ipSpan);
-
-  // Actions
+function buildActionCell(server, pingCellId, metaCellId) {
   const tdAction = document.createElement("td");
   tdAction.style.textAlign = "right";
   tdAction.style.whiteSpace = "nowrap";
@@ -487,31 +419,9 @@ export function buildServerRow(server, isFavoritesView = false) {
         server.port,
         server.queryPort,
       );
-      if (statusObj !== null) {
-        server.realPing = statusObj.ping;
-        if (statusObj.status) server.status = statusObj.status;
-        if (statusObj.players !== null) server.players = statusObj.players;
-        if (statusObj.maxPlayers !== null)
-          server.maxPlayers = statusObj.maxPlayers;
-        if (statusObj.name && server.name === "Unknown Server")
-          server.name = statusObj.name;
-        if (statusObj.mods && statusObj.mods.length > 0)
-          server.mods = statusObj.mods;
-        if (statusObj.time) server.time = statusObj.time;
-        if (statusObj.map) server.map = statusObj.map;
-        server.thirdPerson = statusObj.thirdPerson;
-        server.modded = statusObj.modded;
-        if (statusObj.password !== undefined) {
-          server.password = statusObj.password;
-        }
-        server.failedPing = false;
-      } else {
-        server.realPing = -1;
-        server.failedPing = true;
-      }
+      applyPingResult(server, statusObj);
     } catch {
-      server.realPing = -1;
-      server.failedPing = true;
+      applyPingResult(server, null);
     }
     if (isFirstPing) {
       state.totalPingedCount = (state.totalPingedCount || 0) + 1;
@@ -539,6 +449,7 @@ export function buildServerRow(server, isFavoritesView = false) {
     }
   });
   tdAction.appendChild(pingBtn);
+
   const btn = document.createElement("button");
   btn.className = "btn-connect";
   btn.textContent = "CONNECT";
@@ -547,6 +458,92 @@ export function buildServerRow(server, isFavoritesView = false) {
     connectToServer(server.ip, server.port);
   });
   tdAction.appendChild(btn);
+
+  return tdAction;
+}
+
+export function buildServerRow(server, isFavoritesView = false) {
+  const serverKey = `${server.ip}:${server.port}`;
+  const isFav = state.favoritesSet.has(serverKey);
+  const metaCellId = isFavoritesView
+    ? `fav-meta-cell-${server.id}`
+    : `meta-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  const pingCellId = isFavoritesView
+    ? `fav-ping-cell-${server.id}`
+    : `ping-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
+
+  const hasMods = server.mods && server.mods.length > 0;
+  const canExpand = hasMods || server.modded;
+
+  const tr = createRowSkeleton(server, isFavoritesView, canExpand);
+
+  // Star
+  const tdStar = buildStarCell(server, serverKey, isFav);
+
+  // Name
+  const tdName = document.createElement("td");
+  tdName.className = "server-name-cell";
+  tdName.textContent = server.name;
+  tdName.title = server.name;
+  if (isFavoritesView && !state.allServers.find(s => s.ip === server.ip && s.port.toString() === server.port.toString())) {
+    tdName.style.color = "var(--text-dim)";
+  }
+
+  // Players
+  const tdPlayers = document.createElement("td");
+  tdPlayers.id = isFavoritesView ? `fav-player-cell-${server.id}` : `player-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  const playerSpan = document.createElement("span");
+  const pct = server.maxPlayers ? server.players / server.maxPlayers : 0;
+  let badgeClass = "low";
+  if (
+    (pct >= 0.95 || server.players >= server.maxPlayers) &&
+    server.maxPlayers > 0
+  ) {
+    badgeClass = "high";
+  } else if (pct >= 0.7) {
+    badgeClass = "medium";
+  }
+  playerSpan.className = `player-badge ${badgeClass}`;
+  playerSpan.textContent = `${server.players}/${server.maxPlayers}`;
+  tdPlayers.appendChild(playerSpan);
+
+  // Mods
+  const tdMods = document.createElement("td");
+  tdMods.style.textAlign = "center";
+  tdMods.style.fontFamily = "'Share Tech Mono', monospace";
+  tdMods.textContent = server.mods ? server.mods.length : "0";
+
+  // Ping
+  const tdPing = buildPingCell(server, isFavoritesView, pingCellId, metaCellId);
+
+  // Metadata
+  const tdMetadata = document.createElement("td");
+  tdMetadata.id = metaCellId;
+  tdMetadata.appendChild(renderMetadataBadges(server));
+
+  // IP
+  const tdIp = document.createElement("td");
+  const ipSpan = document.createElement("span");
+  ipSpan.className = "ip-cell";
+  ipSpan.title = "Click to copy address";
+  ipSpan.textContent = serverKey;
+  const copyIcon = document.createElement("app-icon");
+  copyIcon.setAttribute("name", "copy");
+  ipSpan.appendChild(copyIcon);
+  ipSpan.setAttribute("tabindex", "0");
+  ipSpan.setAttribute("role", "button");
+  ipSpan.setAttribute("aria-label", "Copy IP Address");
+  ipSpan.addEventListener("click", () => copyToClipboard(serverKey));
+  ipSpan.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      copyToClipboard(serverKey);
+    }
+  });
+  tdIp.appendChild(ipSpan);
+
+  // Actions
+  const tdAction = buildActionCell(server, pingCellId, metaCellId);
 
   tr.appendChild(tdStar);
   tr.appendChild(tdName);

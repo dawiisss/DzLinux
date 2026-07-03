@@ -21,21 +21,110 @@ body.theme-toxic {
   --accent: #b5e853;
   --accent-rgb: 181, 232, 83;
   --border-hover: rgba(181, 232, 83, 0.4);
+  --bg-deep: #060905;
+  --bg-panel: rgba(12, 18, 10, 0.72);
+  --bg-card: rgba(20, 28, 16, 0.65);
+  --radial-start: rgba(181, 232, 83, 0.01);
+  --radial-end: rgba(0, 0, 0, 0.85);
+  --grid-line: rgba(181, 232, 83, 0.01);
 }
 body.theme-amber {
   --accent: #ffb703;
   --accent-rgb: 255, 183, 3;
   --border-hover: rgba(255, 183, 3, 0.4);
+  --bg-deep: #0c0904;
+  --bg-panel: rgba(20, 15, 8, 0.72);
+  --bg-card: rgba(28, 22, 12, 0.65);
+  --radial-start: rgba(255, 183, 3, 0.01);
+  --radial-end: rgba(0, 0, 0, 0.85);
+  --grid-line: rgba(255, 183, 3, 0.01);
 }
 body.theme-deep-sea {
   --accent: #48cae4;
   --accent-rgb: 72, 202, 228;
   --border-hover: rgba(72, 202, 228, 0.4);
+  --bg-deep: #04090f;
+  --bg-panel: rgba(8, 17, 28, 0.72);
+  --bg-card: rgba(14, 25, 38, 0.65);
+  --radial-start: rgba(72, 202, 228, 0.01);
+  --radial-end: rgba(0, 0, 0, 0.85);
+  --grid-line: rgba(72, 202, 228, 0.01);
 }
 body.theme-vampire {
   --accent: #e63946;
   --accent-rgb: 230, 57, 70;
   --border-hover: rgba(230, 57, 70, 0.4);
+  --bg-deep: #0c0405;
+  --bg-panel: rgba(20, 8, 10, 0.72);
+  --bg-card: rgba(28, 12, 14, 0.65);
+  --radial-start: rgba(230, 57, 70, 0.01);
+  --radial-end: rgba(0, 0, 0, 0.85);
+  --grid-line: rgba(230, 57, 70, 0.01);
+}
+body.theme-classic {
+  --accent: #e63946;
+  --accent-rgb: 230, 57, 70;
+  --border-hover: rgba(230, 57, 70, 0.4);
+}
+body.theme-frost-light {
+  --accent: #0077b6;
+  --accent-rgb: 0, 119, 182;
+  --border-hover: rgba(0, 119, 182, 0.4);
+  --bg-deep: #f4f6f8;
+  --bg-panel: rgba(255, 255, 255, 0.82);
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --border: rgba(0, 0, 0, 0.08);
+  --text-main: #1d2026;
+  --text-muted: #535a6b;
+  --text-dim: #8892a6;
+  --radial-start: rgba(255, 255, 255, 0.4);
+  --radial-end: rgba(0, 119, 182, 0.05);
+  --grid-line: rgba(0, 0, 0, 0.03);
+}
+body.theme-solar-light {
+  --accent: #d97706;
+  --accent-rgb: 217, 119, 6;
+  --border-hover: rgba(217, 119, 6, 0.4);
+  --bg-deep: #faf8f5;
+  --bg-panel: rgba(255, 253, 250, 0.85);
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --border: rgba(180, 170, 150, 0.22);
+  --text-main: #2b2724;
+  --text-muted: #736b64;
+  --text-dim: #a69b90;
+  --radial-start: rgba(255, 255, 255, 0.4);
+  --radial-end: rgba(217, 119, 6, 0.04);
+  --grid-line: rgba(0, 0, 0, 0.03);
+}
+body.theme-cyber-neon {
+  --accent: #ff007f;
+  --accent-rgb: 255, 0, 127;
+  --border-hover: rgba(255, 0, 127, 0.5);
+  --bg-deep: #060212;
+  --bg-panel: rgba(20, 10, 35, 0.7);
+  --bg-card: rgba(32, 12, 53, 0.65);
+  --border: rgba(0, 240, 255, 0.15);
+  --text-main: #fdfaff;
+  --text-muted: #c2b1db;
+  --text-dim: #8b75ac;
+  --radial-start: rgba(0, 240, 255, 0.02);
+  --radial-end: rgba(15, 0, 30, 0.9);
+  --grid-line: rgba(0, 240, 255, 0.03);
+}
+body.theme-forest-moss {
+  --accent: #2ec4b6;
+  --accent-rgb: 46, 196, 182;
+  --border-hover: rgba(46, 196, 182, 0.4);
+  --bg-deep: #08100d;
+  --bg-panel: rgba(12, 24, 20, 0.75);
+  --bg-card: rgba(20, 36, 30, 0.65);
+  --border: rgba(46, 196, 182, 0.15);
+  --text-main: #f0fbf8;
+  --text-muted: #8ca69e;
+  --text-dim: #587068;
+  --radial-start: rgba(46, 196, 182, 0.01);
+  --radial-end: rgba(0, 15, 8, 0.85);
+  --grid-line: rgba(46, 196, 182, 0.02);
 }
 
 * {
@@ -50,11 +139,11 @@ body {
   background-image:
     radial-gradient(
       circle at 50% 50%,
-      rgba(0, 0, 0, 0) 0%,
-      rgba(0, 0, 0, 0.6) 100%
+      var(--radial-start, rgba(0, 0, 0, 0)) 0%,
+      var(--radial-end, rgba(0, 0, 0, 0.6)) 100%
     ),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    linear-gradient(var(--grid-line, rgba(255, 255, 255, 0.02)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line, rgba(255, 255, 255, 0.02)) 1px, transparent 1px);
   background-size:
     100% 100%,
     30px 30px,
@@ -82,31 +171,22 @@ body {
   background: rgba(var(--accent-rgb), 0.3);
 }
 
-/* Top HUD Header */
 header {
-  background: linear-gradient(
-    180deg,
-    rgba(17, 19, 23, 0.8) 0%,
-    rgba(17, 19, 23, 0) 100%
-  );
+  background: var(--bg-panel);
   backdrop-filter: var(--glass-blur);
   padding: 12px 40px;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 20px;
   border-bottom: 1px solid var(--border);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
 .logo-container {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  grid-column: 1;
+  display: none !important;
 }
 
 #steamProfile {
@@ -116,7 +196,7 @@ header {
   font-family: "Share Tech Mono", monospace;
   color: var(--accent);
   white-space: nowrap;
-  grid-column: 3;
+  grid-column: 2;
   justify-self: end;
 }
 
@@ -148,12 +228,10 @@ header {
 }
 
 .logo-icon {
-  width: 12px;
-  height: 12px;
-  background-color: var(--accent);
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.8);
-  animation: pulse 2s infinite;
+  width: 32px;
+  height: 32px;
+  background: url("../assets/icon.png") no-repeat center/contain;
+  flex-shrink: 0;
 }
 
 @keyframes pulse {
@@ -196,7 +274,7 @@ header {
   min-width: 0;
   width: 100%;
   gap: 4px;
-  grid-column: 2;
+  grid-column: 1;
   background: rgba(255, 255, 255, 0.02);
   padding: 4px;
   border-radius: 8px;
@@ -237,7 +315,7 @@ header {
 }
 
 #tabs button:hover {
-  color: #fff;
+  color: var(--text-main);
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -321,7 +399,7 @@ main {
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
   padding: 12px 16px 12px 35px;
-  color: #fff;
+  color: var(--text-main);
   font-family: "Inter", sans-serif;
   font-size: 0.9rem;
   outline: none;
@@ -398,7 +476,6 @@ main {
   box-shadow: 0 0 10px rgba(255, 90, 95, 0.2);
 }
 
-/* Filters Options Bar */
 .filter-options-bar {
   display: flex;
   gap: 25px;
@@ -410,7 +487,6 @@ main {
   margin-bottom: 20px;
   flex-wrap: wrap;
   border-radius: 8px;
-  border-left: 3px solid var(--accent);
 }
 
 .filter-group {
@@ -443,12 +519,12 @@ main {
 }
 
 .filter-pill:hover {
-  color: #fff;
+  color: var(--text-main);
   border-color: var(--text-muted);
 }
 
 .filter-pill.active {
-  color: #fff;
+  color: var(--text-main);
   background: rgba(var(--accent-rgb), 0.15);
   border-color: var(--accent);
   box-shadow: 0 0 8px rgba(var(--accent-rgb), 0.1);
@@ -463,18 +539,18 @@ main {
   cursor: pointer;
 }
 .multiselect-trigger.active {
-  color: #fff;
+  color: var(--text-main);
   background: rgba(var(--accent-rgb), 0.15);
   border-color: var(--accent);
 }
 .multiselect-dropdown {
   z-index: 9999;
-  background: #0d1117;
+  background: var(--bg-deep);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 0;
   min-width: 180px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 .ms-item {
   display: flex;
@@ -490,7 +566,7 @@ main {
 }
 .ms-item:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  color: var(--text-main);
 }
 .ms-item input[type="checkbox"] {
   accent-color: var(--accent);
@@ -607,6 +683,15 @@ main {
   color: var(--accent);
   font-weight: 700;
   letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.titlebar-logo-icon {
+  width: 16px;
+  height: 16px;
+  background: url("../assets/icon.png") no-repeat center/contain;
+  flex-shrink: 0;
 }
 .titlebar-controls {
   -webkit-app-region: no-drag;
@@ -629,7 +714,7 @@ main {
 }
 .titlebar-btn:hover {
   background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  color: var(--text-main);
 }
 .titlebar-btn.close:hover {
   background: #e81123;
@@ -640,9 +725,7 @@ main {
 .table-card {
   background-color: var(--bg-panel);
   border: 1px solid var(--border);
-  box-shadow:
-    0 10px 40px rgba(0, 0, 0, 0.4),
-    inset 0 0 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -657,9 +740,9 @@ main {
 
 .pagination-bar {
   flex-shrink: 0;
-  background: rgb(17, 19, 23);
+  background: var(--bg-panel);
   border-top: 1px solid var(--border);
-  padding: 8px 0;
+  padding: 8px 20px;
   z-index: 5;
 }
 
@@ -934,7 +1017,7 @@ body.compact-mode .settings-info {
 .detail-row td {
   padding: 0 !important;
   border-bottom: 1px solid var(--border);
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: transparent;
 }
 
 .detail-container {
@@ -1047,7 +1130,7 @@ body.compact-mode .settings-info {
 
 .mod-pill-name {
   font-weight: 600;
-  color: #fff;
+  color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1071,14 +1154,16 @@ body.compact-mode .settings-info {
   font-size: 0.95rem;
   padding: 4px;
   border-radius: 4px;
-  transition: background 0.2s;
+  transition: background 0.2s, color 0.2s;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-muted);
 }
 
 .mod-pill-actions button:hover {
   background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
 }
 
 .mod-pill-status {
@@ -1187,17 +1272,44 @@ body.compact-mode .settings-info {
 
 .ip-cell:hover {
   background-color: rgba(255, 255, 255, 0.05);
-  color: #fff;
+  color: var(--text-main);
 }
 
-.ip-cell::after {
-  content: "📋";
+.ip-cell app-icon {
   font-size: 0.75rem;
   opacity: 0;
   transition: opacity 0.2s ease;
 }
 
-.ip-cell:hover::after {
+.ip-cell:hover app-icon {
+  opacity: 0.6;
+}
+
+.workshop-id-cell {
+  font-family: "Share Tech Mono", monospace;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.workshop-id-cell:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.workshop-id-cell app-icon {
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.workshop-id-cell:hover app-icon {
   opacity: 0.6;
 }
 
@@ -1245,11 +1357,7 @@ body.compact-mode .settings-info {
 
 /* Footer status bar */
 footer {
-  background: linear-gradient(
-    0deg,
-    rgba(17, 19, 23, 0.9) 0%,
-    rgba(17, 19, 23, 0.6) 100%
-  );
+  background: var(--bg-panel);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--border);
   padding: 8px 40px;
@@ -1364,9 +1472,7 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.4),
-    inset 0 0 15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
   border-radius: 12px;
   position: relative;
@@ -1384,7 +1490,7 @@ footer {
   text-transform: uppercase;
   border-bottom: 1px solid var(--border);
   padding-bottom: 8px;
-  color: #fff;
+  color: var(--text-main);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1409,7 +1515,7 @@ footer {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px;
-  color: #fff;
+  color: var(--text-main);
   font-family: "Inter", sans-serif;
   font-size: 0.9rem;
   outline: none;
@@ -1479,7 +1585,7 @@ footer {
   font-size: 1.3rem;
   text-transform: uppercase;
   letter-spacing: 1.5px;
-  color: #fff;
+  color: var(--text-main);
   border-bottom: 1px solid var(--border);
   padding-bottom: 15px;
   display: flex;
@@ -1487,9 +1593,6 @@ footer {
   gap: 12px;
 }
 
-.modal-header h2::before {
-  content: "⚙️";
-}
 
 .modal-body {
   font-size: 0.92rem;
@@ -1561,7 +1664,7 @@ footer {
 .mod-item-actions button {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
-  color: #fff;
+  color: var(--text-main);
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
@@ -1579,8 +1682,8 @@ footer {
 
 /* Retro Console Log Block */
 .console-log-box {
-  background: #000;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
   border-radius: 6px;
   padding: 15px;
   font-family: "Share Tech Mono", monospace;
@@ -1590,7 +1693,7 @@ footer {
   max-height: 120px;
   overflow-y: auto;
   margin-top: 15px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Glowing blinking cursor */
@@ -1625,10 +1728,9 @@ footer {
   background: var(--bg-panel);
   backdrop-filter: var(--glass-blur);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent-green);
   padding: 15px 25px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  color: #fff;
+  color: var(--text-main);
   font-size: 0.9rem;
   font-weight: 500;
   z-index: 2000;
@@ -1814,7 +1916,7 @@ footer {
   -webkit-appearance: none;
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border);
   border-radius: 2px;
   outline: none;
 }
@@ -1988,6 +2090,258 @@ app-icon svg {
 app-icon[name="loader"] svg {
   animation: spin 1s linear infinite;
   transform-origin: center;
+}
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   MODERN LAYOUT (SIDEBAR MODE)
+   ────────────────────────────────────────────────────────────────────────── */
+
+.sidebar {
+  display: none !important;
+}
+
+body.layout-modern {
+  display: grid !important;
+  grid-template-rows: auto 1fr auto !important;
+  grid-template-columns: var(--sidebar-width, 56px) 1fr !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+  flex-direction: row !important; /* Override flex layout */
+}
+
+body.layout-modern:has(#sidebar.pinned) {
+  --sidebar-width: 200px;
+}
+
+body.layout-modern .titlebar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+body.layout-modern header {
+  display: none !important;
+}
+
+body.layout-modern #sidebar {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  width: 56px;
+  background: var(--bg-deep);
+  border-right: 1px solid var(--border);
+  display: flex !important;
+  flex-direction: column;
+  align-items: stretch;
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 150;
+  overflow: hidden;
+}
+
+body.layout-modern #sidebar.pinned {
+  width: 200px;
+}
+
+body.layout-modern #sidebar:hover:not(.pinned) {
+  width: 200px;
+}
+
+body.layout-modern main {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: 100% !important;
+  padding: 15px 24px !important;
+}
+
+body.layout-modern footer {
+  grid-column: 2;
+  grid-row: 3;
+  padding: 8px 24px !important;
+}
+
+/* Sidebar Logo */
+body.layout-modern .sidebar-logo {
+  display: none !important;
+}
+
+body.layout-modern .sidebar-logo .logo-icon {
+  width: 32px;
+  height: 32px;
+  background: url("../assets/icon.png") no-repeat center/contain;
+  flex-shrink: 0;
+  margin-left: 0;
+}
+
+body.layout-modern .sidebar-logo .logo-text {
+  font-family: "Share Tech Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+body.layout-modern #sidebar:hover .sidebar-logo .logo-text,
+body.layout-modern #sidebar.pinned .sidebar-logo .logo-text {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Sidebar Navigation Tabs */
+body.layout-modern .sidebar-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 0;
+  flex: 1;
+}
+
+body.layout-modern .sidebar-tabs button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 12px 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.95rem;
+  font-family: inherit;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  overflow: hidden;
+  border-left: 3px solid transparent;
+}
+
+body.layout-modern .sidebar-tabs button:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-main);
+}
+
+body.layout-modern .sidebar-tabs button.active {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.08);
+  border-left-color: var(--accent);
+  padding-left: 13px; /* Compensate for border width */
+}
+
+body.layout-modern .sidebar-tabs button app-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  transition: color 0.2s;
+}
+
+body.layout-modern .sidebar-tabs button span {
+  font-family: "Share Tech Mono", monospace;
+  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+  opacity: 0;
+  transform: translateX(-10px);
+  display: inline-block;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+body.layout-modern #sidebar:hover .sidebar-tabs button span,
+body.layout-modern #sidebar.pinned .sidebar-tabs button span {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Sidebar Toggle */
+body.layout-modern .sidebar-toggle {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  padding: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: color 0.2s, background 0.2s, opacity 0.2s;
+  opacity: 0;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+body.layout-modern .sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+body.layout-modern .sidebar-toggle app-icon {
+  font-size: 1.1rem;
+  transition: transform 0.3s ease, color 0.2s;
+}
+
+body.layout-modern #sidebar.pinned .sidebar-toggle app-icon {
+  transform: rotate(180deg);
+  color: var(--accent);
+}
+
+/* Sidebar Steam Profile */
+body.layout-modern #sidebarSteamProfile {
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  height: 60px;
+  flex-shrink: 0;
+  margin-top: auto; /* Stays at the bottom! */
+}
+
+body.layout-modern #sidebarSteamProfile .steam-profile-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.layout-modern #sidebarSteamProfile .steam-profile-name {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 0.2s, transform 0.2s;
+  font-family: "Share Tech Mono", monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--accent);
+  flex: 1; /* Push toggle to the right */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+body.layout-modern #sidebarSteamProfile.offline .steam-profile-name {
+  color: var(--text-muted);
+}
+
+body.layout-modern #sidebarSteamProfile.linked .steam-profile-icon {
+  filter: drop-shadow(0 0 5px var(--accent));
+}
+
+body.layout-modern #sidebar:hover #sidebarSteamProfile .steam-profile-name,
+body.layout-modern #sidebar.pinned #sidebarSteamProfile .steam-profile-name {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+body.layout-modern #sidebar:hover .sidebar-toggle,
+body.layout-modern #sidebar.pinned .sidebar-toggle {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 

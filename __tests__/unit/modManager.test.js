@@ -1,14 +1,18 @@
 const path = require("path");
 
-describe("modManager", () => {
-  describe("validateModId", () => {
-    function validateModId(modId) {
-      if (typeof modId !== "string" || !/^\d+$/.test(modId)) {
-        return false;
-      }
-      return true;
-    }
+jest.mock(
+  "electron",
+  () => ({
+    app: { getPath: jest.fn(() => "/tmp/dzlinux-test-data") },
+    shell: { openPath: jest.fn() },
+  }),
+  { virtual: true },
+);
 
+describe("modManager", () => {
+  const { validateModId, safeModPath } = require("../../src/main/modManager");
+
+  describe("validateModId", () => {
     test("accepts numeric string", () => {
       expect(validateModId("12345")).toBe(true);
     });
@@ -43,14 +47,6 @@ describe("modManager", () => {
   });
 
   describe("safeModPath", () => {
-    function safeModPath(modDirectory, modId) {
-      const resolved = path.resolve(path.join(modDirectory, modId));
-      if (!resolved.startsWith(path.resolve(modDirectory))) {
-        return null;
-      }
-      return resolved;
-    }
-
     test("returns resolved path for valid mod ID", () => {
       const result = safeModPath("/workshop/content/221100", "12345");
       expect(result).toBe(path.resolve("/workshop/content/221100/12345"));

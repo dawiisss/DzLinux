@@ -1,11 +1,13 @@
 import { applyFilters } from "./serverBrowser.js";
-import { showConfirmModal } from "./feedback.js";
 import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
 import { state } from "./state.js";
 import { debounce } from "./utils.js";
+import { showToast } from "./feedback.js";
+import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
+
 
 let currentPerspFilter = "all";
 let currentCatFilter = "all";
@@ -50,11 +52,17 @@ export function switchTab(tabId) {
     .querySelectorAll(".tab-content")
     .forEach((el) => el.classList.remove("active"));
   document
-    .querySelectorAll("#tabs button")
+    .querySelectorAll("#tabs button, .sidebar-tabs button")
     .forEach((el) => el.classList.remove("active"));
 
-  document.getElementById(tabId).classList.add("active");
-  document.getElementById("tab-" + tabId).classList.add("active");
+  const targetEl = document.getElementById(tabId);
+  if (targetEl) targetEl.classList.add("active");
+
+  const tabBtn = document.getElementById("tab-" + tabId);
+  if (tabBtn) tabBtn.classList.add("active");
+
+  const sidebarTabBtn = document.getElementById("sidebar-tab-" + tabId);
+  if (sidebarTabBtn) sidebarTabBtn.classList.add("active");
 
   if (tabId === "browser") {
     import("./serverBrowser.js").then(({ refreshExpandedServerMods }) => {
@@ -136,46 +144,47 @@ export function toggleFavFilter() {
   currentFavFilter = !currentFavFilter;
   const btn = document.getElementById("filter-fav-only");
   btn.classList.toggle("active", currentFavFilter);
+  btn.setAttribute("aria-pressed", currentFavFilter.toString());
   triggerFiltering();
 }
 
 export function toggleHideEmpty() {
   currentHideEmpty = !currentHideEmpty;
-  document
-    .getElementById("filter-hide-empty")
-    .classList.toggle("active", currentHideEmpty);
+  const btn = document.getElementById("filter-hide-empty");
+  btn.classList.toggle("active", currentHideEmpty);
+  btn.setAttribute("aria-pressed", currentHideEmpty.toString());
   triggerFiltering();
 }
 
 export function toggleHideFull() {
   currentHideFull = !currentHideFull;
-  document
-    .getElementById("filter-hide-full")
-    .classList.toggle("active", currentHideFull);
+  const btn = document.getElementById("filter-hide-full");
+  btn.classList.toggle("active", currentHideFull);
+  btn.setAttribute("aria-pressed", currentHideFull.toString());
   triggerFiltering();
 }
 
 export function toggleHistoryFilter() {
   currentHistoryFilter = !currentHistoryFilter;
-  document
-    .getElementById("filter-history")
-    .classList.toggle("active", currentHistoryFilter);
+  const btn = document.getElementById("filter-history");
+  btn.classList.toggle("active", currentHistoryFilter);
+  btn.setAttribute("aria-pressed", currentHistoryFilter.toString());
   triggerFiltering();
 }
 
 export function toggleHideFakes() {
   currentHideFakes = !currentHideFakes;
-  document
-    .getElementById("filter-hide-fakes")
-    .classList.toggle("active", currentHideFakes);
+  const btn = document.getElementById("filter-hide-fakes");
+  btn.classList.toggle("active", currentHideFakes);
+  btn.setAttribute("aria-pressed", currentHideFakes.toString());
   triggerFiltering();
 }
 
 export function toggleHideLocked() {
   currentHideLocked = !currentHideLocked;
-  document
-    .getElementById("filter-hide-locked")
-    .classList.toggle("active", currentHideLocked);
+  const btn = document.getElementById("filter-hide-locked");
+  btn.classList.toggle("active", currentHideLocked);
+  btn.setAttribute("aria-pressed", currentHideLocked.toString());
   triggerFiltering();
 }
 
@@ -274,35 +283,129 @@ export function initUIBehavior() {
       }
     }
   });
-}
 
-// Bridge: attach tab-switching functions to window for inline HTML onclick handlers
-window.switchTab = switchTab;
-window.toggleFilters = toggleFilters;
-window.openDirectConnectModal = openDirectConnectModal;
-window.closeDirectConnectModal = closeDirectConnectModal;
-window.openAboutModal = openAboutModal;
-window.closeAboutModal = closeAboutModal;
-window.setPerspFilter = setPerspFilter;
-window.setCatFilter = setCatFilter;
-window.toggleMultiselect = toggleMultiselect;
-window.toggleMapOption = toggleMapOption;
-window.toggleFavFilter = toggleFavFilter;
-window.toggleHideEmpty = toggleHideEmpty;
-window.toggleHideFull = toggleHideFull;
-window.toggleHistoryFilter = toggleHistoryFilter;
-window.toggleHideFakes = toggleHideFakes;
-window.toggleHideLocked = toggleHideLocked;
-window.handleSort = handleSort;
-window.showConfirmModal = showConfirmModal;
+  // Dynamic Event Listeners
+  const winMinBtn = document.getElementById("winMinBtn");
+  if (winMinBtn) winMinBtn.addEventListener("click", () => window.api.ui.windowMin());
+
+  const winMaxBtn = document.getElementById("winMaxBtn");
+  if (winMaxBtn) winMaxBtn.addEventListener("click", () => window.api.ui.windowMax());
+
+  const winCloseBtn = document.getElementById("winCloseBtn");
+  if (winCloseBtn) winCloseBtn.addEventListener("click", () => window.api.ui.windowClose());
+
+  const aboutBtn = document.getElementById("aboutBtn");
+  if (aboutBtn) aboutBtn.addEventListener("click", openAboutModal);
+
+  const aboutCloseBtn = document.getElementById("aboutCloseBtn");
+  if (aboutCloseBtn) aboutCloseBtn.addEventListener("click", closeAboutModal);
+
+  const openLogFileLink = document.getElementById("openLogFileLink");
+  if (openLogFileLink) openLogFileLink.addEventListener("click", () => window.api.app.openLogFile());
+
+  document.querySelectorAll("#tabs button, .sidebar-tabs button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const tabId = btn.id.replace("tab-", "").replace("sidebar-", "");
+      switchTab(tabId);
+    });
+  });
+
+  const directConnectOpenBtn = document.getElementById("directConnectOpenBtn");
+  if (directConnectOpenBtn) directConnectOpenBtn.addEventListener("click", openDirectConnectModal);
+
+  const directConnectCancelBtn = document.getElementById("directConnectCancelBtn");
+  if (directConnectCancelBtn) directConnectCancelBtn.addEventListener("click", closeDirectConnectModal);
+
+  const directConnectBtn = document.getElementById("directConnectBtn");
+  if (directConnectBtn) {
+    directConnectBtn.addEventListener("click", () => {
+      const ipInput = document.getElementById("directIpInput");
+      const portInput = document.getElementById("directPortInput");
+      const ip = ipInput ? ipInput.value.trim() : "";
+      const port = portInput ? portInput.value.trim() : "";
+      if (!ip || !port) {
+        showToast("Please enter both IP and port", "#ff5a5f", "⚠️");
+        return;
+      }
+      connectToServer(ip, port);
+      closeDirectConnectModal();
+    });
+  }
+
+  const toggleFiltersBtn = document.getElementById("toggleFiltersBtn");
+  if (toggleFiltersBtn) toggleFiltersBtn.addEventListener("click", toggleFilters);
+
+  const filterPerspAll = document.getElementById("filter-persp-all");
+  if (filterPerspAll) filterPerspAll.addEventListener("click", () => setPerspFilter("all"));
+
+  const filterPersp1pp = document.getElementById("filter-persp-1pp");
+  if (filterPersp1pp) filterPersp1pp.addEventListener("click", () => setPerspFilter("1pp"));
+
+  const filterPersp3pp = document.getElementById("filter-persp-3pp");
+  if (filterPersp3pp) filterPersp3pp.addEventListener("click", () => setPerspFilter("3pp"));
+
+  const filterCatAll = document.getElementById("filter-cat-all");
+  if (filterCatAll) filterCatAll.addEventListener("click", () => setCatFilter("all"));
+
+  const filterCatVanilla = document.getElementById("filter-cat-vanilla");
+  if (filterCatVanilla) filterCatVanilla.addEventListener("click", () => setCatFilter("vanilla"));
+
+  const filterCatModded = document.getElementById("filter-cat-modded");
+  if (filterCatModded) filterCatModded.addEventListener("click", () => setCatFilter("modded"));
+
+  const msTriggerMap = document.getElementById("ms-trigger-map");
+  if (msTriggerMap) msTriggerMap.addEventListener("click", () => toggleMultiselect("map"));
+
+  document.querySelectorAll("#ms-dropdown-map input[type='checkbox']").forEach((cb) => {
+    cb.addEventListener("change", () => {
+      const mapName = cb.dataset.map;
+      toggleMapOption(mapName);
+    });
+  });
+
+  const filterHideEmpty = document.getElementById("filter-hide-empty");
+  if (filterHideEmpty) filterHideEmpty.addEventListener("click", toggleHideEmpty);
+
+  const filterHideFull = document.getElementById("filter-hide-full");
+  if (filterHideFull) filterHideFull.addEventListener("click", toggleHideFull);
+
+  const filterFavOnly = document.getElementById("filter-fav-only");
+  if (filterFavOnly) filterFavOnly.addEventListener("click", toggleFavFilter);
+
+  const filterHistory = document.getElementById("filter-history");
+  if (filterHistory) filterHistory.addEventListener("click", toggleHistoryFilter);
+
+  const filterHideFakes = document.getElementById("filter-hide-fakes");
+  if (filterHideFakes) filterHideFakes.addEventListener("click", toggleHideFakes);
+
+  const filterHideLocked = document.getElementById("filter-hide-locked");
+  if (filterHideLocked) filterHideLocked.addEventListener("click", toggleHideLocked);
+
+  document.querySelectorAll("th.sortable").forEach((th) => {
+    th.addEventListener("click", () => {
+      const field = th.id.replace("th-", "");
+      handleSort(field);
+    });
+  });
+
+  document.querySelectorAll(".external-link").forEach((el) => {
+    el.addEventListener("click", () => {
+      const url = el.getAttribute("data-url");
+      if (url) window.api.ui.openExternal(url);
+    });
+  });
+}
 
 export function applyTabVisibility(settings) {
   const watchlistTab = document.getElementById("tab-watchlist");
+  const watchlistSidebarTab = document.getElementById("sidebar-tab-watchlist");
+  const showWatchlist = settings.showWatchlistTab !== false ? "" : "none";
+  if (watchlistTab) watchlistTab.style.display = showWatchlist;
+  if (watchlistSidebarTab) watchlistSidebarTab.style.display = showWatchlist;
+
   const diagnosticsTab = document.getElementById("tab-diagnostics");
-  if (watchlistTab) {
-    watchlistTab.style.display = settings.showWatchlistTab !== false ? "" : "none";
-  }
-  if (diagnosticsTab) {
-    diagnosticsTab.style.display = settings.showDiagnosticsTab !== false ? "" : "none";
-  }
+  const diagnosticsSidebarTab = document.getElementById("sidebar-tab-diagnostics");
+  const showDiagnostics = settings.showDiagnosticsTab !== false ? "" : "none";
+  if (diagnosticsTab) diagnosticsTab.style.display = showDiagnostics;
+  if (diagnosticsSidebarTab) diagnosticsSidebarTab.style.display = showDiagnostics;
 }

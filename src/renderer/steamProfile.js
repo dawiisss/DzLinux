@@ -1,27 +1,27 @@
 export async function initSteamProfile() {
-  const profileEl = document.getElementById("steamProfile");
-  const usernameEl = document.getElementById("steamUsername");
-  if (!profileEl || !usernameEl) return;
+  const profileEls = document.querySelectorAll("#steamProfile, #sidebarSteamProfile");
+  const usernameEls = document.querySelectorAll("#steamUsername, #sidebarSteamUsername");
+  if (profileEls.length === 0 || usernameEls.length === 0) return;
 
-  profileEl.style.display = "flex";
+  profileEls.forEach(el => el.style.display = "flex");
 
   if (!window.api?.steamworks) {
-    usernameEl.textContent = "OFFLINE";
-    profileEl.classList.add("offline");
+    usernameEls.forEach(el => el.textContent = "OFFLINE");
+    profileEls.forEach(el => el.classList.add("offline"));
     return;
   }
 
   try {
     const profile = await window.api.steamworks.userInfo();
     if (profile?.name) {
-      usernameEl.textContent = profile.name;
-      profileEl.classList.add("linked");
+      usernameEls.forEach(el => el.textContent = profile.name);
+      profileEls.forEach(el => el.classList.add("linked"));
     } else {
-      usernameEl.textContent = "OFFLINE";
-      profileEl.classList.add("offline");
+      usernameEls.forEach(el => el.textContent = "OFFLINE");
+      profileEls.forEach(el => el.classList.add("offline"));
     }
   } catch {
-    usernameEl.textContent = "OFFLINE";
-    profileEl.classList.add("offline");
+    usernameEls.forEach(el => el.textContent = "OFFLINE");
+    profileEls.forEach(el => el.classList.add("offline"));
   }
 }

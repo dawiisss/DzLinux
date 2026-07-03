@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const _os = require("os");
+const fs = require("node:fs");
+const path = require("node:path");
+const _os = require("node:os");
 const { app } = require("electron");
 const steamPaths = require("./steamPaths");
 
@@ -30,7 +30,7 @@ const defaultSettings = {
   serverListPageSize: 50,
   queryConcurrency: 500,
   serverListMode: "compact",
-  autoRefreshEnabled: true,
+  autoRefreshEnabled: false,
   autoRefreshTime: 360,
   modLoadouts: {},
   watchlist: [],
@@ -39,6 +39,8 @@ const defaultSettings = {
   watchlistRefreshTime: 10,
   showWatchlistTab: true,
   showDiagnosticsTab: true,
+  layoutMode: "modern",
+  sidebarPinned: false,
 };
 
 function findDayzWorkshopFolder() {
@@ -67,7 +69,13 @@ function parseFavKeyInline(favKey) {
   return { ip, port };
 }
 
+let cachedSettings = null;
+
 function loadSettings() {
+  if (cachedSettings !== null) {
+    return { ...cachedSettings };
+  }
+
   const settings = { ...defaultSettings };
   try {
     if (fs.existsSync(settingsPath)) {
@@ -105,6 +113,7 @@ function loadSettings() {
       .filter(Boolean);
     delete settings.favoriteNames;
     delete settings.favoritePorts;
+    cachedSettings = { ...settings };
     saveSettings(settings);
   }
 
@@ -113,16 +122,26 @@ function loadSettings() {
     settings.modDirectory = findDayzWorkshopFolder();
   }
 
+  cachedSettings = { ...settings };
   return settings;
 }
 
-function saveSettings(settings) {
+async function saveSettings(settings) {
   try {
     // Prevent storing password if it inadvertently gets passed
     const safeSettings = { ...settings };
     delete safeSettings.steamPassword;
 
-    fs.writeFileSync(settingsPath, JSON.stringify(safeSettings, null, 2));
+    // Auto-discover if empty
+    if (!safeSettings.modDirectory) {
+      safeSettings.modDirectory = findDayzWorkshopFolder();
+    }
+
+    // Update cache immediately
+    cachedSettings = { ...safeSettings };
+
+    // Write to disk and await
+    await fs.promises.writeFile(settingsPath, JSON.stringify(safeSettings, null, 2), "utf8");
     return true;
   } catch (e) {
     console.error("Failed to save settings", e);
@@ -133,4 +152,7 @@ function saveSettings(settings) {
 module.exports = {
   loadSettings,
   saveSettings,
+  _clearCache: () => {
+    cachedSettings = null;
+  },
 };

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, nativeImage } = require("electron");
 const path = require("node:path");
+const { initLogger, closeLogger } = require("./logger");
 const settingsManager = require("./settings");
 const { setupAutoUpdater } = require("./updater");
 const steamworksManager = require("./steamworksManager");
@@ -36,6 +37,7 @@ const createWindow = () => {
 };
 
 app.whenReady().then(async () => {
+  await initLogger();
   registerIpcHandlers();
 
   const mainWindow = createWindow();
@@ -56,16 +58,23 @@ app.on("before-quit", (event) => {
   isQuitting = true;
   event.preventDefault();
   const shutdownTimeout = setTimeout(() => {
-    console.warn("Steamworks shutdown timed out, forcing exit");
+    console.warn("Shutdown timed out, forcing exit");
     app.exit(0);
   }, 5000);
-  steamworksManager
-    .shutdown()
+
+  const serverQuery = require("./serverQuery");
+
+  Promise.all([
+    steamworksManager.shutdown(),
+    serverQuery.getCacheWriteQueue(),
+  ])
     .then(() => {
+      closeLogger();
       clearTimeout(shutdownTimeout);
       app.exit(0);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error("Failed during graceful shutdown:", err);
       clearTimeout(shutdownTimeout);
       app.exit(0);
     });

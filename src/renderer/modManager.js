@@ -103,10 +103,28 @@ export async function loadInstalledMods() {
 
     const tdId = document.createElement("td");
     const idSpan = document.createElement("span");
-    idSpan.className = "ip-cell";
-    idSpan.title = "Click to copy ID";
     idSpan.textContent = mod.id;
-    idSpan.addEventListener("click", () => copyToClipboard(mod.id));
+    if (/^\d+$/.test(mod.id)) {
+      idSpan.className = "workshop-id-cell";
+      idSpan.title = "Click to open Steam Workshop";
+      idSpan.addEventListener("click", () => {
+        showToast(`Opening Workshop for ${mod.name || mod.id}`, "#2ec4b6", "⬇️");
+        window.api.mods.openWorkshop(mod.id);
+      });
+      const wsIcon = document.createElement("app-icon");
+      wsIcon.setAttribute("name", "external-link");
+      idSpan.appendChild(wsIcon);
+    } else {
+      idSpan.className = "ip-cell";
+      idSpan.title = "Click to copy ID";
+      idSpan.addEventListener("click", () => {
+        copyToClipboard(mod.id);
+        showToast("Mod ID copied to clipboard", "#2ec4b6", "📋");
+      });
+      const copyIcon = document.createElement("app-icon");
+      copyIcon.setAttribute("name", "copy");
+      idSpan.appendChild(copyIcon);
+    }
     tdId.appendChild(idSpan);
 
     const tdSize = document.createElement("td");
@@ -133,7 +151,7 @@ export async function loadInstalledMods() {
     openFolderBtn.style.padding = "6px 12px";
     openFolderBtn.style.fontSize = "0.75rem";
     openFolderBtn.style.marginRight = "8px";
-    openFolderBtn.textContent = "OPEN FOLDER";
+    openFolderBtn.textContent = "Open Folder";
     openFolderBtn.addEventListener("click", () => {
       window.api.mods.openFolder(mod.id);
     });
@@ -143,9 +161,9 @@ export async function loadInstalledMods() {
     deleteBtn.className = "btn btn-danger";
     deleteBtn.style.padding = "6px 12px";
     deleteBtn.style.fontSize = "0.75rem";
-    deleteBtn.textContent = "UNSUBSCRIBE";
+    deleteBtn.textContent = "Unsubscribe";
     deleteBtn.addEventListener("click", async () => {
-      deleteBtn.textContent = "REMOVING...";
+      deleteBtn.textContent = "Removing...";
       deleteBtn.disabled = true;
       const success = await window.api.steamworks.unsubscribe(mod.id);
       if (success) {
@@ -160,10 +178,10 @@ export async function loadInstalledMods() {
         const totalSizeGB = Math.round((totalSizeMB / 1024) * 10) / 10;
         document.getElementById("totalModsSize").textContent =
           `${totalSizeGB} GB`;
-        showToast(`${mod.name} UNSUBSCRIBED`, "#2ec4b6", "🗑️");
+        showToast(`${mod.name} unsubscribed`, "#2ec4b6", "🗑️");
       } else {
-        showToast("FAILED TO UNSUBSCRIBE", "#ff5a5f", "⚠️");
-        deleteBtn.textContent = "UNSUBSCRIBE";
+        showToast("Failed to unsubscribe", "#ff5a5f", "⚠️");
+        deleteBtn.textContent = "Unsubscribe";
         deleteBtn.disabled = false;
       }
     });
@@ -222,20 +240,20 @@ export async function loadInstalledMods() {
               const btn = document.getElementById("updateAllMismatchBtn");
               btn.innerHTML = `
                 <app-icon name="loader" style="width: 0.95rem; height: 0.95rem;"></app-icon>
-                UPDATING...
+                Updating...
               `;
               btn.disabled = true;
               for (const mod of result.outdatedMods) {
-                showToast(`UPDATING ${mod.name}...`, "#ff9f1c", `<app-icon name="download" style="width: 1.1rem; height: 1.1rem; color: #ff9f1c;"></app-icon>`);
+                showToast(`Updating ${mod.name}...`, "#ff9f1c", `<app-icon name="download" style="width: 1.1rem; height: 1.1rem; color: #ff9f1c;"></app-icon>`);
                 await window.api.steamworks.subscribe(mod.id);
                 await new Promise((r) => setTimeout(r, 500));
               }
               btn.innerHTML = `
                 <app-icon name="download" style="width: 0.95rem; height: 0.95rem;"></app-icon>
-                UPDATE ALL
+                Update All
               `;
               btn.disabled = false;
-              showToast("ALL OUTDATED MODS QUEUED FOR UPDATE", "#2ec4b6", "✓");
+              showToast("All outdated mods queued for update", "#2ec4b6", "✓");
             });
 
           result.outdatedMods.forEach((mod) => {
@@ -268,7 +286,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
   if (existing) {
     existing.statusLabel = statusLabel;
     if (statusLabel) {
-      statusLabel.textContent = existing.lastStatusText || "SYNCING...";
+      statusLabel.textContent = existing.lastStatusText || "Syncing...";
       statusLabel.style.color = "var(--accent)";
     }
     return;
@@ -278,20 +296,20 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
     const success = await window.api.steamworks.subscribe(modId);
     if (!success) {
       window.api.mods.subscribe(modId);
-      showToast(`OPENING STEAM FOR ${modName}`, "#2ec4b6", "⬇️");
+      showToast(`Opening Steam for ${modName}`, "#2ec4b6", "⬇️");
       if (statusLabel) {
-        statusLabel.textContent = "SUBSCRIBING...";
+        statusLabel.textContent = "Subscribing...";
         statusLabel.style.color = "var(--accent)";
       }
       return;
     }
 
-    showToast(`SYNCING ${modName} VIA STEAM PROTOCOL`, "#2ec4b6", "⬇️");
+    showToast(`Syncing ${modName} via Steam protocol`, "#2ec4b6", "⬇️");
 
     const entry = {
       modName,
       statusLabel,
-      lastStatusText: "0% SYNCING...",
+      lastStatusText: "0% Syncing...",
       pollRetries: 0,
       pollInterval: null,
     };
@@ -352,10 +370,10 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
             currentEntry.statusLabel &&
             currentEntry.statusLabel.isConnected
           ) {
-            currentEntry.statusLabel.textContent = "✓ READY (REFRESH REQ)";
+            currentEntry.statusLabel.textContent = "✓ Ready (Refresh Req)";
             currentEntry.statusLabel.style.color = "var(--accent-green)";
           }
-          showToast(`${modName} DOWNLOAD COMPLETE`, "#2ec4b6", "✓");
+          showToast(`${modName} download complete`, "#2ec4b6", "✓");
           await refreshLocalModsCache();
         }
       } catch (err) {

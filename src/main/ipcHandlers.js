@@ -17,6 +17,48 @@ const logParser = require("./logParser");
 const steamworksManager = require("./steamworksManager");
 const steamDependencyResolver = require("./steamDependencyResolver");
 const watchlistManager = require("./watchlist");
+const { getLogFilePath } = require("./logger");
+
+function isValidIpOrHost(ip) {
+  if (typeof ip !== "string") return false;
+  return /^[a-zA-Z0-9.-]+$/.test(ip);
+}
+
+function isValidPort(port) {
+  const p = parseInt(port, 10);
+  return Number.isInteger(p) && p > 0 && p <= 65535;
+}
+
+let allowedPathPrefixes = null;
+function getAllowedPathPrefixes() {
+  if (!allowedPathPrefixes) {
+    allowedPathPrefixes = [
+      path.join(app.getPath("home"), ".steam"),
+      path.join(app.getPath("home"), ".local", "share", "Steam"),
+      path.join(app.getPath("home"), ".var", "app", "com.valvesoftware.Steam"),
+      "/usr",
+      "/opt",
+      "/snap",
+      "/home",
+    ];
+  }
+  return allowedPathPrefixes;
+}
+
+function isAllowedPath(filePath) {
+  if (typeof filePath !== "string") return false;
+  const resolved = path.resolve(filePath);
+  const prefixes = [...getAllowedPathPrefixes()];
+  try {
+    const currentSettings = settingsManager.loadSettings();
+    if (currentSettings && currentSettings.modDirectory) {
+      prefixes.push(path.resolve(currentSettings.modDirectory));
+    }
+  } catch {
+    // Fallback if settings fail to load
+  }
+  return prefixes.some((prefix) => resolved.startsWith(prefix));
+}
 
 function registerIpcHandlers() {
   ipcMain.handle("get-version", () => app.getVersion());
@@ -32,10 +74,16 @@ function registerIpcHandlers() {
     }, generationId);
   });
   ipcMain.handle("query-mods", async (_event, ip, port, queryPort) => {
+    if (!isValidIpOrHost(ip) || !isValidPort(port) || (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))) {
+      return [];
+    }
     const result = await queryServerGameDig(ip, port, queryPort);
     return result ? result.mods || [] : [];
   });
   ipcMain.handle("refresh-mod-cache", async (_event, ip, port, queryPort) => {
+    if (!isValidIpOrHost(ip) || !isValidPort(port) || (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))) {
+      return [];
+    }
     const result = await serverManager.refreshServerModCache(
       ip,
       port,
@@ -43,15 +91,38 @@ function registerIpcHandlers() {
     );
     return result ? result.mods : [];
   });
-  ipcMain.handle("ping-server", (_event, ip, port, queryPort) =>
-    pingServer(ip, port, queryPort),
-  );
-  ipcMain.handle("check-mods", (_event, requiredMods) =>
-    gameManager.checkMods(requiredMods),
-  );
-  ipcMain.handle("launch-game", (_event, ip, port, mods) =>
-    gameManager.launchDayZ(ip, port, mods),
-  );
+  ipcMain.handle("ping-server", (_event, ip, port, queryPort) => {
+    if (!isValidIpOrHost(ip) || !isValidPort(port) || (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))) {
+      return Promise.resolve(null);
+    }
+    return pingServer(ip, port, queryPort);
+  });
+  ipcMain.handle("check-mods", (_event, requiredMods) => {
+    if (!Array.isArray(requiredMods)) {
+      return { missingMods: [], hasAllMods: true };
+    }
+    const validMods = requiredMods.filter(mod => mod && /^\d+$/.test(String(mod.id)));
+    return gameManager.checkMods(validMods);
+  });
+  ipcMain.handle("launch-game", (_event, ip, port, mods) => {
+    if (ip || port) {
+      if (!isValidIpOrHost(ip) || !isValidPort(port)) {
+        return Promise.reject(new Error("Invalid arguments"));
+      }
+    }
+    if (!Array.isArray(mods)) {
+      return Promise.reject(new Error("Invalid arguments"));
+    }
+    const isValidMods = mods.every(mod => {
+      if (!mod) return false;
+      const id = typeof mod === "object" ? mod.id : mod;
+      return typeof id === "string" || typeof id === "number" ? /^\d+$/.test(String(id)) : false;
+    });
+    if (!isValidMods) {
+      return Promise.reject(new Error("Invalid mod IDs"));
+    }
+    return gameManager.launchDayZ(ip, port, mods);
+  });
   ipcMain.handle("open-workshop", (_event, modId) =>
     gameManager.openWorkshopPage(modId),
   );
@@ -133,21 +204,9 @@ function registerIpcHandlers() {
   });
   ipcMain.handle("check-gamemode", () => gameManager.checkGameMode());
   ipcMain.handle("check-path-exists", (_event, filePath) => {
-    if (typeof filePath !== "string") return false;
-    const allowedPrefixes = [
-      path.join(app.getPath("home"), ".steam"),
-      path.join(app.getPath("home"), ".local", "share", "Steam"),
-      path.join(app.getPath("home"), ".var", "app", "com.valvesoftware.Steam"),
-      "/usr",
-      "/opt",
-      "/snap",
-      "/home",
-    ];
-    const resolved = path.resolve(filePath);
-    if (!allowedPrefixes.some((prefix) => resolved.startsWith(prefix)))
-      return false;
+    if (!isAllowedPath(filePath)) return false;
     try {
-      return fs.existsSync(resolved);
+      return fs.existsSync(path.resolve(filePath));
     } catch {
       return false;
     }
@@ -179,7 +238,7 @@ function registerIpcHandlers() {
   );
 
   ipcMain.handle("get-disk-space", (_event, dirPath) => {
-    if (typeof dirPath !== "string" || !dirPath.startsWith("/")) {
+    if (!isAllowedPath(dirPath) || !dirPath.startsWith("/")) {
       return Promise.resolve(null);
     }
     return new Promise((resolve) => {
@@ -207,6 +266,11 @@ function registerIpcHandlers() {
   });
 
   ipcMain.on("renderer-log", (_event, msg) => console.log(`[RENDERER] ${msg}`));
+
+  ipcMain.handle("open-log-file", () => {
+    const logPath = getLogFilePath();
+    shell.showItemInFolder(logPath);
+  });
 
   ipcMain.on("window-min", () => {
     const win = BrowserWindow.getFocusedWindow();

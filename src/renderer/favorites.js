@@ -1,6 +1,7 @@
 import { state, addFavorite } from "./state.js";
 import { showToast } from "./feedback.js";
 import { renderServers } from "./serverBrowser.js";
+import { applyPingResult } from "./utils.js";
 import { buildServerRow, buildDetailRow } from "./serverRow.js";
 
 export function renderFavoritesManager() {
@@ -57,21 +58,21 @@ export function initFavorites() {
     const name = document.getElementById("favNameInput").value.trim();
 
     if (!ip || !port) {
-      showToast("PLEASE ENTER BOTH IP AND PORT", "#ff5a5f", "⚠️");
+      showToast("Please enter both IP and port", "#ff5a5f", "⚠️");
       return;
     }
 
     const favKey = `${ip}:${port}`;
     if (!state.favoritesSet.has(favKey)) {
       await addFavorite(ip, port, null, name);
-      showToast("ADDED TO FAVORITES", "#ff9f1c", "⭐");
+      showToast("Added to favorites", "#ff9f1c", "⭐");
       document.getElementById("favIpInput").value = "";
       document.getElementById("favPortInput").value = "";
       document.getElementById("favNameInput").value = "";
       renderServers();
       renderFavoritesManager();
     } else {
-      showToast("SERVER ALREADY FAVORITED", "#ff5a5f", "⚠️");
+      showToast("Server already favorited", "#ff5a5f", "⚠️");
     }
   });
 
@@ -106,28 +107,9 @@ export function initFavorites() {
               server.port,
               server.queryPort,
             );
-            if (statusObj) {
-              server.realPing = statusObj.ping;
-              if (statusObj.status) server.status = statusObj.status;
-              server.failedPing = false;
-              if (statusObj.players !== null) server.players = statusObj.players;
-              if (statusObj.maxPlayers !== null)
-                server.maxPlayers = statusObj.maxPlayers;
-              if (statusObj.name && server.name === "Unknown Server")
-                server.name = statusObj.name;
-              if (statusObj.mods && statusObj.mods.length > 0)
-                server.mods = statusObj.mods;
-              if (statusObj.time) server.time = statusObj.time;
-              if (statusObj.map) server.map = statusObj.map;
-              server.thirdPerson = statusObj.thirdPerson;
-              server.modded = statusObj.modded;
-            } else {
-              server.realPing = -1;
-              server.failedPing = true;
-            }
+            applyPingResult(server, statusObj);
           } catch {
-            server.realPing = -1;
-            server.failedPing = true;
+            applyPingResult(server, null);
           }
           if (isFirstPing) {
             state.totalPingedCount = (state.totalPingedCount || 0) + 1;

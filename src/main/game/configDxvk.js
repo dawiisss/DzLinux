@@ -1,7 +1,7 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 
-function configureDxvk(settings, compatDataPath, env) {
+async function configureDxvk(settings, compatDataPath, env) {
   let dxvkCfg = [];
   if (settings.dxvkConfig && settings.dxvkConfig.trim()) {
     dxvkCfg = settings.dxvkConfig.split("\n").filter((l) => l.trim());
@@ -16,9 +16,11 @@ function configureDxvk(settings, compatDataPath, env) {
     const dxvkConfPath = path.join(compatDataPath, "pfx", "dxvk.conf");
     try {
       const dxvkConfDir = path.dirname(dxvkConfPath);
-      if (!fs.existsSync(dxvkConfDir))
-        fs.mkdirSync(dxvkConfDir, { recursive: true });
-      fs.writeFileSync(dxvkConfPath, dxvkCfg.join("\n"));
+      const dirExists = await fs.promises.access(dxvkConfDir).then(() => true).catch(() => false);
+      if (!dirExists) {
+        await fs.promises.mkdir(dxvkConfDir, { recursive: true });
+      }
+      await fs.promises.writeFile(dxvkConfPath, dxvkCfg.join("\n"), "utf8");
     } catch (e) {
       console.error("Failed to write dxvk.conf", e.message);
     }

@@ -1,5 +1,5 @@
-const { fork } = require("child_process");
-const path = require("path");
+const { fork } = require("node:child_process");
+const path = require("node:path");
 
 let worker = null;
 let msgIdCounter = 0;
@@ -15,6 +15,24 @@ function lockForLaunch() {
 
 function unlockForLaunch() {
   isLockedForLaunch = false;
+}
+
+const STEAMWORKS_LAUNCH_LOCK_MS = 1500;
+const STEAMWORKS_LAUNCH_TIMEOUT_MS = 15000;
+
+async function lockAndDelayForLaunch(onTimeout) {
+  await lockForLaunch();
+  await new Promise((r) => setTimeout(r, STEAMWORKS_LAUNCH_LOCK_MS));
+  setTimeout(async () => {
+    unlockForLaunch();
+    if (typeof onTimeout === "function") {
+      try {
+        await onTimeout();
+      } catch (err) {
+        console.error("Error in lockAndDelayForLaunch timeout callback:", err);
+      }
+    }
+  }, STEAMWORKS_LAUNCH_TIMEOUT_MS);
 }
 
 function init() {
@@ -156,6 +174,7 @@ module.exports = {
   shutdown,
   lockForLaunch,
   unlockForLaunch,
+  lockAndDelayForLaunch,
   getUserProfile,
   subscribeMod,
   unsubscribeMod,

@@ -1,6 +1,6 @@
 const { Notification: ElectronNotification, BrowserWindow, app } = require("electron");
-const path = require("path");
-const fs = require("fs");
+const path = require("node:path");
+const fs = require("node:fs");
 const settingsManager = require("./settings");
 
 const WATCHLIST_FILE = path.join(app.getPath("userData"), "watchlist.json");
@@ -15,16 +15,23 @@ const WATCHLIST_FILE = path.join(app.getPath("userData"), "watchlist.json");
  *
  * @returns {Array<{ip: string, port: number, name: string, active: boolean, threshold: number, mode: string, lastStatus: string}>} The current watchlist array.
  */
+let cachedWatchlist = null;
+
 function loadWatchlist() {
+  if (cachedWatchlist !== null) {
+    return [...cachedWatchlist];
+  }
   try {
     if (fs.existsSync(WATCHLIST_FILE)) {
       const content = fs.readFileSync(WATCHLIST_FILE, "utf8");
-      return JSON.parse(content) || [];
+      cachedWatchlist = JSON.parse(content) || [];
+      return [...cachedWatchlist];
     }
     // Migration check
     const settings = settingsManager.loadSettings();
     if (settings.watchlist && settings.watchlist.length > 0) {
       const watchlist = settings.watchlist;
+      cachedWatchlist = [...watchlist];
       saveWatchlist(watchlist);
       // Clean up from settings to avoid future confusion
       delete settings.watchlist;
@@ -34,6 +41,7 @@ function loadWatchlist() {
   } catch (e) {
     console.error("Failed to load watchlist:", e.message);
   }
+  cachedWatchlist = [];
   return [];
 }
 
@@ -48,7 +56,11 @@ function loadWatchlist() {
  */
 function saveWatchlist(watchlist) {
   try {
-    fs.writeFileSync(WATCHLIST_FILE, JSON.stringify(watchlist, null, 2), "utf8");
+    cachedWatchlist = [...watchlist];
+    fs.promises.writeFile(WATCHLIST_FILE, JSON.stringify(watchlist, null, 2), "utf8")
+      .catch((err) => {
+        console.error("Failed to write watchlist file asynchronously:", err.message);
+      });
     return true;
   } catch (e) {
     console.error("Failed to save watchlist:", e.message);
@@ -183,4 +195,7 @@ module.exports = {
   loadWatchlist,
   saveWatchlist,
   processWatchlistChecks,
+  _clearCache: () => {
+    cachedWatchlist = null;
+  },
 };

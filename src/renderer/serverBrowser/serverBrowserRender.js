@@ -2,6 +2,7 @@ import { state } from "../state.js";
 import { refreshLocalModsCache } from "../modManager.js";
 import { serverPassesFilters } from "./serverBrowserCore.js";
 import { buildServerRow, renderMetadataBadges } from "../serverRow.js";
+import { applyPingResult } from "../utils.js";
 
 let isServersBatchListenerAdded = false;
 let _needsResort = false;
@@ -228,14 +229,9 @@ export async function startBackgroundPinging() {
 
       const isFirstPing = server.realPing === undefined;
 
+      applyPingResult(server, statusObj);
       if (statusObj !== null) {
-        server.realPing = statusObj.ping;
-        if (statusObj.status) server.status = statusObj.status;
-        if (statusObj.players !== null) server.players = statusObj.players;
-        if (statusObj.maxPlayers !== null)
-          server.maxPlayers = statusObj.maxPlayers;
         if (statusObj.name) {
-          server.name = statusObj.name;
           const rowEl = document.getElementById(`row-${server.id}`);
           if (rowEl) {
             const nameCell = rowEl.querySelector(".server-name-cell");
@@ -253,16 +249,6 @@ export async function startBackgroundPinging() {
             }
           }
         }
-        server.failedPing = false;
-        if (statusObj.mods && statusObj.mods.length > 0)
-          server.mods = statusObj.mods;
-        if (statusObj.time) server.time = statusObj.time;
-        if (statusObj.map) server.map = statusObj.map;
-        server.thirdPerson = statusObj.thirdPerson;
-        server.modded = statusObj.modded;
-        if (statusObj.password !== undefined) {
-          server.password = statusObj.password;
-        }
 
         const rowId =
           server.id ||
@@ -277,9 +263,6 @@ export async function startBackgroundPinging() {
           favMetaCell.innerHTML = "";
           favMetaCell.appendChild(renderMetadataBadges(server));
         }
-      } else {
-        server.realPing = server.ping || 120;
-        server.failedPing = true;
       }
 
       if (isFirstPing) {

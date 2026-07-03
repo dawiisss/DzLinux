@@ -89,7 +89,7 @@ export function initUpdater() {
           navigator.clipboard
             .writeText(text)
             .then(() => {
-              showToast("CRASH LOG COPIED TO CLIPBOARD", "#ff5a5f", "📋");
+              showToast("Crash log copied to clipboard", "#ff5a5f", "📋");
             })
             .catch(() => {});
         };

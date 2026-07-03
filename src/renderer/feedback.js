@@ -29,7 +29,7 @@ export function showToast(message, borderHex = "#2ec4b6", icon = "📋") {
 
 export function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
-    showToast("IP ADDRESS COPIED TO SYSTEM CLIPBOARD", "#2ec4b6", "📋");
+    showToast("IP address copied to system clipboard", "#2ec4b6", "📋");
   });
 }
 

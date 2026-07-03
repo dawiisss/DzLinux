@@ -1,6 +1,6 @@
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const { app } = require("electron");
 
 const CACHE_FILE = path.join(app.getPath("userData"), "server_cache.json");
@@ -330,7 +330,7 @@ function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
         ...servers[existingIdx],
         ...custom,
         customList: true,
-        originalIndex: servers.length,
+        originalIndex: existingIdx,
       };
     } else {
       const resolvedMods =
@@ -379,13 +379,14 @@ function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
 
 function injectFavoritesPlaceholders(servers, favorites, serversMap) {
   if (favorites && favorites.length > 0) {
+    const added = [];
     favorites.forEach((fav) => {
       const ip = fav.ip;
       const port = typeof fav.port === "number" ? fav.port : parseInt(fav.port);
       const mapKey = `${ip}:${port}`;
       const exists = serversMap.has(mapKey);
       if (!exists) {
-        servers.unshift({
+        added.push({
           id: `fav-${ip.replace(/\./g, "-")}-${port}`,
           name: fav.name || "Favorited Server",
           ip: ip,
@@ -403,9 +404,22 @@ function injectFavoritesPlaceholders(servers, favorites, serversMap) {
           time: "",
           map: "",
         });
-        serversMap.set(mapKey, 0);
       }
     });
+
+    if (added.length > 0) {
+      // Shift existing indices in serversMap
+      for (const [key, value] of serversMap.entries()) {
+        serversMap.set(key, value + added.length);
+      }
+      // Prepend to servers array
+      servers.unshift(...added);
+      // Register new indices in serversMap
+      added.forEach((item, idx) => {
+        const mapKey = `${item.ip}:${item.port}`;
+        serversMap.set(mapKey, idx);
+      });
+    }
   }
 }
 

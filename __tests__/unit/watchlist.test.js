@@ -2,6 +2,7 @@ const {
   loadWatchlist,
   saveWatchlist,
   processWatchlistChecks,
+  _clearCache,
 } = require("../../src/main/watchlist");
 const settingsManager = require("../../src/main/settings");
 const { Notification: ElectronNotification, BrowserWindow } = require("electron");
@@ -35,12 +36,16 @@ jest.mock("fs", () => ({
   existsSync: jest.fn(),
   readFileSync: jest.fn(),
   writeFileSync: jest.fn(),
+  promises: {
+    writeFile: jest.fn().mockImplementation(() => Promise.resolve()),
+  },
 }));
 
 describe("watchlist", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     ElectronNotification.isSupported.mockReturnValue(true);
+    _clearCache();
   });
 
   describe("loadWatchlist", () => {
@@ -68,7 +73,7 @@ describe("watchlist", () => {
       });
 
       expect(loadWatchlist()).toEqual(mockWatchlist);
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
         JSON.stringify(mockWatchlist, null, 2),
         "utf8"
@@ -86,7 +91,7 @@ describe("watchlist", () => {
 
       const result = saveWatchlist(mockWatchlist);
 
-      expect(fs.writeFileSync).toHaveBeenCalledWith(
+      expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
         JSON.stringify(mockWatchlist, null, 2),
         "utf8"
@@ -155,8 +160,8 @@ describe("watchlist", () => {
         }),
       );
 
-      expect(fs.writeFileSync).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+      expect(fs.promises.writeFile).toHaveBeenCalled();
+      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
       expect(writtenData[0].lastStatus).toBe("notified");
     });
 
@@ -171,8 +176,8 @@ describe("watchlist", () => {
         }),
       );
 
-      expect(fs.writeFileSync).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+      expect(fs.promises.writeFile).toHaveBeenCalled();
+      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
       expect(writtenData[1].lastStatus).toBe("notified");
     });
 
@@ -196,8 +201,8 @@ describe("watchlist", () => {
 
       processWatchlistChecks(mockServers);
 
-      expect(fs.writeFileSync).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+      expect(fs.promises.writeFile).toHaveBeenCalled();
+      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
       expect(writtenData[0].lastStatus).toBe("idle");
     });
 
@@ -240,8 +245,8 @@ describe("watchlist", () => {
       processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).toHaveBeenCalledTimes(2);
-      expect(fs.writeFileSync).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.writeFileSync.mock.calls[0][1]);
+      expect(fs.promises.writeFile).toHaveBeenCalled();
+      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
       expect(writtenData[0].lastStatus).toBe("notified");
       expect(writtenData[1].lastStatus).toBe("notified");
     });

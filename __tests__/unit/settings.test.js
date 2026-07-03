@@ -24,6 +24,19 @@ describe("settings", () => {
       }),
       { virtual: true },
     );
+
+    // Clear settings cache between tests (Must be AFTER doMock electron!)
+    try {
+      const { _clearCache } = require("../../src/main/settings");
+      _clearCache();
+    } catch {}
+    try {
+      const { _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+    } catch {}
+
+    // Reset modules again so that test-specific mocks (like os.homedir) apply on fresh requires
+    jest.resetModules();
   });
 
   afterEach(() => {
@@ -41,7 +54,7 @@ describe("settings", () => {
     expect(settings.showDiagnosticsTab).toBe(true);
   });
 
-  test("saveSettings then loadSettings round-trips correctly", () => {
+  test("saveSettings then loadSettings round-trips correctly", async () => {
     const { loadSettings, saveSettings } = require("../../src/main/settings");
     const toSave = {
       launchParams: "-nosplash",
@@ -51,7 +64,7 @@ describe("settings", () => {
       showDiagnosticsTab: false,
       favorites: [{ ip: "1.2.3.4", port: 2302, queryPort: null, name: "" }],
     };
-    const success = saveSettings(toSave);
+    const success = await saveSettings(toSave);
     expect(success).toBe(true);
     expect(fs.existsSync(settingsPath)).toBe(true);
 
@@ -80,13 +93,13 @@ describe("settings", () => {
     expect(settings.polluted).toBeUndefined();
   });
 
-  test("saveSettings strips steamPassword", () => {
+  test("saveSettings strips steamPassword", async () => {
     const { saveSettings } = require("../../src/main/settings");
     const toSave = {
       theme: "toxic",
       steamPassword: "secret123",
     };
-    saveSettings(toSave);
+    await saveSettings(toSave);
 
     const raw = JSON.parse(fs.readFileSync(settingsPath, "utf8"));
     expect(raw.steamPassword).toBeUndefined();
@@ -106,24 +119,24 @@ describe("settings", () => {
     expect(settings.launchParams).toBe("");
   });
 
-  test("saveSettings returns boolean", () => {
+  test("saveSettings returns boolean", async () => {
     const { saveSettings } = require("../../src/main/settings");
-    const result = saveSettings({ theme: "toxic" });
+    const result = await saveSettings({ theme: "toxic" });
     expect(typeof result).toBe("boolean");
     expect(result).toBe(true);
   });
 
-  test("saveSettings returns false when fs.writeFileSync throws", () => {
+  test("saveSettings returns false when fs.promises.writeFile throws", async () => {
     const { saveSettings } = require("../../src/main/settings");
 
     // Suppress console.error for this test so it doesn't clutter output
     jest.spyOn(console, "error").mockImplementation(() => {});
 
-    jest.spyOn(fs, "writeFileSync").mockImplementation(() => {
-      throw new Error("Disk full");
+    jest.spyOn(fs.promises, "writeFile").mockImplementation(() => {
+      return Promise.reject(new Error("Disk full"));
     });
 
-    const result = saveSettings({ theme: "toxic" });
+    const result = await saveSettings({ theme: "toxic" });
 
     expect(result).toBe(false);
     expect(console.error).toHaveBeenCalledWith(

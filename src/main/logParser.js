@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const settingsManager = require("./settings");
 const steamPaths = require("./steamPaths");
 
@@ -13,9 +13,13 @@ const steamPaths = require("./steamPaths");
  *
  * @returns {string|null} The absolute path to the log directory, or null if it cannot be found.
  */
-function getLogsDirectory() {
+async function getLogsDirectory() {
   const settings = settingsManager.loadSettings();
-  if (!settings.modDirectory || !fs.existsSync(settings.modDirectory)) {
+  if (!settings.modDirectory) {
+    return null;
+  }
+  const modDirExists = await fs.promises.access(settings.modDirectory).then(() => true).catch(() => false);
+  if (!modDirExists) {
     return null;
   }
 
@@ -36,14 +40,16 @@ function getLogsDirectory() {
     "DayZ",
   );
 
-  if (fs.existsSync(dayzPrefixPath)) {
+  const prefixExists = await fs.promises.access(dayzPrefixPath).then(() => true).catch(() => false);
+  if (prefixExists) {
     return dayzPrefixPath;
   }
 
   const searchPaths = steamPaths.getDayzLogsCandidatePaths();
 
   for (const p of searchPaths) {
-    if (fs.existsSync(p)) return p;
+    const exists = await fs.promises.access(p).then(() => true).catch(() => false);
+    if (exists) return p;
   }
 
   return null;
@@ -59,11 +65,11 @@ function getLogsDirectory() {
  * @returns {Promise<Array<Object>>} An array of analyzed log objects, sorted newest to oldest.
  */
 async function getRecentLogs() {
-  const logsDir = getLogsDirectory();
+  const logsDir = await getLogsDirectory();
   if (!logsDir) return [];
 
   try {
-    const files = fs.readdirSync(logsDir);
+    const files = await fs.promises.readdir(logsDir);
     const logFiles = files.filter(
       (f) =>
         f.toLowerCase().endsWith(".log") ||
@@ -71,16 +77,18 @@ async function getRecentLogs() {
         f.toLowerCase().endsWith(".mdmp"),
     );
 
-    const fileDetails = logFiles.map((file) => {
-      const filePath = path.join(logsDir, file);
-      const stat = fs.statSync(filePath);
-      return {
-        name: file,
-        path: filePath,
-        mtime: stat.mtimeMs,
-        date: stat.mtime,
-      };
-    });
+    const fileDetails = await Promise.all(
+      logFiles.map(async (file) => {
+        const filePath = path.join(logsDir, file);
+        const stat = await fs.promises.stat(filePath);
+        return {
+          name: file,
+          path: filePath,
+          mtime: stat.mtimeMs,
+          date: stat.mtime,
+        };
+      })
+    );
 
     // Sort descending by time
     fileDetails.sort((a, b) => b.mtime - a.mtime);
@@ -88,8 +96,8 @@ async function getRecentLogs() {
     // Take the top 15 logs
     const recentLogs = fileDetails.slice(0, 15);
 
-    // Analyze each log
-    return recentLogs.map((log) => analyzeLog(log));
+    // Analyze each log in parallel
+    return Promise.all(recentLogs.map((log) => analyzeLog(log)));
   } catch (e) {
     console.error("Failed to read logs directory:", e);
     return [];
@@ -105,9 +113,9 @@ async function getRecentLogs() {
  * It translates these technical faults into a structured diagnostic object with a plain-English `suggestedFix`.
  *
  * @param {Object} log - The basic file details object (path, name, mtime).
- * @returns {Object} A structured diagnostic object containing the `status` ('CLEAN', 'WARNING', or 'CRASH') and a `suggestedFix`.
+ * @returns {Promise<Object>} A structured diagnostic object containing the `status` ('CLEAN', 'WARNING', or 'CRASH') and a `suggestedFix`.
  */
-function analyzeLog(log) {
+async function analyzeLog(log) {
   const result = {
     ...log,
     status: "CLEAN",
@@ -124,39 +132,36 @@ function analyzeLog(log) {
     return result;
   }
 
+  let handle = null;
   try {
     // Only read the last few KB of the file if it's large, or read entirely if small
-    const stat = fs.statSync(log.path);
+    const stat = await fs.promises.stat(log.path);
     const MAX_BYTES = 50 * 1024; // 50kb
     let startPos = stat.size > MAX_BYTES ? stat.size - MAX_BYTES : 0;
+
+    handle = await fs.promises.open(log.path, "r");
 
     // Find safe UTF-8 boundary: align to next newline after startPos to avoid splitting multi-byte chars
     if (startPos > 0) {
       const probeBuf = Buffer.alloc(Math.min(stat.size - startPos, 256));
-      const probeFd = fs.openSync(log.path, "r");
-      try {
-        fs.readSync(probeFd, probeBuf, 0, probeBuf.length, startPos);
-        const newlineOffset = probeBuf.indexOf(10); // 10 = '\n'
-        if (newlineOffset !== -1) {
-          startPos += newlineOffset + 1;
-        }
-      } finally {
-        fs.closeSync(probeFd);
+      await handle.read(probeBuf, 0, probeBuf.length, startPos);
+      const newlineOffset = probeBuf.indexOf(10); // 10 = '\n'
+      if (newlineOffset !== -1) {
+        startPos += newlineOffset + 1;
       }
     }
 
     const readSize = Math.min(MAX_BYTES, stat.size - startPos);
     const buffer = Buffer.alloc(readSize);
-    const fd = fs.openSync(log.path, "r");
-    let startBuffer;
-    try {
-      fs.readSync(fd, buffer, 0, buffer.length, startPos);
+    await handle.read(buffer, 0, buffer.length, startPos);
 
-      // Also read first 1KB to get start time if file is large
-      startBuffer = Buffer.alloc(Math.min(stat.size, 1024));
-      fs.readSync(fd, startBuffer, 0, startBuffer.length, 0);
-    } finally {
-      fs.closeSync(fd);
+    // Also read first 1KB to get start time if file is large
+    const startBuffer = Buffer.alloc(Math.min(stat.size, 1024));
+    await handle.read(startBuffer, 0, startBuffer.length, 0);
+
+    if (handle) {
+      await handle.close();
+      handle = null;
     }
 
     // Calculate playtime if possible
@@ -346,6 +351,10 @@ function analyzeLog(log) {
   } catch (e) {
     console.error(`Failed to analyze log ${log.name}`, e);
     result.snippet = "Failed to read log file.";
+  } finally {
+    if (handle) {
+      await handle.close();
+    }
   }
 
   return result;

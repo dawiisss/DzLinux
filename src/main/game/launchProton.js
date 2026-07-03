@@ -1,16 +1,18 @@
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
-const { execFile } = require("child_process");
+const fs = require("node:fs");
+const path = require("node:path");
+const os = require("node:os");
+const { execFile } = require("node:child_process");
 const steamworksManager = require("../steamworksManager");
 const { configureDxvk } = require("./configDxvk");
 const { configureMangoHud } = require("./configMangohud");
 const { buildEnvironment } = require("./prepareEnv");
 
-const STEAMWORKS_LAUNCH_LOCK_MS = 1500;
-const STEAMWORKS_LAUNCH_TIMEOUT_MS = 15000;
+let cachedProtonVersions = null;
 
 function scanProtonVersions() {
+  if (cachedProtonVersions !== null) {
+    return [...cachedProtonVersions];
+  }
   const versions = [];
   const searchPaths = [
     path.join(os.homedir(), ".local", "share", "Steam", "compatibilitytools.d"),
@@ -73,11 +75,18 @@ function scanProtonVersions() {
     }
   }
 
+  cachedProtonVersions = unique;
   return unique;
 }
 
 async function launchViaProton(args, settings, handleGameExit) {
   console.log(`Launching DayZ via custom Proton: ${settings.protonPath}`);
+
+  const existsAsync = async (p) =>
+    fs.promises
+      .access(p)
+      .then(() => true)
+      .catch(() => false);
 
   let steamappsPath = "";
   if (settings.modDirectory && settings.modDirectory.includes("steamapps")) {
@@ -91,7 +100,7 @@ async function launchViaProton(args, settings, handleGameExit) {
     ? path.join(steamappsPath, "common", "DayZ", "DayZ_x64.exe")
     : "";
 
-  if (!fs.existsSync(dayzExe)) {
+  if (!(await existsAsync(dayzExe))) {
     console.error(
       "Cannot find DayZ_x64.exe for direct Proton launch. Ensure workshop mod path is correct."
     );
@@ -105,16 +114,16 @@ async function launchViaProton(args, settings, handleGameExit) {
     "steam_appid.txt"
   );
   try {
-    fs.writeFileSync(appidFile, "221100");
+    await fs.promises.writeFile(appidFile, "221100", "utf8");
   } catch (e) {
     console.error("Failed to write steam_appid.txt", e);
   }
 
   const env = buildEnvironment(settings, compatDataPath);
 
-  configureDxvk(settings, compatDataPath, env);
+  await configureDxvk(settings, compatDataPath, env);
 
-  const { restoreMangoConfig } = configureMangoHud(settings);
+  const { restoreMangoConfig } = await configureMangoHud(settings);
 
   const protonArgs = ["waitforexitandrun", dayzExe, ...args];
   const launchArgs = [settings.protonPath, ...protonArgs];
@@ -153,13 +162,7 @@ async function launchViaProton(args, settings, handleGameExit) {
 
     console.log("Executing via execFile with %command% expansion");
 
-    await steamworksManager.lockForLaunch();
-    await new Promise((r) => setTimeout(r, STEAMWORKS_LAUNCH_LOCK_MS));
-
-    setTimeout(() => {
-      steamworksManager.unlockForLaunch();
-      restoreMangoConfig();
-    }, STEAMWORKS_LAUNCH_TIMEOUT_MS);
+    await steamworksManager.lockAndDelayForLaunch(restoreMangoConfig);
 
     const cmd = execArgs[0];
     const argsList = execArgs.slice(1);
@@ -184,13 +187,7 @@ async function launchViaProton(args, settings, handleGameExit) {
 
     console.log(`Executing: ${wrappedArgs.join(" ")}`);
 
-    await steamworksManager.lockForLaunch();
-    await new Promise((r) => setTimeout(r, STEAMWORKS_LAUNCH_LOCK_MS));
-
-    setTimeout(() => {
-      steamworksManager.unlockForLaunch();
-      restoreMangoConfig();
-    }, STEAMWORKS_LAUNCH_TIMEOUT_MS);
+    await steamworksManager.lockAndDelayForLaunch(restoreMangoConfig);
 
     execFile(
       wrappedArgs[0],
@@ -212,4 +209,7 @@ async function launchViaProton(args, settings, handleGameExit) {
 module.exports = {
   scanProtonVersions,
   launchViaProton,
+  _clearCache: () => {
+    cachedProtonVersions = null;
+  },
 };

@@ -4,9 +4,7 @@ const os = require("os");
 
 describe("game", () => {
   describe("sanitizeArg", () => {
-    function sanitizeArg(arg) {
-      return String(arg).replace(/"/g, "");
-    }
+    const { sanitizeArg } = require("../../src/main/game/prepareEnv");
 
     test("removes double quotes", () => {
       expect(sanitizeArg('test"value')).toBe("testvalue");
@@ -45,6 +43,7 @@ describe("game", () => {
         getSubscribedMods: jest.fn(() => Promise.resolve([])),
         lockForLaunch: jest.fn(() => Promise.resolve()),
         unlockForLaunch: jest.fn(),
+        lockAndDelayForLaunch: jest.fn((cb) => { if (cb) cb(); return Promise.resolve(); }),
       }));
     });
 
@@ -125,6 +124,7 @@ describe("game", () => {
         getModState: jest.fn(),
         lockForLaunch: jest.fn(),
         unlockForLaunch: jest.fn(),
+        lockAndDelayForLaunch: jest.fn((cb) => { if (cb) cb(); return Promise.resolve(); }),
       }));
 
       const game = require("../../src/main/game");
@@ -147,6 +147,7 @@ describe("game", () => {
         getModState: jest.fn(),
         lockForLaunch: jest.fn(),
         unlockForLaunch: jest.fn(),
+        lockAndDelayForLaunch: jest.fn((cb) => { if (cb) cb(); return Promise.resolve(); }),
       }));
 
       // Mock child_process to avoid actual system calls
@@ -199,6 +200,7 @@ describe("game", () => {
         getModState: jest.fn(),
         lockForLaunch: jest.fn(() => Promise.resolve()),
         unlockForLaunch: jest.fn(),
+        lockAndDelayForLaunch: jest.fn((cb) => { if (cb) cb(); return Promise.resolve(); }),
       }));
 
       mockGetRecentLogs = jest.fn().mockResolvedValue([]);

@@ -1,5 +1,5 @@
-const path = require("path");
-const { execFile } = require("child_process");
+const path = require("node:path");
+const { execFile } = require("node:child_process");
 const steamPaths = require("../steamPaths");
 
 function sanitizeArg(arg) {

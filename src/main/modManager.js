@@ -1,5 +1,5 @@
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const { shell } = require("electron");
 const settingsManager = require("./settings");
 const axios = require("axios");
@@ -129,7 +129,7 @@ async function getInstalledMods() {
   }
 }
 
-const fsPromises = require("fs").promises;
+const fsPromises = fs.promises;
 
 // Asynchronous iterative folder size calculator
 async function getFolderSize(dirPath) {
@@ -313,4 +313,6 @@ module.exports = {
   deleteMod,
   checkModUpdates,
   checkModUpdatesDetailed,
+  validateModId,
+  safeModPath,
 };

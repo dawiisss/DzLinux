@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const { execFile } = require("child_process");
+const fs = require("node:fs");
+const path = require("node:path");
+const { execFile } = require("node:child_process");
 const settingsManager = require("./settings");
 const steamworksManager = require("./steamworksManager");
 const logParser = require("./logParser");
@@ -53,8 +53,17 @@ async function checkMods(requiredMods) {
     return { missingMods: [], hasAllMods: true };
   }
 
+  const existsAsync = async (p) =>
+    fs.promises
+      .access(p)
+      .then(() => true)
+      .catch(() => false);
+
   const settings = settingsManager.loadSettings();
-  if (!settings.modDirectory || !fs.existsSync(settings.modDirectory)) {
+  const hasModDir = settings.modDirectory
+    ? await existsAsync(settings.modDirectory)
+    : false;
+  if (!hasModDir) {
     return { missingMods: requiredMods, hasAllMods: false };
   }
 
@@ -70,10 +79,13 @@ async function checkMods(requiredMods) {
 
         const modPath = path.join(settings.modDirectory, mod.id);
         let isValidDayZMod = false;
-        if (fs.existsSync(modPath)) {
+        if (await existsAsync(modPath)) {
           const addonsPath = path.join(modPath, "addons");
           const addonsUpperPath = path.join(modPath, "Addons");
-          if (fs.existsSync(addonsPath) || fs.existsSync(addonsUpperPath)) {
+          if (
+            (await existsAsync(addonsPath)) ||
+            (await existsAsync(addonsUpperPath))
+          ) {
             isValidDayZMod = true;
           }
         }
@@ -94,10 +106,10 @@ async function checkMods(requiredMods) {
     const modPath = path.join(settings.modDirectory, mod.id);
     const addonsPath = path.join(modPath, "addons");
     const addonsUpperPath = path.join(modPath, "Addons");
-    if (
-      !fs.existsSync(modPath) ||
-      (!fs.existsSync(addonsPath) && !fs.existsSync(addonsUpperPath))
-    ) {
+    const hasModPath = await existsAsync(modPath);
+    const hasAddons = await existsAsync(addonsPath);
+    const hasAddonsUpper = await existsAsync(addonsUpperPath);
+    if (!hasModPath || (!hasAddons && !hasAddonsUpper)) {
       missingMods.push(mod);
     }
   }
@@ -137,7 +149,13 @@ async function launchDayZ(ip, port, mods) {
 }
 
 function openWorkshopPage(modId) {
-  const url = `steam://url/CommunityFilePage/${modId}`;
+  if (typeof modId !== "string" && typeof modId !== "number") return;
+  const cleanedId = String(modId).trim();
+  if (!/^\d+$/.test(cleanedId)) {
+    console.error("Invalid modId for Workshop page:", modId);
+    return;
+  }
+  const url = `steam://url/CommunityFilePage/${cleanedId}`;
   execFile("xdg-open", [url], (err) => {
     if (err) {
       console.error("Failed to open Workshop URL", err);

@@ -1,6 +1,6 @@
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+const fs = require("node:fs");
+const path = require("node:path");
+const os = require("node:os");
 
 const STEAM_DIR_CANDIDATES = [
   path.join(os.homedir(), ".steam", "steam"),
@@ -16,16 +16,27 @@ const STEAM_DIR_CANDIDATES = [
   ),
 ];
 
+let cachedSteamInstallPath = null;
+let cachedDayzWorkshopFolder = null;
+
 function getSteamInstallPath() {
+  if (cachedSteamInstallPath !== null) {
+    return cachedSteamInstallPath;
+  }
   for (const dir of STEAM_DIR_CANDIDATES) {
     if (fs.existsSync(dir)) {
+      cachedSteamInstallPath = dir;
       return dir;
     }
   }
-  return path.join(os.homedir(), ".local", "share", "Steam"); // Default fallback
+  cachedSteamInstallPath = path.join(os.homedir(), ".local", "share", "Steam"); // Default fallback
+  return cachedSteamInstallPath;
 }
 
 function findDayzWorkshopFolder() {
+  if (cachedDayzWorkshopFolder !== null) {
+    return cachedDayzWorkshopFolder;
+  }
   const steamPath = getSteamInstallPath();
 
   if (steamPath && fs.existsSync(steamPath)) {
@@ -44,6 +55,7 @@ function findDayzWorkshopFolder() {
           "221100",
         );
         if (fs.existsSync(workshopPath)) {
+          cachedDayzWorkshopFolder = workshopPath;
           return workshopPath;
         }
       }
@@ -58,9 +70,11 @@ function findDayzWorkshopFolder() {
       "221100",
     );
     if (fs.existsSync(mainWorkshopPath)) {
+      cachedDayzWorkshopFolder = mainWorkshopPath;
       return mainWorkshopPath;
     }
   }
+  cachedDayzWorkshopFolder = "";
   return "";
 }
 
@@ -86,4 +100,8 @@ module.exports = {
   getSteamInstallPath,
   findDayzWorkshopFolder,
   getDayzLogsCandidatePaths,
+  _clearCache: () => {
+    cachedSteamInstallPath = null;
+    cachedDayzWorkshopFolder = null;
+  },
 };

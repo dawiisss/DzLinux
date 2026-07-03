@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("api", {
   app: {
     getVersion: () => ipcRenderer.invoke("get-version"),
+    openLogFile: () => ipcRenderer.invoke("open-log-file"),
   },
 
   settings: {

@@ -48,11 +48,10 @@ export async function loadDiagnostics() {
 
       const card = document.createElement("div");
       card.style.border = "1px solid var(--border)";
-      card.style.borderLeft = `3px solid ${borderColor}`;
-      card.style.background = "rgba(0,0,0,0.4)";
+      card.style.background = "var(--bg-card)";
       card.style.padding = "20px";
       card.classList.add("flex", "flex-col", "gap-4");
-      card.style.boxShadow = "0 10px 30px rgba(0,0,0,0.3)";
+      card.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.05)";
       card.style.borderRadius = "8px";
       card.style.position = "relative";
 
@@ -68,7 +67,7 @@ export async function loadDiagnostics() {
 
       const titleDate = document.createElement("div");
       const titleStrong = document.createElement("strong");
-      titleStrong.style.color = "#fff";
+      titleStrong.style.color = "var(--text-main)";
       titleStrong.style.fontFamily = "'Share Tech Mono', monospace";
       titleStrong.style.fontSize = "1.1rem";
       titleStrong.style.letterSpacing = "1px";
@@ -111,7 +110,7 @@ export async function loadDiagnostics() {
       playtimeLabel.style.color = "var(--text-muted)";
       playtimeLabel.textContent = "PLAYTIME:";
       const playtimeValue = document.createElement("span");
-      playtimeValue.style.color = "#fff";
+      playtimeValue.style.color = "var(--text-main)";
       playtimeValue.style.fontWeight = "bold";
       playtimeValue.style.fontSize = "1rem";
       playtimeValue.textContent = String(log.playtime || "N/A");
@@ -126,7 +125,7 @@ export async function loadDiagnostics() {
       dropsLabel.style.color = "var(--text-muted)";
       dropsLabel.textContent = "CONNECTION DROPS:";
       const dropsValue = document.createElement("span");
-      dropsValue.style.color = "#fff";
+      dropsValue.style.color = "var(--text-main)";
       dropsValue.style.fontWeight = "bold";
       dropsValue.style.fontSize = "1rem";
       dropsValue.textContent = String(log.connectionDrops || 0);
@@ -146,10 +145,10 @@ export async function loadDiagnostics() {
           : "var(--accent)";
       snippetDiv.textContent =
         log.snippet || "> SYSTEM LOG NORMAL. NO ANOMALIES DETECTED.";
-      snippetDiv.style.background = "#000";
+      snippetDiv.style.background = "var(--bg-deep)";
       snippetDiv.style.padding = "15px";
-      snippetDiv.style.border = "1px solid rgba(255,255,255,0.08)";
-      snippetDiv.style.boxShadow = "inset 0 0 10px rgba(0,0,0,0.8)";
+      snippetDiv.style.border = "1px solid var(--border)";
+      snippetDiv.style.boxShadow = "inset 0 0 10px rgba(0,0,0,0.2)";
       snippetDiv.style.whiteSpace = "pre-wrap";
 
       card.appendChild(headerRow);
@@ -208,7 +207,7 @@ export async function loadDiagnostics() {
         navigator.clipboard
           .writeText(text)
           .then(() => {
-            showToast("LOG SNIPPET COPIED TO CLIPBOARD", "#2ec4b6", "📋");
+            showToast("Log snippet copied to clipboard", "#2ec4b6", "📋");
           })
           .catch(() => {});
       });

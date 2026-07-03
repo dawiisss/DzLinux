@@ -57,7 +57,7 @@ export function initContextMenu() {
       menu.appendChild(item);
     };
 
-    addMenuItem("QUICK CONNECT", PLUG_SVG, () => {
+    addMenuItem("Quick Connect", PLUG_SVG, () => {
       import("./serverBrowser.js").then(({ connectToServer }) =>
         connectToServer(server.ip, server.port),
       );
@@ -65,7 +65,7 @@ export function initContextMenu() {
 
     const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
     addMenuItem(
-      isFav ? "REMOVE FAVORITE" : "ADD FAVORITE",
+      isFav ? "Remove Favorite" : "Add Favorite",
       isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG,
       async () => {
         if (isFav) {
@@ -101,14 +101,14 @@ export function initContextMenu() {
     divider.className = "context-menu-divider";
     menu.appendChild(divider);
 
-    addMenuItem("WATCH SERVER", EYE_SVG, async () => {
+    addMenuItem("Watch Server", EYE_SVG, async () => {
       const watchlist = await window.api.watchlist.load();
       if (
         watchlist.some(
           (item) => item.ip === server.ip && item.port === server.port,
         )
       ) {
-        showToast("ALREADY ON WATCHLIST", "var(--accent)", INFO_SVG);
+        showToast("Already on watchlist", "var(--accent)", INFO_SVG);
         return;
       }
       watchlist.push({
@@ -122,10 +122,10 @@ export function initContextMenu() {
         lastStatus: "idle",
       });
       await window.api.watchlist.save(watchlist);
-      showToast(`WATCHING: ${server.name}`, "var(--accent-green)", EYE_SVG);
+      showToast(`Watching: ${server.name}`, "var(--accent-green)", EYE_SVG);
     });
 
-    addMenuItem("COPY ADDRESS", COPY_SVG, () =>
+    addMenuItem("Copy Address", COPY_SVG, () =>
       copyToClipboard(`${server.ip}:${server.port}`),
     );
 
