@@ -10,8 +10,8 @@ Only the latest active major and minor releases are actively supported with secu
 
 | Version | Supported |
 | ------- | --------- |
-| 1.3.x   | Yes       |
-| < 1.2.0 | No        |
+| 1.4.x   | Yes       |
+| < 1.3.x | No        |
 
 Please upgrade to the latest version immediately to ensure you have the latest security fixes.
 
