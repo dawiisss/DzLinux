@@ -228,7 +228,7 @@ export async function initSettings() {
     .getElementById("resetSettingsBtn")
     .addEventListener("click", async () => {
       const confirmed = await showConfirmModal(
-        "RESET ALL SETTINGS TO FACTORY DEFAULTS? THIS ACTION CANNOT BE UNDONE.",
+        "Reset all Settings to Factory Defaults? This action CANNOT be undone.",
       );
       if (!confirmed) return;
 

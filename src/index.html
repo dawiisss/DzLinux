@@ -2,9 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self';"
+    />
     <title>DayZ Linux Server Browser</title>
-    <!-- Google Fonts for Tactical HUD look -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap"
       rel="stylesheet"
@@ -25,16 +27,29 @@
           aria-label="Check for Updates"
           title="Check for Updates"
         >
-          <app-icon name="download-cloud" id="updateBtnIcon" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="download-cloud"
+            id="updateBtnIcon"
+            style="width: 1.1rem; height: 1.1rem; vertical-align: middle"
+            stroke-width="2.2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </button>
         <button
           id="aboutBtn"
           class="titlebar-btn"
           aria-label="About DzLinux"
           title="About DzLinux"
-          
         >
-          <app-icon name="info" id="aboutBtnIcon" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="info"
+            id="aboutBtnIcon"
+            style="width: 1.1rem; height: 1.1rem; vertical-align: middle"
+            stroke-width="2.2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </button>
         <button
           class="titlebar-btn"
@@ -42,7 +57,13 @@
           title="Minimize Window"
           id="winMinBtn"
         >
-          <app-icon name="minus" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="minus"
+            style="width: 0.9rem; height: 0.9rem; vertical-align: middle"
+            stroke-width="2.2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </button>
         <button
           class="titlebar-btn"
@@ -50,7 +71,13 @@
           title="Maximize Window"
           id="winMaxBtn"
         >
-          <app-icon name="square" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="square"
+            style="width: 0.9rem; height: 0.9rem; vertical-align: middle"
+            stroke-width="2.2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </button>
         <button
           class="titlebar-btn close"
@@ -58,7 +85,13 @@
           title="Close Window"
           id="winCloseBtn"
         >
-          <app-icon name="x" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2.2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="x"
+            style="width: 0.9rem; height: 0.9rem; vertical-align: middle"
+            stroke-width="2.2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </button>
       </div>
     </div>
@@ -70,38 +103,99 @@
         <div class="logo-text">DZLinux</div>
       </div>
       <div class="sidebar-tabs">
-        <button id="sidebar-tab-browser" class="active" aria-label="Server Browser Tab">
-          <app-icon name="globe" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+        <button
+          id="sidebar-tab-browser"
+          class="active"
+          aria-label="Server Browser Tab"
+        >
+          <app-icon
+            name="globe"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
           <span>Server Browser</span>
         </button>
         <button id="sidebar-tab-mods" aria-label="Mod Manager Tab">
-          <app-icon name="cube" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="cube"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
           <span>Mod Manager</span>
         </button>
         <button id="sidebar-tab-favorites" aria-label="Favorites Tab">
-          <app-icon name="star" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="star"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
           <span>Favorites</span>
         </button>
         <button id="sidebar-tab-watchlist" aria-label="Watchlist Tab">
-          <app-icon name="eye" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="eye"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
           <span>Watchlist</span>
         </button>
         <button id="sidebar-tab-diagnostics" aria-label="Diagnostics Tab">
-          <app-icon name="wrench" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="wrench"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
           <span>Diagnostics</span>
         </button>
         <button id="sidebar-tab-settings" aria-label="Settings Tab">
-          <app-icon name="settings" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <app-icon
+            name="settings"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
           <span>Settings</span>
         </button>
       </div>
-      <div id="sidebarSteamProfile" class="sidebar-profile" style="display: none;">
-        <span class="steam-profile-icon" style="display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
-          <app-icon name="globe" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+      <div
+        id="sidebarSteamProfile"
+        class="sidebar-profile"
+        style="display: none"
+      >
+        <span
+          class="steam-profile-icon"
+          style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+          "
+        >
+          <app-icon
+            name="globe"
+            style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </span>
         <span id="sidebarSteamUsername" class="steam-profile-name"></span>
-        <button id="sidebar-toggle" class="sidebar-toggle" title="Toggle sidebar">
-          <app-icon name="columns" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+        <button
+          id="sidebar-toggle"
+          class="sidebar-toggle"
+          title="Toggle sidebar"
+        >
+          <app-icon
+            name="columns"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </button>
       </div>
     </nav>
@@ -110,60 +204,43 @@
       <div class="logo-container">
         <div class="logo-icon"></div>
         <div class="logo-text">DZLinux</div>
-        <div class="logo-badge"><span class="app-version-text"></span></div>
+        <div class="logo-badge">
+          <span class="app-version-text"></span>
+        </div>
       </div>
 
       <div id="tabs">
-        <button
-          id="tab-browser"
-          class="active"
-          aria-label="Server Browser Tab"
-          
-        >
+        <button id="tab-browser" class="active" aria-label="Server Browser Tab">
           Server Browser
         </button>
-        <button
-          id="tab-mods"
-          aria-label="Mod Manager Tab"
-          
-        >
-          Mod Manager
-        </button>
-        <button
-          id="tab-favorites"
-          aria-label="Favorites Tab"
-          
-        >
-          Favorites
-        </button>
-        <button
-          id="tab-watchlist"
-          aria-label="Watchlist Tab"
-          
-        >
-          Watchlist
-        </button>
-        <button
-          id="tab-diagnostics"
-          aria-label="Diagnostics Tab"
-          
-        >
+        <button id="tab-mods" aria-label="Mod Manager Tab">Mod Manager</button>
+        <button id="tab-favorites" aria-label="Favorites Tab">Favorites</button>
+        <button id="tab-watchlist" aria-label="Watchlist Tab">Watchlist</button>
+        <button id="tab-diagnostics" aria-label="Diagnostics Tab">
           Diagnostics
         </button>
-        <button
-          id="tab-settings"
-          aria-label="Settings Tab"
-          
-        >
-          Settings
-        </button>
+        <button id="tab-settings" aria-label="Settings Tab">Settings</button>
       </div>
 
       <div id="steamProfile">
         <span class="steam-profile-label">ACTIVE LINK:</span>
         <span id="steamUsername" class="steam-profile-name"></span>
-        <span class="steam-profile-icon" style="display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;">
-          <app-icon name="globe" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+        <span
+          class="steam-profile-icon"
+          style="
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+          "
+        >
+          <app-icon
+            name="globe"
+            style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
         </span>
       </div>
     </header>
@@ -183,26 +260,57 @@
           </div>
 
           <div class="refresh-group flex gap-2 items-center">
-            <button class="btn" id="directConnectOpenBtn" style="display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="play" style="width: 1rem; height: 1rem;" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+            <button
+              class="btn"
+              id="directConnectOpenBtn"
+              style="display: inline-flex; align-items: center; gap: 8px"
+            >
+              <app-icon
+                name="play"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="currentColor"
+                stroke="currentColor"
+              ></app-icon>
               DIRECT JOIN
             </button>
             <button
               aria-label="Toggle Filter Menu"
               id="toggleFiltersBtn"
               class="btn btn-outline"
-              style="padding: 12px 18px; display: inline-flex; align-items: center; justify-content: center;"
-              
+              style="
+                padding: 12px 18px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+              "
               title="Toggle Filter Menu"
             >
-              <app-icon name="settings" style="width: 1.1rem; height: 1.1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="settings"
+                style="width: 1.1rem; height: 1.1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
             </button>
             <button
               id="refreshServersBtn"
               class="btn btn-outline"
-              style="padding: 12px 18px; display: inline-flex; align-items: center; gap: 8px;"
+              style="
+                padding: 12px 18px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              "
             >
-              <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="refresh"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               REFRESH
             </button>
             <span
@@ -218,52 +326,18 @@
         <div id="filterOptionsBar" class="filter-options-bar">
           <div class="filter-group">
             <span class="filter-label">PERSPECTIVE:</span>
-            <button
-              class="filter-pill active"
-              id="filter-persp-all"
-              
-            >
+            <button class="filter-pill active" id="filter-persp-all">
               ALL
             </button>
-            <button
-              class="filter-pill"
-              id="filter-persp-1pp"
-              
-            >
-              1PP
-            </button>
-            <button
-              class="filter-pill"
-              id="filter-persp-3pp"
-              
-            >
-              3PP
-            </button>
+            <button class="filter-pill" id="filter-persp-1pp">1PP</button>
+            <button class="filter-pill" id="filter-persp-3pp">3PP</button>
           </div>
 
           <div class="filter-group">
             <span class="filter-label">CATEGORY:</span>
-            <button
-              class="filter-pill active"
-              id="filter-cat-all"
-              
-            >
-              ALL
-            </button>
-            <button
-              class="filter-pill"
-              id="filter-cat-vanilla"
-              
-            >
-              VANILLA
-            </button>
-            <button
-              class="filter-pill"
-              id="filter-cat-modded"
-              
-            >
-              MODDED
-            </button>
+            <button class="filter-pill active" id="filter-cat-all">ALL</button>
+            <button class="filter-pill" id="filter-cat-vanilla">VANILLA</button>
+            <button class="filter-pill" id="filter-cat-modded">MODDED</button>
           </div>
 
           <div class="filter-group">
@@ -272,10 +346,15 @@
               <button
                 class="filter-pill multiselect-trigger"
                 id="ms-trigger-map"
-                
-                style="display: inline-flex; align-items: center; gap: 6px;"
+                style="display: inline-flex; align-items: center; gap: 6px"
               >
-                <app-icon name="map" style="width: 0.95rem; height: 0.95rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                <app-icon
+                  name="map"
+                  style="width: 0.95rem; height: 0.95rem"
+                  stroke-width="2"
+                  fill="none"
+                  stroke="currentColor"
+                ></app-icon>
                 ALL MAPS ▾
               </button>
               <div
@@ -284,92 +363,40 @@
                 style="display: none"
               >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="chernarus"
-                    
-                  />
+                  ><input type="checkbox" data-map="chernarus" />
                   Chernarus</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="livonia"
-                    
-                  />
-                  Livonia</label
+                  ><input type="checkbox" data-map="livonia" /> Livonia</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="namalsk"
-                    
-                  />
-                  Namalsk</label
+                  ><input type="checkbox" data-map="namalsk" /> Namalsk</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="sakhal"
-                    
-                  />
-                  Sakhal</label
+                  ><input type="checkbox" data-map="sakhal" /> Sakhal</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="deerisle"
-                    
-                  />
-                  Deer Isle</label
+                  ><input type="checkbox" data-map="deerisle" /> Deer
+                  Isle</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="esseker"
-                    
-                  />
-                  Esseker</label
+                  ><input type="checkbox" data-map="esseker" /> Esseker</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="takistan"
-                    
-                  />
-                  Takistan</label
+                  ><input type="checkbox" data-map="takistan" /> Takistan</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="banov"
-                    
-                  />
-                  Banov</label
+                  ><input type="checkbox" data-map="banov" /> Banov</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="chiemsee"
-                    
-                  />
-                  Chiemsee</label
+                  ><input type="checkbox" data-map="chiemsee" /> Chiemsee</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="deadcity"
-                    
-                  />
-                  DeadCity</label
+                  ><input type="checkbox" data-map="deadcity" /> DeadCity</label
                 >
                 <label class="ms-item"
-                  ><input
-                    type="checkbox"
-                    data-map="other"
-                    
-                  />
-                  Other / Unknown</label
+                  ><input type="checkbox" data-map="other" /> Other /
+                  Unknown</label
                 >
               </div>
             </div>
@@ -399,18 +426,30 @@
               class="filter-pill"
               id="filter-fav-only"
               aria-pressed="false"
-              style="display: inline-flex; align-items: center; gap: 6px;"
+              style="display: inline-flex; align-items: center; gap: 6px"
             >
-              <app-icon name="star" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="star"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               FAVORITES ONLY
             </button>
             <button
               class="filter-pill"
               id="filter-history"
               aria-pressed="false"
-              style="display: inline-flex; align-items: center; gap: 6px;"
+              style="display: inline-flex; align-items: center; gap: 6px"
             >
-              <app-icon name="clock" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="clock"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               RECENTLY PLAYED
             </button>
           </div>
@@ -450,21 +489,31 @@
             font-family: &quot;Share Tech Mono&quot;, monospace;
           "
         >
-          <span style="display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="alert" style="width: 1.1rem; height: 1.1rem; flex-shrink: 0;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
-            CONNECTION LOST — SERVER LIST MAY BE STALE. CHECK YOUR NETWORK CONNECTION.
+          <span style="display: inline-flex; align-items: center; gap: 8px">
+            <app-icon
+              name="alert"
+              style="width: 1.1rem; height: 1.1rem; flex-shrink: 0"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
+            CONNECTION LOST — SERVER LIST MAY BE STALE. CHECK YOUR NETWORK
+            CONNECTION.
           </span>
         </div>
         <!-- Stats Bar -->
         <div class="stats-bar" id="statsBar">
           <div class="stat-item">
-            SERVERS: <span class="stat-value" id="statTotalServers">0</span>
+            SERVERS:
+            <span class="stat-value" id="statTotalServers">0</span>
           </div>
           <div class="stat-item">
-            PLAYERS: <span class="stat-value" id="statTotalPlayers">0</span>
+            PLAYERS:
+            <span class="stat-value" id="statTotalPlayers">0</span>
           </div>
           <div class="stat-item">
-            FILTERED: <span class="stat-value" id="statFilteredServers">0</span>
+            FILTERED:
+            <span class="stat-value" id="statFilteredServers">0</span>
           </div>
         </div>
 
@@ -475,47 +524,43 @@
               <thead>
                 <tr>
                   <th style="width: 50px; text-align: center">
-                    <app-icon name="star" style="width: 0.95rem; height: 0.95rem; vertical-align: middle; color: var(--text-muted);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                    <app-icon
+                      name="star"
+                      style="
+                        width: 0.95rem;
+                        height: 0.95rem;
+                        vertical-align: middle;
+                        color: var(--text-muted);
+                      "
+                      stroke-width="2"
+                      fill="none"
+                      stroke="currentColor"
+                    ></app-icon>
                   </th>
-                  <th
-                    class="sortable"
-                    id="th-name"
-                    
-                  >
-                    Server Name <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-name">
+                    Server Name
+                    <span class="sort-indicator"></span>
                   </th>
-                  <th
-                    class="sortable"
-                    id="th-players"
-                    style="width: 110px"
-                    
-                  >
-                    Players <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-players" style="width: 110px">
+                    Players
+                    <span class="sort-indicator"></span>
                   </th>
                   <th
                     class="sortable"
                     id="th-mods"
                     style="width: 80px; text-align: center"
-                    
                   >
-                    Mods <span class="sort-indicator"></span>
+                    Mods
+                    <span class="sort-indicator"></span>
                   </th>
-                  <th
-                    class="sortable"
-                    id="th-ping"
-                    style="width: 80px"
-                    
-                  >
-                    Ping <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-ping" style="width: 80px">
+                    Ping
+                    <span class="sort-indicator"></span>
                   </th>
                   <th style="width: 250px">Metadata</th>
-                  <th
-                    class="sortable"
-                    id="th-ip"
-                    style="width: 220px"
-                    
-                  >
-                    IP Address <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-ip" style="width: 220px">
+                    IP Address
+                    <span class="sort-indicator"></span>
                   </th>
                   <th style="width: 170px; text-align: right">HUD Link</th>
                 </tr>
@@ -654,17 +699,41 @@
             <button
               id="refreshModsBtn"
               class="btn btn-outline"
-              style="padding: 8px 15px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;"
+              style="
+                padding: 8px 15px;
+                font-size: 0.85rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
             >
-              <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="refresh"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               RE-SCAN LOCAL STORAGE
             </button>
             <button
               id="checkDepsBtn"
               class="btn btn-outline"
-              style="padding: 8px 15px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;"
+              style="
+                padding: 8px 15px;
+                font-size: 0.85rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
             >
-              <app-icon name="git-branch" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="git-branch"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               CHECK DEPENDENCIES
             </button>
           </div>
@@ -688,7 +757,13 @@
             class="flex justify-between text-xs font-bold text-muted uppercase mb-2"
           >
             <span class="flex items-center gap-2">
-              <app-icon name="columns" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="columns"
+                style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               STORAGE ALLOCATION TELEMETRY
             </span>
             <span
@@ -832,7 +907,13 @@
               <thead>
                 <tr>
                   <th style="width: 40px; text-align: center">
-                    <app-icon name="check" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                    <app-icon
+                      name="check"
+                      style="width: 1rem; height: 1rem"
+                      stroke-width="2"
+                      fill="none"
+                      stroke="currentColor"
+                    ></app-icon>
                   </th>
                   <th>Modification Name</th>
                   <th style="width: 160px">Workshop ID</th>
@@ -886,7 +967,13 @@
                 gap: 5px;
               "
             >
-              <app-icon name="wrench" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="wrench"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               LOADOUTS
             </span>
             <select
@@ -917,9 +1004,21 @@
             <button
               id="saveLoadoutBtn"
               class="btn btn-outline"
-              style="padding: 6px 12px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px;"
+              style="
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
             >
-              <app-icon name="save" style="width: 0.9rem; height: 0.9rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="save"
+                style="width: 0.9rem; height: 0.9rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               SAVE
             </button>
             <button
@@ -937,15 +1036,34 @@
                 justify-content: center;
               "
             >
-              <app-icon name="trash" style="width: 0.9rem; height: 0.9rem; vertical-align: middle;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="trash"
+                style="width: 0.9rem; height: 0.9rem; vertical-align: middle"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
             </button>
           </div>
           <button
             id="quickLaunchBtn"
             class="btn btn-primary"
-            style="padding: 8px 15px; font-size: 0.85rem; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;"
+            style="
+              padding: 8px 15px;
+              font-size: 0.85rem;
+              white-space: nowrap;
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+            "
           >
-            <app-icon name="play" style="width: 1rem; height: 1rem;" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+            <app-icon
+              name="play"
+              style="width: 1rem; height: 1rem"
+              stroke-width="2"
+              fill="currentColor"
+              stroke="currentColor"
+            ></app-icon>
             QUICK LAUNCH
           </button>
         </div>
@@ -979,15 +1097,33 @@
               gap: 8px;
             "
           >
-            <app-icon name="eye" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <app-icon
+              name="eye"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             Server Watchlist
           </h1>
           <button
             id="refreshWatchlistBtn"
             class="btn btn-outline"
-            style="padding: 8px 15px; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;"
+            style="
+              padding: 8px 15px;
+              font-size: 0.85rem;
+              display: inline-flex;
+              align-items: center;
+              gap: 6px;
+            "
           >
-            <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <app-icon
+              name="refresh"
+              style="width: 1rem; height: 1rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             REFRESH
           </button>
         </div>
@@ -1027,7 +1163,8 @@
           style="margin-bottom: 15px"
         >
           <div class="stat-item">
-            SESSIONS: <span class="stat-value" id="teleTotalSessions">—</span>
+            SESSIONS:
+            <span class="stat-value" id="teleTotalSessions">—</span>
           </div>
           <div class="stat-item">
             TOTAL PLAYTIME:
@@ -1038,13 +1175,16 @@
             <span class="stat-value" id="teleAvgSession">—</span>
           </div>
           <div class="stat-item">
-            CRASHES: <span class="stat-value" id="teleTotalCrashes">—</span>
+            CRASHES:
+            <span class="stat-value" id="teleTotalCrashes">—</span>
           </div>
           <div class="stat-item">
-            WARNINGS: <span class="stat-value" id="teleTotalWarnings">—</span>
+            WARNINGS:
+            <span class="stat-value" id="teleTotalWarnings">—</span>
           </div>
           <div class="stat-item">
-            DROPS: <span class="stat-value" id="teleTotalDrops">—</span>
+            DROPS:
+            <span class="stat-value" id="teleTotalDrops">—</span>
           </div>
         </div>
         <div
@@ -1081,17 +1221,42 @@
               margin-bottom: 20px;
             "
           >
-            <h2 style="margin: 0; color: var(--accent); display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="star" style="width: 1.2rem; height: 1.2rem; color: #ff9f1c;" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+            <h2
+              style="
+                margin: 0;
+                color: var(--accent);
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <app-icon
+                name="star"
+                style="width: 1.2rem; height: 1.2rem; color: #ff9f1c"
+                stroke-width="2"
+                fill="currentColor"
+                stroke="currentColor"
+              ></app-icon>
               FAVORITES MANAGER
             </h2>
             <div style="display: flex; gap: 10px; align-items: center">
               <button
                 id="refreshFavPingsBtn"
                 class="btn btn-outline"
-                style="padding: 12px 15px; display: inline-flex; align-items: center; gap: 8px;"
+                style="
+                  padding: 12px 15px;
+                  display: inline-flex;
+                  align-items: center;
+                  gap: 8px;
+                "
               >
-                <app-icon name="refresh" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                <app-icon
+                  name="refresh"
+                  style="width: 1rem; height: 1rem"
+                  stroke-width="2"
+                  fill="none"
+                  stroke="currentColor"
+                ></app-icon>
                 REFRESH
               </button>
               <div
@@ -1126,8 +1291,18 @@
                   style="max-width: 100px; padding: 12px 15px"
                   placeholder="PORT..."
                 />
-                <button id="addFavBtn" class="btn" style="display: inline-flex; align-items: center; gap: 6px;">
-                  <app-icon name="plus" style="width: 0.9rem; height: 0.9rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                <button
+                  id="addFavBtn"
+                  class="btn"
+                  style="display: inline-flex; align-items: center; gap: 6px"
+                >
+                  <app-icon
+                    name="plus"
+                    style="width: 0.9rem; height: 0.9rem"
+                    stroke-width="2"
+                    fill="none"
+                    stroke="currentColor"
+                  ></app-icon>
                   ADD
                 </button>
               </div>
@@ -1138,7 +1313,18 @@
             <thead>
               <tr>
                 <th style="width: 50px; text-align: center">
-                  <app-icon name="star" style="width: 0.95rem; height: 0.95rem; vertical-align: middle; color: var(--text-muted);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                  <app-icon
+                    name="star"
+                    style="
+                      width: 0.95rem;
+                      height: 0.95rem;
+                      vertical-align: middle;
+                      color: var(--text-muted);
+                    "
+                    stroke-width="2"
+                    fill="none"
+                    stroke="currentColor"
+                  ></app-icon>
                 </th>
                 <th>Server Name</th>
                 <th style="width: 110px">Players</th>
@@ -1169,21 +1355,57 @@
             margin-bottom: 20px;
           "
         >
-          <h2 style="margin: 0; color: var(--accent); display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="settings" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <h2
+            style="
+              margin: 0;
+              color: var(--accent);
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+            "
+          >
+            <app-icon
+              name="settings"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             SETTINGS
           </h2>
           <div style="display: flex; gap: 12px">
             <button
               id="resetSettingsBtn"
               class="btn btn-outline"
-              style="color: #ff5a5f; border-color: #ff5a5f; display: inline-flex; align-items: center; gap: 6px;"
+              style="
+                color: #ff5a5f;
+                border-color: #ff5a5f;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+              "
             >
-              <app-icon name="alert" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+              <app-icon
+                name="alert"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               RESET TO DEFAULTS
             </button>
-            <button id="saveSettingsBtn" class="btn" style="display: inline-flex; align-items: center; gap: 6px;">
-              <app-icon name="save" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <button
+              id="saveSettingsBtn"
+              class="btn"
+              style="display: inline-flex; align-items: center; gap: 6px"
+            >
+              <app-icon
+                name="save"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               SAVE SETTINGS
             </button>
           </div>
@@ -1192,8 +1414,14 @@
         <div class="settings-grid" style="grid-template-columns: 1fr 1fr 1fr">
           <!-- Appearance Card -->
           <div class="settings-card" style="grid-column: 1; grid-row: 1">
-            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="palette" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px">
+              <app-icon
+                name="palette"
+                style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               APPEARANCE & AUDIO
             </h3>
             <div class="form-group">
@@ -1206,7 +1434,9 @@
                 <option value="deep-sea">Deep Sea (Sub Blue)</option>
                 <option value="vampire">Vampire (Crimson Blood)</option>
                 <option value="frost-light">Frostbite (Light Ice Blue)</option>
-                <option value="solar-light">Solar Sand (Light Warm Gold)</option>
+                <option value="solar-light">
+                  Solar Sand (Light Warm Gold)
+                </option>
                 <option value="cyber-neon">Cyberpunk (Neon Pink/Cyan)</option>
                 <option value="forest-moss">Forest Moss (Deep Green)</option>
               </select>
@@ -1253,18 +1483,26 @@
               "
             >
               <label style="display: flex; align-items: center; gap: 10px"
-                ><input type="checkbox" id="showWatchlistTab" /> Show Watchlist Tab</label
+                ><input type="checkbox" id="showWatchlistTab" /> Show Watchlist
+                Tab</label
               >
               <label style="display: flex; align-items: center; gap: 10px"
-                ><input type="checkbox" id="showDiagnosticsTab" /> Show Diagnostics Tab</label
+                ><input type="checkbox" id="showDiagnosticsTab" /> Show
+                Diagnostics Tab</label
               >
             </div>
           </div>
 
           <!-- Mod Card -->
           <div class="settings-card" style="grid-column: 2; grid-row: 1">
-            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="folder" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px">
+              <app-icon
+                name="folder"
+                style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               STORAGE DIRECTORIES
             </h3>
             <div class="form-group">
@@ -1285,8 +1523,14 @@
 
           <!-- Network Card -->
           <div class="settings-card" style="grid-column: 1; grid-row: 2">
-            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="globe" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px">
+              <app-icon
+                name="globe"
+                style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               NETWORK POLLING
             </h3>
             <div style="display: flex; gap: 20px; align-items: stretch">
@@ -1378,8 +1622,14 @@
 
           <!-- Launch Card -->
           <div class="settings-card" style="grid-column: 2; grid-row: 2">
-            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="play" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="currentColor" stroke="currentColor"></app-icon>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px">
+              <app-icon
+                name="play"
+                style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+                stroke-width="2"
+                fill="currentColor"
+                stroke="currentColor"
+              ></app-icon>
               LAUNCH PRESETS
             </h3>
             <div class="form-group">
@@ -1405,7 +1655,13 @@
                     gap: 6px;
                   "
                 >
-                  <app-icon name="search" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+                  <app-icon
+                    name="search"
+                    style="width: 1rem; height: 1rem"
+                    stroke-width="2"
+                    fill="none"
+                    stroke="currentColor"
+                  ></app-icon>
                   TEST
                 </button>
               </div>
@@ -1476,8 +1732,14 @@
             class="settings-card"
             style="grid-column: 3; grid-row: 1 / span 2"
           >
-            <h3 style="display: inline-flex; align-items: center; gap: 8px;">
-              <app-icon name="settings" style="width: 1.1rem; height: 1.1rem; color: var(--accent);" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+            <h3 style="display: inline-flex; align-items: center; gap: 8px">
+              <app-icon
+                name="settings"
+                style="width: 1.1rem; height: 1.1rem; color: var(--accent)"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
               PERFORMANCE TUNING
             </h3>
             <div
@@ -1498,8 +1760,8 @@
                 PROTON_LOG (Saves I/O overhead)</label
               >
               <label style="display: flex; align-items: center; gap: 10px">
-                <input type="checkbox" id="enableGameMode" /> Use GameMode
-                (gamemoderun)
+                <input type="checkbox" id="enableGameMode" />
+                Use GameMode (gamemoderun)
                 <span
                   style="
                     font-size: 0.7rem;
@@ -1633,8 +1895,14 @@
     <div id="modModal" class="modal-overlay" style="display: none">
       <div class="modal-box">
         <div class="modal-header">
-          <h2 style="display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="cube" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <h2 style="display: inline-flex; align-items: center; gap: 8px">
+            <app-icon
+              name="cube"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             SERVER MODS CHECKLIST & DISPATCH
           </h2>
         </div>
@@ -1659,8 +1927,18 @@
           <button id="modalCancelBtn" class="btn btn-outline">
             ABORT MISSION
           </button>
-          <button id="modalAutoDownloadBtn" class="btn" style="display: none; align-items: center; gap: 8px;">
-            <app-icon name="download" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <button
+            id="modalAutoDownloadBtn"
+            class="btn"
+            style="display: none; align-items: center; gap: 8px"
+          >
+            <app-icon
+              name="download"
+              style="width: 1rem; height: 1rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             SYNC OUT-OF-DATE MODS
           </button>
         </div>
@@ -1674,8 +1952,21 @@
         style="border-color: var(--accent); max-width: 450px"
       >
         <div class="modal-header">
-          <h2 style="color: var(--accent); display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="cube" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <h2
+            style="
+              color: var(--accent);
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+            "
+          >
+            <app-icon
+              name="cube"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             DIRECT JOIN
           </h2>
         </div>
@@ -1710,13 +2001,7 @@
           <button id="directConnectCancelBtn" class="btn btn-outline">
             CANCEL
           </button>
-          <button
-            id="directConnectBtn"
-            class="btn"
-            
-          >
-            CONNECT NOW
-          </button>
+          <button id="directConnectBtn" class="btn">CONNECT NOW</button>
         </div>
       </div>
     </div>
@@ -1725,8 +2010,21 @@
     <div id="updateModal" class="modal-overlay" style="display: none">
       <div class="modal-box" style="border-color: var(--accent)">
         <div class="modal-header" style="background: rgba(46, 196, 182, 0.1)">
-          <h2 style="color: var(--accent); display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="download-cloud" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <h2
+            style="
+              color: var(--accent);
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+            "
+          >
+            <app-icon
+              name="download-cloud"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             UPDATE AVAILABLE
           </h2>
         </div>
@@ -1803,8 +2101,14 @@
     <div id="confirmModal" class="modal-overlay" style="display: none">
       <div class="modal-box" style="max-width: 480px">
         <div class="modal-header">
-          <h2 style="display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="info" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <h2 style="display: inline-flex; align-items: center; gap: 8px">
+            <app-icon
+              name="info"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             CONFIRM ACTION
           </h2>
         </div>
@@ -1839,7 +2143,17 @@
             ><br />
             A high-performance, native DayZ Server Browser and Mod Manager built
             specifically for the Linux gaming ecosystem.<br /><br />
-            Visit the project at: <span class="external-link" data-url="https://github.com/dawiisss/DzLinux" style="color: var(--accent); cursor: pointer; text-decoration: underline;">GitHub Repository</span>
+            Visit the project at:
+            <span
+              class="external-link"
+              data-url="https://github.com/dawiisss/DzLinux"
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >GitHub Repository</span
+            >
             <br />
             <span
               id="openLogFileLink"
@@ -1848,8 +2162,15 @@
                 cursor: pointer;
                 text-decoration: underline;
               "
-            ><app-icon name="clipboard" style="width: 0.85rem; height: 0.85rem; vertical-align: -2px;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
-              View application logs</span>
+              ><app-icon
+                name="clipboard"
+                style="width: 0.85rem; height: 0.85rem; vertical-align: -2px"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
+              View application logs</span
+            >
           </p>
           <h3
             style="
@@ -1881,39 +2202,59 @@
             "
           >
             <strong>electron</strong> (MIT) -
-            <span class="external-link" data-url="https://github.com/electron/electron" style="
+            <span
+              class="external-link"
+              data-url="https://github.com/electron/electron"
+              style="
                 color: var(--accent);
                 cursor: pointer;
                 text-decoration: underline;
-              ">Source</span
+              "
+              >Source</span
             ><br />
             <strong>electron-builder</strong> (MIT) -
-            <span class="external-link" data-url="https://github.com/electron-userland/electron-builder" style="
+            <span
+              class="external-link"
+              data-url="https://github.com/electron-userland/electron-builder"
+              style="
                 color: var(--accent);
                 cursor: pointer;
                 text-decoration: underline;
-              ">Source</span
+              "
+              >Source</span
             ><br />
             <strong>axios</strong> (MIT) -
-            <span class="external-link" data-url="https://github.com/axios/axios" style="
+            <span
+              class="external-link"
+              data-url="https://github.com/axios/axios"
+              style="
                 color: var(--accent);
                 cursor: pointer;
                 text-decoration: underline;
-              ">Source</span
+              "
+              >Source</span
             ><br />
             <strong>gamedig</strong> (MIT) -
-            <span class="external-link" data-url="https://github.com/gamedig/node-gamedig" style="
+            <span
+              class="external-link"
+              data-url="https://github.com/gamedig/node-gamedig"
+              style="
                 color: var(--accent);
                 cursor: pointer;
                 text-decoration: underline;
-              ">Source</span
+              "
+              >Source</span
             ><br />
             <strong>steamworks.js</strong> (MIT) -
-            <span class="external-link" data-url="https://github.com/ceifa/steamworks.js" style="
+            <span
+              class="external-link"
+              data-url="https://github.com/ceifa/steamworks.js"
+              style="
                 color: var(--accent);
                 cursor: pointer;
                 text-decoration: underline;
-              ">Source</span
+              "
+              >Source</span
             ><br />
           </div>
 
@@ -1929,15 +2270,12 @@
             Full license terms and details can be found in the
             <strong>acknowledgments.txt</strong> file in the root directory.
           </div>
-
         </div>
         <div
           class="modal-actions"
           style="display: flex; justify-content: flex-end"
         >
-          <button id="aboutCloseBtn" class="btn btn-outline">
-            CLOSE
-          </button>
+          <button id="aboutCloseBtn" class="btn btn-outline">CLOSE</button>
         </div>
       </div>
     </div>
@@ -1956,8 +2294,18 @@
         style="border-color: var(--accent-red); max-width: 600px"
       >
         <div class="modal-header">
-          <h2 id="crashDiagnosticTitle" class="text-red" style="display: inline-flex; align-items: center; gap: 8px;">
-            <app-icon name="alert" style="width: 1.2rem; height: 1.2rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <h2
+            id="crashDiagnosticTitle"
+            class="text-red"
+            style="display: inline-flex; align-items: center; gap: 8px"
+          >
+            <app-icon
+              name="alert"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             GAME CRASH DETECTED
           </h2>
         </div>
@@ -1979,8 +2327,18 @@
           <button id="crashDiagnosticCloseBtn" class="btn btn-outline">
             CLOSE
           </button>
-          <button id="crashDiagnosticCopyBtn" class="btn btn-danger" style="display: inline-flex; align-items: center; gap: 6px;">
-            <app-icon name="clipboard" style="width: 1rem; height: 1rem;" stroke-width="2" fill="none" stroke="currentColor"></app-icon>
+          <button
+            id="crashDiagnosticCopyBtn"
+            class="btn btn-danger"
+            style="display: inline-flex; align-items: center; gap: 6px"
+          >
+            <app-icon
+              name="clipboard"
+              style="width: 1rem; height: 1rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
             COPY LOG
           </button>
         </div>

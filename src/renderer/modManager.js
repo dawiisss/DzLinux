@@ -85,7 +85,7 @@ export async function loadInstalledMods() {
       nameHTML += `
         <div style="font-weight: 700; color: #ff5a5f; margin-top: 4px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
           <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ff5a5f; vertical-align: middle;"></app-icon>
-          CORRUPTED / MISSING FILES
+          Corrupted / Missing Files
         </div>
       `;
     }
@@ -108,7 +108,11 @@ export async function loadInstalledMods() {
       idSpan.className = "workshop-id-cell";
       idSpan.title = "Click to open Steam Workshop";
       idSpan.addEventListener("click", () => {
-        showToast(`Opening Workshop for ${mod.name || mod.id}`, "#2ec4b6", "⬇️");
+        showToast(
+          `Opening Workshop for ${mod.name || mod.id}`,
+          "#2ec4b6",
+          "⬇️",
+        );
         window.api.mods.openWorkshop(mod.id);
       });
       const wsIcon = document.createElement("app-icon");
@@ -244,7 +248,11 @@ export async function loadInstalledMods() {
               `;
               btn.disabled = true;
               for (const mod of result.outdatedMods) {
-                showToast(`Updating ${mod.name}...`, "#ff9f1c", `<app-icon name="download" style="width: 1.1rem; height: 1.1rem; color: #ff9f1c;"></app-icon>`);
+                showToast(
+                  `Updating ${mod.name}...`,
+                  "#ff9f1c",
+                  `<app-icon name="download" style="width: 1.1rem; height: 1.1rem; color: #ff9f1c;"></app-icon>`,
+                );
                 await window.api.steamworks.subscribe(mod.id);
                 await new Promise((r) => setTimeout(r, 500));
               }
@@ -267,7 +275,7 @@ export async function loadInstalledMods() {
               const days = mod.daysOutdated || 0;
               warning.innerHTML = `
                 <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ffb703; margin-right: 4px; vertical-align: middle;"></app-icon>
-                WORKSHOP MISMATCH (OUTDATED ${days > 0 ? days + " DAYS" : "RECENTLY"})
+                Workshop Mismatch (Outdated ${days > 0 ? days + " days" : "Recently"})
               `;
               nameCell.appendChild(warning);
             }
@@ -316,7 +324,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
     state.activeDownloads.set(modId, entry);
 
     if (statusLabel) {
-      statusLabel.textContent = "0% SYNCING...";
+      statusLabel.textContent = "0% Syncing...";
       statusLabel.style.color = "var(--accent)";
     }
 
@@ -346,15 +354,15 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
               currentEntry.statusLabel &&
               currentEntry.statusLabel.isConnected
             ) {
-              currentEntry.statusLabel.textContent = "SYNC TIMEOUT";
+              currentEntry.statusLabel.textContent = "Sync Timeout";
               currentEntry.statusLabel.style.color = "#ff5a5f";
             }
             return;
           }
           if (pct > 0) {
-            currentEntry.lastStatusText = `${pct}% SYNCING...`;
+            currentEntry.lastStatusText = `${pct}% Syncing...`;
           } else {
-            currentEntry.lastStatusText = "SYNCING...";
+            currentEntry.lastStatusText = "Syncing...";
           }
           if (
             currentEntry.statusLabel &&
@@ -458,12 +466,12 @@ export async function initModManager() {
       const depsContainer = document.getElementById("dependencyTreeContainer");
       depsContainer.style.display = "block";
       depsContainer.innerHTML =
-        "<div style=\"color:var(--accent);font-family:'Share Tech Mono',monospace;padding:15px;\">RESOLVING DEPENDENCY TREES...</div>";
+        "<div style=\"color:var(--accent);font-family:'Share Tech Mono',monospace;padding:15px;\">Resolving Dependency Trees...</div>";
 
       await refreshLocalModsCache();
       if (state.localMods.length === 0) {
         depsContainer.innerHTML =
-          '<div style="color:var(--text-dim);padding:15px;">NO MODS TO ANALYZE.</div>';
+          '<div style="color:var(--text-dim);padding:15px;">No Mods To Analyze.</div>';
         return;
       }
 

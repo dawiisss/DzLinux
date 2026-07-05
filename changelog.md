@@ -4,6 +4,17 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-07-05
+
+### Changed
+
+- **Platform Stack Upgrade**: Upgraded `electron` to `^43.0.0` and `electron-builder` to `^26.15.3`. This updates the internal stack (Chromium 150, Node.js v24.17.0, V8 15), improves native event emission/IPC dispatch performance, and enables rounded corners by default for frameless windows on Linux.
+- **UI Casing Improvements**: Converted additional user-facing UI labels and buttons (such as the update download actions) from all-uppercase to standard title/sentence casing.
+
+### Security
+
+- **Vulnerability Remediation**: Natively resolved high and moderate severity security vulnerabilities in transitive dependencies (`undici` and `js-yaml`) through the platform upgrades.
+
 ## [1.4.0] - 2026-07-02
 
 ### Added

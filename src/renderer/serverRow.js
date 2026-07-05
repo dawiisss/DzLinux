@@ -1,6 +1,11 @@
 import { state, addFavorite, removeFavorite } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
-import { countryToFlag, MAP_NAMES, renderPingBadge, applyPingResult } from "./utils.js";
+import {
+  countryToFlag,
+  MAP_NAMES,
+  renderPingBadge,
+  applyPingResult,
+} from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
 
 const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
@@ -10,17 +15,19 @@ const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; 
 function getRenderers() {
   return Promise.all([
     import("./serverBrowser.js"),
-    import("./favorites.js")
+    import("./favorites.js"),
   ]).then(([browser, fav]) => ({
     renderServers: browser.renderServers,
-    renderFavoritesManager: fav.renderFavoritesManager
+    renderFavoritesManager: fav.renderFavoritesManager,
   }));
 }
 
 export function buildDetailRow(server, isFavoritesView = false) {
   const trDetail = document.createElement("tr");
   trDetail.className = "detail-row";
-  trDetail.id = isFavoritesView ? `fav-detail-${server.id}` : `detail-${server.id}`;
+  trDetail.id = isFavoritesView
+    ? `fav-detail-${server.id}`
+    : `detail-${server.id}`;
 
   const tdColspan = document.createElement("td");
   tdColspan.colSpan = 8;
@@ -98,7 +105,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
       loadingDiv.style.color = "var(--accent)";
       loadingDiv.style.fontSize = "0.85rem";
       loadingDiv.style.fontFamily = "'Share Tech Mono', monospace";
-      loadingDiv.textContent = "QUERYING SERVER FOR MOD LIST...";
+      loadingDiv.textContent = "Querying Server for Mod list...";
       detailDiv.appendChild(loadingDiv);
 
       if (!server.isQueryingMods) {
@@ -110,7 +117,8 @@ export function buildDetailRow(server, isFavoritesView = false) {
             server.isQueryingMods = false;
             server.hasQueriedMods = true;
             if (state.expandedServerId === server.id) {
-              const { renderServers, renderFavoritesManager } = await getRenderers();
+              const { renderServers, renderFavoritesManager } =
+                await getRenderers();
               if (isFavoritesView) {
                 renderFavoritesManager();
               } else {
@@ -241,7 +249,9 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
             `detail-${state.expandedServerId}`,
           );
           if (oldDetail) oldDetail.remove();
-          const oldTr = document.getElementById(`row-${state.expandedServerId}`);
+          const oldTr = document.getElementById(
+            `row-${state.expandedServerId}`,
+          );
           if (oldTr) oldTr.classList.remove("expanded");
         }
         state.expandedServerId = server.id;
@@ -276,12 +286,7 @@ function buildStarCell(server, serverKey, isFav) {
       starBtn.setAttribute("aria-label", "Add to Favorites");
       showToast("Removed from favorites", "#ff5a5f", STAR_UNFAV_SVG);
     } else {
-      await addFavorite(
-        server.ip,
-        server.port,
-        server.queryPort,
-        server.name,
-      );
+      await addFavorite(server.ip, server.port, server.queryPort, server.name);
       starBtn.innerHTML = STAR_FAV_SVG;
       starBtn.className = "star-btn active";
       starBtn.title = "Remove from Favorites";
@@ -485,13 +490,20 @@ export function buildServerRow(server, isFavoritesView = false) {
   tdName.className = "server-name-cell";
   tdName.textContent = server.name;
   tdName.title = server.name;
-  if (isFavoritesView && !state.allServers.find(s => s.ip === server.ip && s.port.toString() === server.port.toString())) {
+  if (
+    isFavoritesView &&
+    !state.allServers.find(
+      (s) => s.ip === server.ip && s.port.toString() === server.port.toString(),
+    )
+  ) {
     tdName.style.color = "var(--text-dim)";
   }
 
   // Players
   const tdPlayers = document.createElement("td");
-  tdPlayers.id = isFavoritesView ? `fav-player-cell-${server.id}` : `player-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  tdPlayers.id = isFavoritesView
+    ? `fav-player-cell-${server.id}`
+    : `player-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
   const playerSpan = document.createElement("span");
   const pct = server.maxPlayers ? server.players / server.maxPlayers : 0;
   let badgeClass = "low";

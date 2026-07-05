@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",
@@ -70,8 +70,8 @@
   "homepage": "https://github.com/dawiisss/DzLinux#readme",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "electron": "^42.3.3",
-    "electron-builder": "^26.15.2",
+    "electron": "^43.0.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^10.4.1",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
