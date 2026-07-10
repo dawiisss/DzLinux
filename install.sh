@@ -84,6 +84,15 @@ get_download_url() {
     echo "$RELEASE_JSON" | grep "browser_download_url" | grep -E "${file_ext}\"" | head -n 1 | cut -d '"' -f 4 || echo ""
 }
 
+# Helper function to extract sha256 digest from github api
+get_download_digest() {
+    local file_ext=$1
+    local asset_name=$(echo "$RELEASE_JSON" | grep "\"name\":" | grep -E "${file_ext}\"" | head -n 1 | cut -d '"' -f 4)
+    if [ -n "$asset_name" ]; then
+        echo "$RELEASE_JSON" | grep -A 30 "\"name\": \"$asset_name\"" | grep "\"digest\":" | head -n 1 | sed -E 's/.*"sha256:([^"]+)".*/\1/'
+    fi
+}
+
 # Helper function to download and optionally verify checksum
 download_and_verify() {
     local ext=$1
@@ -93,12 +102,9 @@ download_and_verify() {
     echo -e "${BLUE}Downloading ${output_name} from: $url${NC}"
     curl -L -o "$TEMP_DIR/$output_name" "$url"
     
-    local sha_url=$(get_download_url "${ext}\.sha256")
-    if [ -n "$sha_url" ]; then
-        echo -e "${BLUE}Downloading checksum...${NC}"
-        curl -sL -o "$TEMP_DIR/$output_name.sha256" "$sha_url"
+    local expected_hash=$(get_download_digest "$ext")
+    if [ -n "$expected_hash" ]; then
         echo -e "${BLUE}Verifying checksum...${NC}"
-        local expected_hash=$(awk '{print $1}' "$TEMP_DIR/$output_name.sha256")
         local actual_hash=$(sha256sum "$TEMP_DIR/$output_name" | awk '{print $1}')
         if [ "$expected_hash" != "$actual_hash" ]; then
             echo -e "${RED}Error: Checksum verification failed!${NC}"
@@ -107,6 +113,8 @@ download_and_verify() {
             exit 1
         fi
         echo -e "${GREEN}Checksum verified successfully.${NC}"
+    else
+        echo -e "${YELLOW}Warning: No checksum found for verification. Skipping...${NC}"
     fi
 }
 
