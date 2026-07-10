@@ -1,7 +1,10 @@
 import { state } from "../state.js";
-import { MAP_NORMALIZE } from "../utils.js";
+import { MAP_NORMALIZE, EU_COUNTRIES } from "../utils.js";
 
-export function serverPassesFilters(server) {
+// Evaluates if a server satisfies all active filter configurations.
+// The optional excludeCountryFilter flag allows other components (like dropdown population)
+// to query server feasibility without considering current country filter state.
+export function serverPassesFilters(server, excludeCountryFilter = false) {
   if (server.realPing === undefined) return false;
   if (server.failedPing || server.realPing === -1) return false;
 
@@ -43,53 +46,54 @@ export function serverPassesFilters(server) {
     if (!inHistory) return false;
   }
 
+  // Match server country against selected country filters
+  if (!excludeCountryFilter && state.filters.countries.size > 0) {
+    if (!server.country) return false;
+    const serverCountry = server.country.toUpperCase();
+    let matched = false;
+    for (const code of state.filters.countries) {
+      if (code === "EU_EX_RU") {
+        // Virtual code matching European countries except Russia
+        if (EU_COUNTRIES.has(serverCountry)) {
+          matched = true;
+          break;
+        }
+      } else if (code === serverCountry) {
+        // Direct matching of individual ISO country code
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) return false;
+  }
+
   return true;
 }
 
-export function applyFilters({
-  persp,
-  cat,
-  maps,
-  favOnly,
-  hideEmpty,
-  hideFull,
-  history,
-  sortCol,
-  sortDir,
-  hideFakes,
-  hideLocked,
-}) {
-  state.filters.perspective = persp;
-  state.filters.category = cat;
-  state.filters.maps = maps;
-  state.flags.favoritesOnly = favOnly;
-  state.flags.hideEmpty = hideEmpty;
-  state.flags.hideFull = hideFull;
-  state.flags.historyOnly = history;
-  state.sort.column = sortCol;
-  state.sort.direction = sortDir;
-  state.flags.hideFakes = hideFakes;
-  state.flags.hideLocked = hideLocked;
+export function applyFilters() {
   state.filters.nameLower = state.filters.name.toLowerCase();
 
   state.pagination.page = 1;
   state.cachedSortOrder = null;
-  // We'll import dynamically or call through facade
-  import("../serverBrowser.js").then(({ renderServers }) => {
-    renderServers();
-  });
 }
 
 export function getCombinedAndFilteredServers() {
-  const combinedServers = [...state.allServers];
-  state.favorites.forEach((fav) => {
+  const result = [];
+  const serverSet = new Set();
+
+  for (const s of state.allServers) {
+    serverSet.add(`${s.ip}:${s.port}`);
+    if (serverPassesFilters(s)) {
+      result.push(s);
+    }
+  }
+
+  for (const fav of state.favorites) {
     const ip = fav.ip;
     const port = typeof fav.port === "number" ? fav.port : parseInt(fav.port);
-    const exists = combinedServers.find(
-      (s) => s.ip === ip && s.port.toString() === port.toString()
-    );
-    if (!exists) {
-      combinedServers.push({
+    const key = `${ip}:${port}`;
+    if (!serverSet.has(key)) {
+      const fakeServer = {
         id: `fav-${ip}-${port}`,
         name: fav.name || "UNKNOWN SERVER (OFFLINE / UNLISTED)",
         ip: ip,
@@ -105,9 +109,12 @@ export function getCombinedAndFilteredServers() {
         country: "",
         isPinging: false,
         realPing: -1,
-      });
+      };
+      if (serverPassesFilters(fakeServer)) {
+        result.push(fakeServer);
+      }
     }
-  });
+  }
 
-  return combinedServers.filter(serverPassesFilters);
+  return result;
 }

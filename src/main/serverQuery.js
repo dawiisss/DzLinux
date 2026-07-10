@@ -180,7 +180,6 @@ async function queryServerGameDig(ip, port, queryPort) {
       // Cache the working query port if it differs from what's already stored.
       // Uses atomic read-merge-write to survive concurrent saves from parallel queries.
       if (qp !== cachedPort) {
-        queryPortCache.set(cacheKey, qp);
         saveQueryPortCacheEntry(cacheKey, qp);
       }
 

@@ -6,7 +6,7 @@ export async function initSteamProfile() {
   profileEls.forEach(el => el.style.display = "flex");
 
   if (!window.api?.steamworks) {
-    usernameEls.forEach(el => el.textContent = "OFFLINE");
+    usernameEls.forEach(el => el.textContent = "Offline");
     profileEls.forEach(el => el.classList.add("offline"));
     return;
   }
@@ -17,11 +17,11 @@ export async function initSteamProfile() {
       usernameEls.forEach(el => el.textContent = profile.name);
       profileEls.forEach(el => el.classList.add("linked"));
     } else {
-      usernameEls.forEach(el => el.textContent = "OFFLINE");
+      usernameEls.forEach(el => el.textContent = "Offline");
       profileEls.forEach(el => el.classList.add("offline"));
     }
   } catch {
-    usernameEls.forEach(el => el.textContent = "OFFLINE");
+    usernameEls.forEach(el => el.textContent = "Offline");
     profileEls.forEach(el => el.classList.add("offline"));
   }
 }

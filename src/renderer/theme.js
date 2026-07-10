@@ -65,3 +65,8 @@ export function initTheme(settings) {
     });
   }
 }
+
+// Listen for custom events to avoid circular dependency
+document.addEventListener("dzlinux:apply-layout-mode", () => {
+  applyLayoutMode();
+});

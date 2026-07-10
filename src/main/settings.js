@@ -134,6 +134,7 @@ async function saveSettings(settings) {
 
     // Auto-discover if empty
     if (!safeSettings.modDirectory) {
+      steamPaths._clearCache();
       safeSettings.modDirectory = findDayzWorkshopFolder();
     }
 

@@ -19,13 +19,16 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) 
 
   await steamworksManager.lockAndDelayForLaunch();
 
-  execFile("steam", steamArgs, (error, _stdout, _stderr) => {
-    if (error) {
-      console.error(`Error launching game: ${error.message}`);
-      handleGameExit(error);
-      return;
-    }
-    console.log("Game launched successfully.");
+  return new Promise((resolve, reject) => {
+    const child = execFile("steam", steamArgs, (error, _stdout, _stderr) => {
+      if (error) {
+        console.error(`Error launching game: ${error.message}`);
+        handleGameExit(error);
+      }
+      console.log("Game launched successfully.");
+    });
+    child.once('spawn', resolve);
+    child.once('error', reject);
   });
 }
 

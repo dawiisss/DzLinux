@@ -28,9 +28,9 @@ export function initUpdater() {
     elements.modal.style.display = "none";
   };
 
-  elements.dismissBtn.onclick = dismiss;
+  elements.dismissBtn.addEventListener("click", dismiss);
 
-  elements.downloadBtn.onclick = () => {
+  elements.downloadBtn.addEventListener("click", () => {
     if (downloaded) {
       window.api.updater.install();
       return;
@@ -44,7 +44,7 @@ export function initUpdater() {
     elements.downloadBtn.style.display = "none";
     elements.progressContainer.style.display = "block";
     window.api.updater.download();
-  };
+  });
 
   window.api.updater.onProgress((progress) => {
     const pct = Math.round(progress.percent);
@@ -83,7 +83,7 @@ export function initUpdater() {
 
         crashModal.style.display = "flex";
 
-        crashCopyBtn.onclick = () => {
+        crashCopyBtn.addEventListener("click", () => {
           const text = `[CRASH DIAGNOSTIC]\nStatus: ${diagnostic.status}\nDescription: ${diagnostic.description}\nSnippet: ${diagnostic.snippet}\nSuggested Fix: ${diagnostic.suggestedFix}`;
           navigator.clipboard
             .writeText(text)
@@ -91,13 +91,13 @@ export function initUpdater() {
               showToast("Crash log copied to clipboard", "#ff5a5f", "📋");
             })
             .catch(() => {});
-        };
+        });
       }
     });
 
-    crashCloseBtn.onclick = () => {
+    crashCloseBtn.addEventListener("click", () => {
       crashModal.style.display = "none";
-    };
+    });
   }
 
   const showSystemPackage = (info) => {
@@ -107,7 +107,7 @@ export function initUpdater() {
       'This installation is managed by your system package manager. Use "apt upgrade" or "dnf update" to update, or download the latest release manually.';
     fallbackDownloadUrl =
       info.releaseUrl || "https://github.com/dawiisss/DzLinux/releases/latest";
-    elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
+    elements.downloadBtn.textContent = "Open release page";
     elements.modal.style.display = "flex";
   };
 
@@ -118,9 +118,9 @@ export function initUpdater() {
       info.releaseNotes || "No release notes provided.";
     fallbackDownloadUrl = info.downloadUrl || null;
     if (fallbackDownloadUrl) {
-      elements.downloadBtn.textContent = "OPEN RELEASE PAGE";
+      elements.downloadBtn.textContent = "Open release page";
     } else {
-      elements.downloadBtn.textContent = "DOWNLOAD";
+      elements.downloadBtn.textContent = "Download";
     }
 
     elements.modal.style.display = "flex";
@@ -207,7 +207,7 @@ export function initUpdater() {
   setInterval(performSilentCheck, 60000);
 
   if (elements.checkForUpdatesBtn) {
-    elements.checkForUpdatesBtn.onclick = async () => {
+    elements.checkForUpdatesBtn.addEventListener("click", async () => {
       // If we already know an update is available, open the modal directly without checking again
       if (
         latestResult &&
@@ -263,6 +263,6 @@ export function initUpdater() {
         console.error("Manual check failed:", err);
         showToast("Update check failed.", "#ff5a5f", "⚠️");
       }
-    };
+    });
   }
 }

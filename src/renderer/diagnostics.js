@@ -6,7 +6,7 @@ export async function loadDiagnostics() {
 
   const emptyDiv = document.createElement("div");
   emptyDiv.className = "empty-state";
-  emptyDiv.textContent = "SCANNING TELEMETRY...";
+  emptyDiv.textContent = "Scanning telemetry...";
   listBody.replaceChildren(emptyDiv);
 
   try {
@@ -32,7 +32,7 @@ export async function loadDiagnostics() {
     if (!logs || logs.length === 0) {
       const emptyDiv = document.createElement("div");
       emptyDiv.className = "empty-state";
-      emptyDiv.textContent = "NO TELEMETRY DATA FOUND. DAYZ HAS NOT RUN YET.";
+      emptyDiv.textContent = "No telemetry data found. DayZ has not run yet.";
       listBody.replaceChildren(emptyDiv);
       return;
     }
@@ -40,94 +40,53 @@ export async function loadDiagnostics() {
     logs.forEach((log) => {
       const isCrash = log.status === "CRASH";
       const isWarn = log.status === "WARNING";
-      const borderColor = isCrash
-        ? "var(--accent-red)"
-        : isWarn
-          ? "#ffb703"
-          : "var(--accent-green)";
 
       const card = document.createElement("div");
-      card.style.border = "1px solid var(--border)";
-      card.style.background = "var(--bg-card)";
-      card.style.padding = "20px";
-      card.classList.add("flex", "flex-col", "gap-4");
-      card.style.boxShadow = "0 4px 20px rgba(0, 0, 0, 0.05)";
-      card.style.borderRadius = "8px";
-      card.style.position = "relative";
+      card.className = "diagnostic-card flex flex-col gap-4";
 
       const headerRow = document.createElement("div");
-      headerRow.classList.add(
-        "flex",
-        "justify-between",
-        "items-center",
-        "mb-2",
-      );
-      headerRow.style.borderBottom = "1px solid rgba(255,255,255,0.05)";
-      headerRow.style.paddingBottom = "10px";
+      headerRow.className = "diagnostic-header flex justify-between items-center mb-2";
 
       const titleDate = document.createElement("div");
       const titleStrong = document.createElement("strong");
-      titleStrong.style.color = "var(--text-main)";
-      titleStrong.style.fontFamily = "'Share Tech Mono', monospace";
-      titleStrong.style.fontSize = "1.1rem";
-      titleStrong.style.letterSpacing = "1px";
+      titleStrong.className = "diagnostic-title";
       titleStrong.textContent = `[${log.name}]`;
 
       const dateSpan = document.createElement("span");
-      dateSpan.style.color = "var(--text-muted)";
-      dateSpan.style.fontSize = "0.85rem";
-      dateSpan.style.marginLeft = "12px";
+      dateSpan.className = "diagnostic-date";
       dateSpan.textContent = new Date(log.date).toLocaleString();
 
       titleDate.appendChild(titleStrong);
       titleDate.appendChild(dateSpan);
 
       const statusDiv = document.createElement("div");
-      statusDiv.style.fontFamily = "'Share Tech Mono', monospace";
-      statusDiv.style.fontWeight = "700";
-      statusDiv.style.letterSpacing = "1px";
-      statusDiv.style.padding = "4px 10px";
-      statusDiv.style.background = `rgba(${isCrash ? "255,90,95" : isWarn ? "255,183,3" : "46,196,182"}, 0.1)`;
-      statusDiv.style.border = `1px solid ${borderColor}`;
-      statusDiv.style.color = borderColor;
-      statusDiv.textContent = isCrash
-        ? "⚠️ SYSTEM CRASH"
-        : isWarn
-          ? "⚠️ WARNING"
-          : "✓ NORMAL";
+      statusDiv.className = "diagnostic-status " + (isCrash ? "diagnostic-status-crash" : isWarn ? "diagnostic-status-warn" : "diagnostic-status-normal");
+      statusDiv.textContent = isCrash ? "⚠️ System crash" : isWarn ? "⚠️ Warning" : "✓ Normal";
 
       headerRow.appendChild(titleDate);
       headerRow.appendChild(statusDiv);
 
       const statsRow = document.createElement("div");
-      statsRow.classList.add("flex", "gap-5", "mb-2");
-      statsRow.style.fontFamily = "'Share Tech Mono', monospace";
+      statsRow.className = "diagnostic-stats-row flex gap-5 mb-2";
+      
       const playtimeDiv = document.createElement("div");
-      playtimeDiv.style.display = "flex";
-      playtimeDiv.style.gap = "8px";
-      playtimeDiv.style.alignItems = "center";
+      playtimeDiv.className = "diagnostic-stat";
       const playtimeLabel = document.createElement("span");
-      playtimeLabel.style.color = "var(--text-muted)";
-      playtimeLabel.textContent = "PLAYTIME:";
+      playtimeLabel.className = "diagnostic-stat-label";
+      playtimeLabel.textContent = "Playtime:";
       const playtimeValue = document.createElement("span");
-      playtimeValue.style.color = "var(--text-main)";
-      playtimeValue.style.fontWeight = "bold";
-      playtimeValue.style.fontSize = "1rem";
+      playtimeValue.className = "diagnostic-stat-value";
       playtimeValue.textContent = String(log.playtime || "N/A");
       playtimeDiv.appendChild(playtimeLabel);
       playtimeDiv.appendChild(playtimeValue);
 
       const dropsDiv = document.createElement("div");
-      dropsDiv.style.display = "flex";
-      dropsDiv.style.gap = "8px";
-      dropsDiv.style.alignItems = "center";
+      dropsDiv.className = "diagnostic-stat";
       const dropsLabel = document.createElement("span");
-      dropsLabel.style.color = "var(--text-muted)";
-      dropsLabel.textContent = "CONNECTION DROPS:";
+      dropsLabel.className = "diagnostic-stat-label";
+      dropsLabel.textContent = "Connection drops:";
       const dropsValue = document.createElement("span");
-      dropsValue.style.color = "var(--text-main)";
-      dropsValue.style.fontWeight = "bold";
-      dropsValue.style.fontSize = "1rem";
+      dropsValue.className = "diagnostic-stat-value";
       dropsValue.textContent = String(log.connectionDrops || 0);
       dropsDiv.appendChild(dropsLabel);
       dropsDiv.appendChild(dropsValue);
@@ -136,20 +95,8 @@ export async function loadDiagnostics() {
       statsRow.appendChild(dropsDiv);
 
       const snippetDiv = document.createElement("div");
-      snippetDiv.style.fontFamily = "'Share Tech Mono', monospace";
-      snippetDiv.style.fontSize = "0.85rem";
-      snippetDiv.style.color = isCrash
-        ? "#ff5a5f"
-        : isWarn
-          ? "#ffb703"
-          : "var(--accent)";
-      snippetDiv.textContent =
-        log.snippet || "> SYSTEM LOG NORMAL. NO ANOMALIES DETECTED.";
-      snippetDiv.style.background = "var(--bg-deep)";
-      snippetDiv.style.padding = "15px";
-      snippetDiv.style.border = "1px solid var(--border)";
-      snippetDiv.style.boxShadow = "inset 0 0 10px rgba(0,0,0,0.2)";
-      snippetDiv.style.whiteSpace = "pre-wrap";
+      snippetDiv.className = "diagnostic-snippet " + (isCrash ? "diagnostic-snippet-crash" : isWarn ? "diagnostic-snippet-warn" : "diagnostic-snippet-normal");
+      snippetDiv.textContent = log.snippet || "> System log normal. No anomalies detected.";
 
       card.appendChild(headerRow);
       card.appendChild(statsRow);
@@ -157,16 +104,10 @@ export async function loadDiagnostics() {
 
       if (log.description) {
         const descDiv = document.createElement("div");
-        descDiv.style.fontSize = "0.85rem";
-        descDiv.style.color = "var(--text-muted)";
-        descDiv.style.lineHeight = "1.5";
-        descDiv.style.background = "rgba(255,255,255,0.02)";
-        descDiv.style.padding = "10px";
-        descDiv.style.borderLeft = "2px solid var(--text-dim)";
+        descDiv.className = "diagnostic-analysis";
         const descSpan = document.createElement("span");
-        descSpan.style.color = "#fff";
-        descSpan.style.fontWeight = "600";
-        descSpan.textContent = "DIAGNOSTIC ANALYSIS:";
+        descSpan.className = "diagnostic-analysis-label";
+        descSpan.textContent = "Diagnostic analysis:";
         descDiv.appendChild(descSpan);
         descDiv.appendChild(document.createElement("br"));
         descDiv.appendChild(document.createTextNode(log.description));
@@ -175,17 +116,10 @@ export async function loadDiagnostics() {
 
       if (log.suggestedFix) {
         const fixDiv = document.createElement("div");
-        fixDiv.style.fontSize = "0.85rem";
-        fixDiv.style.color = "#2ec4b6";
-        fixDiv.style.lineHeight = "1.5";
-        fixDiv.style.background = "rgba(46,196,182,0.05)";
-        fixDiv.style.padding = "10px";
-        fixDiv.style.marginTop = "8px";
-        fixDiv.style.borderLeft = "2px solid #2ec4b6";
+        fixDiv.className = "diagnostic-fix";
         const fixSpan = document.createElement("span");
-        fixSpan.style.color = "#fff";
-        fixSpan.style.fontWeight = "600";
-        fixSpan.textContent = "🛠️ SUGGESTED FIX:";
+        fixSpan.className = "diagnostic-fix-label";
+        fixSpan.textContent = "🛠️ Suggested fix:";
         fixDiv.appendChild(fixSpan);
         fixDiv.appendChild(document.createElement("br"));
         fixDiv.appendChild(document.createTextNode(log.suggestedFix));
@@ -193,14 +127,10 @@ export async function loadDiagnostics() {
       }
 
       const actionsRow = document.createElement("div");
-      actionsRow.style.display = "flex";
-      actionsRow.style.justifyContent = "flex-end";
-      actionsRow.style.marginTop = "10px";
+      actionsRow.className = "diagnostic-actions";
       const copyBtn = document.createElement("button");
-      copyBtn.className = "btn btn-outline";
-      copyBtn.style.padding = "6px 12px";
-      copyBtn.style.fontSize = "0.75rem";
-      copyBtn.textContent = "📋 COPY LOG SNIPPET";
+      copyBtn.className = "btn btn-outline diagnostic-btn";
+      copyBtn.textContent = "📋 Copy log snippet";
       copyBtn.setAttribute("aria-label", "Copy Log Snippet");
       copyBtn.addEventListener("click", () => {
         const text = `[${log.name}] ${log.status}\nSnippet: ${log.snippet || "N/A"}\nDescription: ${log.description || "N/A"}\nSuggested Fix: ${log.suggestedFix || "N/A"}`;
@@ -220,7 +150,7 @@ export async function loadDiagnostics() {
     console.error("Diagnostics fail", e);
     const emptyDiv = document.createElement("div");
     emptyDiv.className = "empty-state text-red";
-    emptyDiv.textContent = "FAILED TO FETCH TELEMETRY.";
+    emptyDiv.textContent = "Failed to fetch telemetry.";
     listBody.replaceChildren(emptyDiv);
   }
 }

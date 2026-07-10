@@ -80,21 +80,27 @@ async function getRecentLogs() {
     const fileDetails = await Promise.all(
       logFiles.map(async (file) => {
         const filePath = path.join(logsDir, file);
-        const stat = await fs.promises.stat(filePath);
-        return {
-          name: file,
-          path: filePath,
-          mtime: stat.mtimeMs,
-          date: stat.mtime,
-        };
+        try {
+          const stat = await fs.promises.stat(filePath);
+          return {
+            name: file,
+            path: filePath,
+            mtime: stat.mtimeMs,
+            date: stat.mtime,
+          };
+        } catch {
+          return null;
+        }
       })
     );
 
+    const validDetails = fileDetails.filter((d) => d !== null);
+
     // Sort descending by time
-    fileDetails.sort((a, b) => b.mtime - a.mtime);
+    validDetails.sort((a, b) => b.mtime - a.mtime);
 
     // Take the top 15 logs
-    const recentLogs = fileDetails.slice(0, 15);
+    const recentLogs = validDetails.slice(0, 15);
 
     // Analyze each log in parallel
     return Promise.all(recentLogs.map((log) => analyzeLog(log)));

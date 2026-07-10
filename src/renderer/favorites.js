@@ -8,27 +8,28 @@ export function renderFavoritesManager() {
   const tbody = document.getElementById("favoritesListBody");
   if (!tbody) return;
 
-  tbody.innerHTML = "";
+  tbody.replaceChildren();
 
   if (state.favorites.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="8" class="empty-state-msg">NO FAVORITED SERVERS</td></tr>';
+      '<tr><td colspan="8" class="empty-state-msg">No favorited servers</td></tr>';
     return;
   }
+
+  const serverMap = new Map();
+  state.allServers.forEach(s => serverMap.set(`${s.ip}:${s.port}`, s));
 
   state.favorites.forEach((fav) => {
     const { ip, port } = fav;
     const _favKey = `${ip}:${port}`;
-    let server = state.allServers.find(
-      (s) => s.ip === ip && s.port.toString() === port.toString(),
-    );
+    let server = serverMap.get(_favKey);
     if (!server) {
       server = {
         id: `fav-${ip.replace(/\./g, "-")}-${port}`,
         ip: ip,
         port: port,
         queryPort: fav.queryPort || null,
-        name: fav.name || "UNKNOWN SERVER (OFFLINE / UNLISTED)",
+        name: fav.name || "Unknown Server (Offline / Unlisted)",
         players: 0,
         maxPlayers: 0,
         mods: [],
@@ -119,9 +120,11 @@ export function initFavorites() {
 
       await Promise.all(pingPromises);
       renderFavoritesManager();
-      // updateStatsInline is in serverBrowser.js; use dynamic import to avoid hard circular dep at module init
-      import("./serverBrowser.js").then(({ updateStatsInline }) =>
-        updateStatsInline(),
-      );
+      document.dispatchEvent(new CustomEvent("dzlinux:update-stats", { detail: { ip: null, port: null, queryPort: null, ping: 0, statusObj: null, forceOffline: true } }));
     });
 }
+
+// Listen for custom events to avoid circular dependency
+document.addEventListener("dzlinux:render-favorites", () => {
+  renderFavoritesManager();
+});

@@ -22,6 +22,34 @@ export default [
       globals: {
         ...globals.node,
         ...globals.browser,
+      },
+    },
+    rules: {
+      "no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+      "no-console": "off",
+      "no-undef": "error",
+      "no-empty": ["error", { allowEmptyCatch: true }],
+      "no-constant-condition": ["error", { checkLoops: false }],
+      "prefer-const": "warn",
+      "no-var": "warn",
+      "no-dupe-keys": "warn",
+      "no-redeclare": "warn",
+      "no-useless-assignment": "off",
+    },
+  },
+  {
+    files: ["src/renderer/**/*.js"],
+    languageOptions: {
+      sourceType: "module",
+    },
+  },
+  {
+    files: ["**/__tests__/**/*.js"],
+    languageOptions: {
+      globals: {
         ...globals.jest,
         jest: "readonly",
         describe: "readonly",
@@ -33,28 +61,6 @@ export default [
         beforeAll: "readonly",
         afterAll: "readonly",
       },
-    },
-    rules: {
-      "no-unused-vars": [
-        "warn",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
-      "no-console": "off",
-      "no-undef": "warn",
-      "no-empty": ["error", { allowEmptyCatch: true }],
-      "no-constant-condition": ["error", { checkLoops: false }],
-      "prefer-const": "warn",
-      "no-var": "warn",
-      "no-dupe-keys": "warn",
-      "no-case-declarations": "off",
-      "no-useless-assignment": "off",
-      "no-redeclare": "warn",
-    },
-  },
-  {
-    files: ["src/renderer/**/*.js"],
-    languageOptions: {
-      sourceType: "module",
     },
   },
 ];

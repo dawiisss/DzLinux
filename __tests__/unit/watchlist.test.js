@@ -38,6 +38,8 @@ jest.mock("fs", () => ({
   writeFileSync: jest.fn(),
   promises: {
     writeFile: jest.fn().mockImplementation(() => Promise.resolve()),
+    access: jest.fn(),
+    readFile: jest.fn(),
   },
 }));
 
@@ -49,30 +51,30 @@ describe("watchlist", () => {
   });
 
   describe("loadWatchlist", () => {
-    test("returns empty array when no watchlist file exists and settings is empty", () => {
-      fs.existsSync.mockReturnValue(false);
+    test("returns empty array when no watchlist file exists and settings is empty", async () => {
+      fs.promises.access.mockRejectedValue(new Error("ENOENT"));
       settingsManager.loadSettings.mockReturnValue({});
-      expect(loadWatchlist()).toEqual([]);
+      expect(await loadWatchlist()).toEqual([]);
     });
 
-    test("returns watchlist from standalone file if it exists", () => {
+    test("returns watchlist from standalone file if it exists", async () => {
       const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-      fs.existsSync.mockReturnValue(true);
-      fs.readFileSync.mockReturnValue(JSON.stringify(mockWatchlist));
+      fs.promises.access.mockResolvedValue();
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
 
-      expect(loadWatchlist()).toEqual(mockWatchlist);
-      expect(fs.readFileSync).toHaveBeenCalledWith(expect.stringContaining("watchlist.json"), "utf8");
+      expect(await loadWatchlist()).toEqual(mockWatchlist);
+      expect(fs.promises.readFile).toHaveBeenCalledWith(expect.stringContaining("watchlist.json"), "utf8");
     });
 
-    test("migrates watchlist from settings if no standalone file exists", () => {
+    test("migrates watchlist from settings if no standalone file exists", async () => {
       const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-      fs.existsSync.mockReturnValue(false);
+      fs.promises.access.mockRejectedValue(new Error("ENOENT"));
       settingsManager.loadSettings.mockReturnValue({
         watchlist: mockWatchlist,
         theme: "dark",
       });
 
-      expect(loadWatchlist()).toEqual(mockWatchlist);
+      expect(await loadWatchlist()).toEqual(mockWatchlist);
       expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
         JSON.stringify(mockWatchlist, null, 2),
@@ -85,11 +87,10 @@ describe("watchlist", () => {
   });
 
   describe("saveWatchlist", () => {
-    test("writes watchlist to standalone file", () => {
+    test("writes watchlist to standalone file", async () => {
       const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-      fs.writeFileSync.mockReturnValue(true);
 
-      const result = saveWatchlist(mockWatchlist);
+      const result = await saveWatchlist(mockWatchlist);
 
       expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
@@ -140,15 +141,15 @@ describe("watchlist", () => {
         },
       ];
       // Mock loadWatchlist to return our mockWatchlist
-      fs.existsSync.mockReturnValue(true);
-      fs.readFileSync.mockReturnValue(JSON.stringify(mockWatchlist));
+      fs.promises.access.mockResolvedValue();
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
       settingsManager.loadSettings.mockReturnValue({
         watchlistThreshold: 50,
       });
     });
 
-    test("triggers notification when threshold is met (below mode)", () => {
-      processWatchlistChecks(mockServers);
+    test("triggers notification when threshold is met (below mode)", async () => {
+      await processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).toHaveBeenCalled();
       const notificationInstance = ElectronNotification.mock.results[0].value;
@@ -165,8 +166,8 @@ describe("watchlist", () => {
       expect(writtenData[0].lastStatus).toBe("notified");
     });
 
-    test("triggers notification when threshold is met (above mode)", () => {
-      processWatchlistChecks(mockServers);
+    test("triggers notification when threshold is met (above mode)", async () => {
+      await processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).toHaveBeenCalledTimes(2);
       expect(ElectronNotification).toHaveBeenLastCalledWith(
@@ -181,11 +182,11 @@ describe("watchlist", () => {
       expect(writtenData[1].lastStatus).toBe("notified");
     });
 
-    test("does not trigger notification if already notified", () => {
+    test("does not trigger notification if already notified", async () => {
       mockWatchlist[0].lastStatus = "notified";
-      fs.readFileSync.mockReturnValue(JSON.stringify(mockWatchlist));
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       // Only server 2 should trigger
       expect(ElectronNotification).toHaveBeenCalledTimes(1);
@@ -194,55 +195,55 @@ describe("watchlist", () => {
       );
     });
 
-    test("resets status to idle when threshold is no longer met", () => {
+    test("resets status to idle when threshold is no longer met", async () => {
       mockWatchlist[0].lastStatus = "notified";
-      fs.readFileSync.mockReturnValue(JSON.stringify(mockWatchlist));
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
       mockServers[0].players = 60; // No longer <= 50
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       expect(fs.promises.writeFile).toHaveBeenCalled();
       const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
       expect(writtenData[0].lastStatus).toBe("idle");
     });
 
-    test("uses global threshold if local threshold is missing", () => {
+    test("uses global threshold if local threshold is missing", async () => {
       delete mockWatchlist[0].threshold;
-      fs.readFileSync.mockReturnValue(JSON.stringify(mockWatchlist));
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
       settingsManager.loadSettings.mockReturnValue({
         watchlistThreshold: 45,
       });
 
       mockServers[0].players = 45;
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).toHaveBeenCalled();
     });
 
-    test("skips inactive watchlist items", () => {
+    test("skips inactive watchlist items", async () => {
       mockWatchlist[0].active = false;
-      fs.readFileSync.mockReturnValue(JSON.stringify(mockWatchlist));
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).not.toHaveBeenCalledWith(
         expect.objectContaining({ title: "🟢 Server Slot Available" }),
       );
     });
 
-    test("does nothing if ElectronNotification is not supported", () => {
+    test("does nothing if ElectronNotification is not supported", async () => {
       ElectronNotification.isSupported.mockReturnValue(false);
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).not.toHaveBeenCalledWith(expect.any(Object));
     });
 
-    test("handles boundary cases exactly at threshold", () => {
+    test("handles boundary cases exactly at threshold", async () => {
       mockServers[0].players = 50; // exactly threshold (below mode: 50 <= 50 -> true)
       mockServers[1].players = 50; // exactly threshold (above mode: 50 >= 50 -> true)
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       expect(ElectronNotification).toHaveBeenCalledTimes(2);
       expect(fs.promises.writeFile).toHaveBeenCalled();
@@ -251,7 +252,7 @@ describe("watchlist", () => {
       expect(writtenData[1].lastStatus).toBe("notified");
     });
 
-    test("handles ElectronNotification.show failure gracefully", () => {
+    test("handles ElectronNotification.show failure gracefully", async () => {
       const consoleSpy = jest
         .spyOn(console, "error")
         .mockImplementation(() => {});
@@ -265,7 +266,7 @@ describe("watchlist", () => {
         on: jest.fn(),
       }));
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       expect(mockShow).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -276,7 +277,7 @@ describe("watchlist", () => {
       consoleSpy.mockRestore();
     });
 
-    test("notification click restores and focuses all windows", () => {
+    test("notification click restores and focuses all windows", async () => {
       const mockWebContents = { send: jest.fn() };
       const mockWindow = {
         isMinimized: jest.fn().mockReturnValue(true),
@@ -287,7 +288,7 @@ describe("watchlist", () => {
       };
       BrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
 
-      processWatchlistChecks(mockServers);
+      await processWatchlistChecks(mockServers);
 
       const notificationInstance = ElectronNotification.mock.results[0].value;
       const clickCall = notificationInstance.on.mock.calls.find(

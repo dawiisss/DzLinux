@@ -111,7 +111,7 @@ describe("game", () => {
   });
 
   describe("scanProtonVersions", () => {
-    test("returns empty array when no proton directories exist", () => {
+    test("returns empty array when no proton directories exist", async () => {
       jest.resetModules();
       jest.doMock(
         "electron",
@@ -128,7 +128,7 @@ describe("game", () => {
       }));
 
       const game = require("../../src/main/game");
-      const versions = game.scanProtonVersions();
+      const versions = await game.scanProtonVersions();
       expect(Array.isArray(versions)).toBe(true);
     });
   });
@@ -222,6 +222,7 @@ describe("game", () => {
     test("executes cleanly and does not call getRecentLogs", async () => {
       mockExecFile.mockImplementation((cmd, args, cb) => {
         cb(null, "stdout", "stderr"); // No error
+        return { once: (evt, handler) => { if (evt === 'spawn') handler(); } };
       });
 
       const game = require("../../src/main/game");
@@ -238,6 +239,7 @@ describe("game", () => {
       mockGetAllWindows.mockReturnValue([]);
       mockExecFile.mockImplementation((cmd, args, cb) => {
         cb(new Error("crash"), "stdout", "stderr");
+        return { once: (evt, handler) => { if (evt === 'error') handler(new Error("crash")); else if (evt === 'spawn') handler(); } };
       });
 
       const game = require("../../src/main/game");
@@ -257,6 +259,7 @@ describe("game", () => {
         const err = new Error("crash");
         err.code = 1;
         cb(err, "stdout", "stderr");
+        return { once: (evt, handler) => { if (evt === 'error') handler(err); else if (evt === 'spawn') handler(); } };
       });
 
       const game = require("../../src/main/game");
@@ -278,6 +281,7 @@ describe("game", () => {
         const err = new Error("crash");
         err.code = 1;
         cb(err, "stdout", "stderr");
+        return { once: (evt, handler) => { if (evt === 'error') handler(err); else if (evt === 'spawn') handler(); } };
       });
 
       const game = require("../../src/main/game");
@@ -300,6 +304,7 @@ describe("game", () => {
         const err = new Error("crash");
         err.code = 1;
         cb(err, "stdout", "stderr");
+        return { once: (evt, handler) => { if (evt === 'error') handler(err); else if (evt === 'spawn') handler(); } };
       });
 
       const game = require("../../src/main/game");

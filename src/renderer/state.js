@@ -21,6 +21,7 @@ export const state = {
     perspective: "all",
     category: "all",
     maps: new Set(),
+    countries: new Set(),
   },
   flags: {
     favoritesOnly: false,

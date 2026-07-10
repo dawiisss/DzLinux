@@ -30,6 +30,9 @@ export function showToast(message, borderHex = "#2ec4b6", icon = "📋") {
 export function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     showToast("IP address copied to system clipboard", "#2ec4b6", "📋");
+  }).catch((err) => {
+    console.error("Clipboard copy failed", err);
+    showToast("Failed to copy to clipboard", "#ef233c", "⚠️");
   });
 }
 

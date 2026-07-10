@@ -84,14 +84,39 @@ get_download_url() {
     echo "$RELEASE_JSON" | grep "browser_download_url" | grep -E "${file_ext}\"" | head -n 1 | cut -d '"' -f 4 || echo ""
 }
 
+# Helper function to download and optionally verify checksum
+download_and_verify() {
+    local ext=$1
+    local output_name=$2
+    local url=$3
+    
+    echo -e "${BLUE}Downloading ${output_name} from: $url${NC}"
+    curl -L -o "$TEMP_DIR/$output_name" "$url"
+    
+    local sha_url=$(get_download_url "${ext}\.sha256")
+    if [ -n "$sha_url" ]; then
+        echo -e "${BLUE}Downloading checksum...${NC}"
+        curl -sL -o "$TEMP_DIR/$output_name.sha256" "$sha_url"
+        echo -e "${BLUE}Verifying checksum...${NC}"
+        local expected_hash=$(awk '{print $1}' "$TEMP_DIR/$output_name.sha256")
+        local actual_hash=$(sha256sum "$TEMP_DIR/$output_name" | awk '{print $1}')
+        if [ "$expected_hash" != "$actual_hash" ]; then
+            echo -e "${RED}Error: Checksum verification failed!${NC}"
+            echo -e "${RED}Expected: $expected_hash${NC}"
+            echo -e "${RED}Actual:   $actual_hash${NC}"
+            exit 1
+        fi
+        echo -e "${GREEN}Checksum verified successfully.${NC}"
+    fi
+}
+
 case "$OS_TYPE" in
     "debian")
         echo -e "${GREEN}Debian/Ubuntu-based system detected.${NC}"
         URL=$(get_download_url "\.deb")
         if [ -n "$URL" ]; then
             FILE_NAME="dzlinux.deb"
-            echo -e "${BLUE}Downloading deb package from: $URL${NC}"
-            curl -L -o "$TEMP_DIR/$FILE_NAME" "$URL"
+            download_and_verify "\.deb" "$FILE_NAME" "$URL"
             echo -e "${BLUE}Installing package via apt (requires sudo)...${NC}"
             sudo apt-get update
             sudo apt-get install -y "$TEMP_DIR/$FILE_NAME"
@@ -106,8 +131,7 @@ case "$OS_TYPE" in
         URL=$(get_download_url "\.rpm")
         if [ -n "$URL" ]; then
             FILE_NAME="dzlinux.rpm"
-            echo -e "${BLUE}Downloading rpm package from: $URL${NC}"
-            curl -L -o "$TEMP_DIR/$FILE_NAME" "$URL"
+            download_and_verify "\.rpm" "$FILE_NAME" "$URL"
             echo -e "${BLUE}Installing package via dnf (requires sudo)...${NC}"
             if command -v dnf &> /dev/null; then
                 sudo dnf install -y "$TEMP_DIR/$FILE_NAME"
@@ -134,9 +158,8 @@ if [ "$OS_TYPE" = "appimage" ]; then
         fi
         
         # Tar.gz installation
-        echo -e "${BLUE}Downloading tar.gz archive from: $URL${NC}"
         FILE_NAME="dzlinux.tar.gz"
-        curl -L -o "$TEMP_DIR/$FILE_NAME" "$URL"
+        download_and_verify "\.tar\.gz" "$FILE_NAME" "$URL"
         echo -e "${BLUE}Extracting archive to /opt/dzlinux...${NC}"
         sudo mkdir -p /opt/dzlinux
         sudo tar -xzf "$TEMP_DIR/$FILE_NAME" -C /opt/dzlinux --strip-components=1
@@ -144,8 +167,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
     else
         # AppImage installation
         FILE_NAME="dzlinux.AppImage"
-        echo -e "${BLUE}Downloading AppImage from: $URL${NC}"
-        curl -L -o "$TEMP_DIR/$FILE_NAME" "$URL"
+        download_and_verify "\.AppImage" "$FILE_NAME" "$URL"
         echo -e "${BLUE}Moving executable to /usr/local/bin/dzlinux...${NC}"
         sudo mv "$TEMP_DIR/$FILE_NAME" /usr/local/bin/dzlinux
         sudo chmod +x /usr/local/bin/dzlinux

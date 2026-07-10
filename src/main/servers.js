@@ -325,7 +325,7 @@ function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
 
     const mapKey = `${custom.ip}:${custom.port}`;
     const existingIdx = serversMap.has(mapKey) ? serversMap.get(mapKey) : -1;
-    if (existingIdx !== -1) {
+    if (existingIdx !== -1 && servers[existingIdx]) {
       servers[existingIdx] = {
         ...servers[existingIdx],
         ...custom,
@@ -459,8 +459,14 @@ async function fetchAndApplyMonetization(servers) {
   }
 }
 
+let currentGenerationId = null;
+
 async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
+  currentGenerationId = generationId;
+  const isAborted = () => generationId !== undefined && currentGenerationId !== generationId;
+
   try {
+    if (isAborted()) return [];
     // 1. Check Server cache
     const cached = await loadServerCache();
     if (cached) {
@@ -482,6 +488,8 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
       loadLocalCustomServers(),
     ]);
 
+    if (isAborted()) return [];
+
     const allCustomData = hostedData.concat(customData);
     const serversMap = new Map();
 
@@ -495,6 +503,8 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
     if (servers.length > 0) {
       onBatchReceived(servers, generationId);
     }
+
+    if (isAborted()) return servers;
 
     // 6. Monetization check & Tagging
     await fetchAndApplyMonetization(servers);

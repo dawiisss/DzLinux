@@ -1,3 +1,10 @@
+export const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
+export const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
+
+export const EU_COUNTRIES = new Set([
+  "AD", "AL", "AM", "AT", "AZ", "BA", "BE", "BG", "BY", "CH", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FO", "FR", "GB", "GE", "GG", "GI", "GR", "HR", "HU", "IE", "IM", "IS", "IT", "JE", "LI", "LT", "LU", "LV", "MC", "MD", "ME", "MK", "MT", "NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI", "SK", "SM", "UA", "VA"
+]);
+
 export function escapeHtml(str) {
   if (typeof str !== "string") return "";
   const map = {
@@ -124,6 +131,13 @@ export function renderPingBadge(pingValue) {
   pingSpan.className = `ping-badge ${pingClass}`;
   pingSpan.textContent = `${pingValue}ms`;
   return pingSpan;
+}
+
+export function getPlayerBadgeClass(players, maxPlayers) {
+  const pct = maxPlayers ? players / maxPlayers : 0;
+  if ((pct >= 0.95 || players >= maxPlayers) && maxPlayers > 0) return "high";
+  if (pct >= 0.7) return "medium";
+  return "low";
 }
 
 export function applyPingResult(server, statusObj) {

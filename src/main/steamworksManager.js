@@ -20,10 +20,13 @@ function unlockForLaunch() {
 const STEAMWORKS_LAUNCH_LOCK_MS = 1500;
 const STEAMWORKS_LAUNCH_TIMEOUT_MS = 15000;
 
+let launchTimeoutId = null;
+
 async function lockAndDelayForLaunch(onTimeout) {
   await lockForLaunch();
   await new Promise((r) => setTimeout(r, STEAMWORKS_LAUNCH_LOCK_MS));
-  setTimeout(async () => {
+  launchTimeoutId = setTimeout(async () => {
+    launchTimeoutId = null;
     unlockForLaunch();
     if (typeof onTimeout === "function") {
       try {
@@ -65,6 +68,10 @@ function init() {
 }
 
 function shutdown() {
+  if (launchTimeoutId) {
+    clearTimeout(launchTimeoutId);
+    launchTimeoutId = null;
+  }
   return new Promise((resolve) => {
     if (worker) {
       const forceKill = setTimeout(() => {

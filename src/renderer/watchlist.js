@@ -1,6 +1,6 @@
 import { state } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
-// utils not needed in this module
+import { getPlayerBadgeClass } from "./utils.js";
 
 export function startWatchlistPoll() {
   if (state.watchlist.pollInterval) clearInterval(state.watchlist.pollInterval);
@@ -94,7 +94,7 @@ export async function renderWatchlist() {
   const loadingTd = document.createElement("td");
   loadingTd.colSpan = 7;
   loadingTd.className = "empty-state-msg";
-  loadingTd.textContent = "LOADING WATCHLIST...";
+  loadingTd.textContent = "Loading watchlist...";
   loadingTr.appendChild(loadingTd);
   tbody.appendChild(loadingTr);
 
@@ -108,7 +108,7 @@ export async function renderWatchlist() {
       emptyTd.colSpan = 7;
       emptyTd.className = "empty-state-msg";
       emptyTd.textContent =
-        "YOUR WATCHLIST IS EMPTY. RIGHT-CLICK A SERVER TO START WATCHING.";
+        "Your watchlist is empty. Right-click a server to start watching.";
       emptyTr.appendChild(emptyTd);
       tbody.appendChild(emptyTr);
       return;
@@ -138,7 +138,7 @@ export async function renderWatchlist() {
         item.active = input.checked;
         await window.api.watchlist.save(watchlist);
         showToast(
-          `WATCHLIST: ${item.name} ${item.active ? "ACTIVATED" : "DEACTIVATED"}`,
+          `Watchlist: ${item.name} ${item.active ? "activated" : "DEactivated"}`,
           item.active ? "var(--accent-green)" : "var(--text-dim)",
           "👁️",
         );
@@ -158,21 +158,14 @@ export async function renderWatchlist() {
       // Players
       const tdPlayers = document.createElement("td");
       const playerBadge = document.createElement("span");
-      if (server) {
-        const pct = server.maxPlayers ? server.players / server.maxPlayers : 0;
-        let bc = "low";
-        if (
-          (pct >= 0.95 || server.players >= server.maxPlayers) &&
-          server.maxPlayers > 0
-        )
-          bc = "high";
-        else if (pct >= 0.7) bc = "medium";
+      if (server && !server.failedPing && server.realPing !== -1) {
+        const bc = getPlayerBadgeClass(server.players, server.maxPlayers);
         playerBadge.className = `player-badge ${bc}`;
         playerBadge.textContent = `${server.players}/${server.maxPlayers}`;
       } else {
         playerBadge.className = "player-badge low";
         playerBadge.style.opacity = "0.5";
-        playerBadge.textContent = "OFFLINE";
+        playerBadge.textContent = "Offline";
       }
       tdPlayers.appendChild(playerBadge);
 
@@ -197,8 +190,8 @@ export async function renderWatchlist() {
       modeLabel.setAttribute("tabindex", "0");
       modeLabel.textContent =
         (item.mode || "below") === "below"
-          ? "NOTIFY WHEN SLOTS OPEN (<=)"
-          : "NOTIFY WHEN TARGET REACHED (>=)";
+          ? "Notify when slots open (<=)"
+          : "Notify when target reached (>=)";
       modeLabel.setAttribute(
         "aria-label",
         (item.mode || "below") === "below"
@@ -212,8 +205,8 @@ export async function renderWatchlist() {
         item.mode = (item.mode || "below") === "below" ? "above" : "below";
         modeLabel.textContent =
           item.mode === "below"
-            ? "NOTIFY WHEN SLOTS OPEN (<=)"
-            : "NOTIFY WHEN TARGET REACHED (>=)";
+            ? "Notify when slots open (<=)"
+            : "Notify when target reached (>=)";
         modeLabel.setAttribute(
           "aria-label",
           item.mode === "below"
@@ -244,7 +237,7 @@ export async function renderWatchlist() {
         item.threshold = parseInt(slider.value);
         await window.api.watchlist.save(watchlist);
         showToast(
-          `THRESHOLD UPDATED TO ${item.threshold} PLAYERS`,
+          `Threshold updated to ${item.threshold} players`,
           "var(--accent)",
           "🎯",
         );
@@ -262,10 +255,10 @@ export async function renderWatchlist() {
       statusBadge.className = "hud-badge";
       statusBadge.style.fontSize = "0.7rem";
       if (item.lastStatus === "notified") {
-        statusBadge.textContent = "🔔 NOTIFIED";
+        statusBadge.textContent = "🔔 Notified";
         statusBadge.className += " badge-approved";
       } else {
-        statusBadge.textContent = "🛰️ MONITORING";
+        statusBadge.textContent = "🛰️ Monitoring";
         statusBadge.className += " badge-time";
       }
       tdStatus.appendChild(statusBadge);
@@ -287,11 +280,9 @@ export async function renderWatchlist() {
       const connectBtn = document.createElement("button");
       connectBtn.className = "btn-connect";
       connectBtn.style.marginRight = "6px";
-      connectBtn.textContent = "CONNECT";
+      connectBtn.textContent = "Connect";
       connectBtn.addEventListener("click", () => {
-        import("./serverBrowser.js").then(({ connectToServer }) =>
-          connectToServer(item.ip, item.port),
-        );
+        document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server } }));
       });
       tdAction.appendChild(connectBtn);
 
@@ -325,7 +316,7 @@ export async function renderWatchlist() {
     const errorTd = document.createElement("td");
     errorTd.colSpan = 7;
     errorTd.className = "empty-state-msg text-red";
-    errorTd.textContent = "FAILED TO LOAD WATCHLIST.";
+    errorTd.textContent = "Failed to load watchlist.";
     errorTr.appendChild(errorTd);
     tbody.appendChild(errorTr);
   }
@@ -338,7 +329,7 @@ export function initWatchlist() {
       const btn = e.currentTarget;
       const originalHTML = btn.innerHTML;
       btn.disabled = true;
-      btn.textContent = "⏳ REFRESHING...";
+      btn.textContent = "⏳ Refreshing...";
       try {
         await renderWatchlist();
       } finally {
@@ -354,8 +345,6 @@ export function initWatchlist() {
   });
 
   window.api.watchlist.onOpen(() => {
-    if (typeof window.switchTab === "function") {
-      window.switchTab("watchlist");
-    }
+    document.dispatchEvent(new CustomEvent("dzlinux:switch-tab", { detail: { tab: "watchlist" } }));
   });
 }

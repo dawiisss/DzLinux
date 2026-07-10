@@ -5,23 +5,13 @@ import {
   MAP_NAMES,
   renderPingBadge,
   applyPingResult,
+  STAR_FAV_SVG,
+  STAR_UNFAV_SVG,
+  getPlayerBadgeClass,
 } from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
 
-const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
-const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
-
 // Helper to resolve callbacks to avoid circular dependencies
-function getRenderers() {
-  return Promise.all([
-    import("./serverBrowser.js"),
-    import("./favorites.js"),
-  ]).then(([browser, fav]) => ({
-    renderServers: browser.renderServers,
-    renderFavoritesManager: fav.renderFavoritesManager,
-  }));
-}
-
 export function buildDetailRow(server, isFavoritesView = false) {
   const trDetail = document.createElement("tr");
   trDetail.className = "detail-row";
@@ -88,11 +78,10 @@ export function buildDetailRow(server, isFavoritesView = false) {
       return;
     }
     if (state.expandedServerId === server.id) {
-      const { renderServers, renderFavoritesManager } = await getRenderers();
-      renderServers();
+            document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       const favTab = document.getElementById("favorites");
       if (favTab && favTab.classList.contains("active")) {
-        renderFavoritesManager();
+        document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
       }
     }
   });
@@ -117,12 +106,10 @@ export function buildDetailRow(server, isFavoritesView = false) {
             server.isQueryingMods = false;
             server.hasQueriedMods = true;
             if (state.expandedServerId === server.id) {
-              const { renderServers, renderFavoritesManager } =
-                await getRenderers();
               if (isFavoritesView) {
-                renderFavoritesManager();
+                document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
               } else {
-                renderServers();
+                document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
               }
             }
           })
@@ -137,7 +124,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
       errorDiv.style.fontSize = "0.85rem";
       errorDiv.style.fontFamily = "'Share Tech Mono', monospace";
       errorDiv.textContent =
-        "UNABLE TO FETCH MOD LIST FROM SERVER. SERVER FIREWALL MAY BE BLOCKING A2S QUERIES.";
+        "Unable to fetch mod list from server. Server firewall may be blocking A2S queries.";
       detailDiv.appendChild(errorDiv);
     } else {
       const emptyDiv = document.createElement("div");
@@ -145,7 +132,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
       emptyDiv.style.fontSize = "0.85rem";
       emptyDiv.style.fontFamily = "'Share Tech Mono', monospace";
       emptyDiv.textContent =
-        "NO WORKSHOP MODS DETECTED. STANDARD VANILLA CLIENT GAMEPLAY CONNECTS DIRECTLY.";
+        "No workshop mods detected. Standard Vanilla client gameplay connects directly.";
       detailDiv.appendChild(emptyDiv);
     }
   } else {
@@ -183,7 +170,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         statusLabel.textContent = "✓";
       } else {
         statusLabel.className = "mod-pill-status missing";
-        statusLabel.textContent = "NOT SUBSCRIBED";
+        statusLabel.textContent = "Not Subscribed";
         const downloadBtn = document.createElement("button");
         downloadBtn.innerHTML = '<app-icon name="download"></app-icon>';
         downloadBtn.title = "Sync Mod natively via Steam Client";
@@ -235,8 +222,7 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
 
     if (isFavoritesView) {
       state.expandedServerId = isExpanded ? null : server.id;
-      const { renderFavoritesManager } = await getRenderers();
-      renderFavoritesManager();
+            document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
     } else {
       if (state.expandedServerId === server.id) {
         state.expandedServerId = null;
@@ -277,8 +263,7 @@ function buildStarCell(server, serverKey, isFav) {
   );
   starBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-    const { renderServers, renderFavoritesManager } = await getRenderers();
-    if (state.favoritesSet.has(serverKey)) {
+        if (state.favoritesSet.has(serverKey)) {
       await removeFavorite(server.ip, server.port);
       starBtn.innerHTML = STAR_UNFAV_SVG;
       starBtn.className = "star-btn";
@@ -293,10 +278,10 @@ function buildStarCell(server, serverKey, isFav) {
       starBtn.setAttribute("aria-label", "Remove from Favorites");
       showToast("Added to favorites", "#ffd700", STAR_FAV_SVG);
     }
-    renderServers();
+    document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
     const favTab = document.getElementById("favorites");
     if (favTab && favTab.classList.contains("active")) {
-      renderFavoritesManager();
+      document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
     }
   });
   tdStar.appendChild(starBtn);
@@ -311,7 +296,7 @@ function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
     if (server.realPing === -1) {
       const timeoutSpan = document.createElement("span");
       timeoutSpan.className = "ping-badge ping-bad";
-      timeoutSpan.textContent = "TIMEOUT";
+      timeoutSpan.textContent = "Timeout";
       tdPing.appendChild(timeoutSpan);
     } else {
       tdPing.appendChild(renderPingBadge(server.realPing));
@@ -363,11 +348,11 @@ function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
           }
           const cell = document.getElementById(pingCellId);
           if (cell) {
-            cell.innerHTML = "";
+            cell.replaceChildren();
             if (server.realPing === -1 || server.failedPing) {
               const timeoutSpan = document.createElement("span");
               timeoutSpan.className = "ping-badge ping-bad";
-              timeoutSpan.textContent = "TIMEOUT";
+              timeoutSpan.textContent = "Timeout";
               cell.appendChild(timeoutSpan);
             } else {
               cell.appendChild(renderPingBadge(server.realPing));
@@ -375,7 +360,7 @@ function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
           }
           const metaCell = document.getElementById(metaCellId);
           if (metaCell) {
-            metaCell.innerHTML = "";
+            metaCell.replaceChildren();
             metaCell.appendChild(renderMetadataBadges(server));
           }
         })
@@ -388,10 +373,10 @@ function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
           }
           const cell = document.getElementById(pingCellId);
           if (cell) {
-            cell.innerHTML = "";
+            cell.replaceChildren();
             const timeoutSpan = document.createElement("span");
             timeoutSpan.className = "ping-badge ping-bad";
-            timeoutSpan.textContent = "TIMEOUT";
+            timeoutSpan.textContent = "Timeout";
             cell.appendChild(timeoutSpan);
           }
         });
@@ -437,11 +422,11 @@ function buildActionCell(server, pingCellId, metaCellId) {
     `;
     const pingCell = document.getElementById(pingCellId);
     if (pingCell) {
-      pingCell.innerHTML = "";
+      pingCell.replaceChildren();
       if (server.realPing === -1 || server.failedPing) {
         const timeoutSpan = document.createElement("span");
         timeoutSpan.className = "ping-badge ping-bad";
-        timeoutSpan.textContent = "TIMEOUT";
+        timeoutSpan.textContent = "Timeout";
         pingCell.appendChild(timeoutSpan);
       } else {
         pingCell.appendChild(renderPingBadge(server.realPing));
@@ -449,7 +434,7 @@ function buildActionCell(server, pingCellId, metaCellId) {
     }
     const metaCell = document.getElementById(metaCellId);
     if (metaCell) {
-      metaCell.innerHTML = "";
+      metaCell.replaceChildren();
       metaCell.appendChild(renderMetadataBadges(server));
     }
   });
@@ -457,7 +442,7 @@ function buildActionCell(server, pingCellId, metaCellId) {
 
   const btn = document.createElement("button");
   btn.className = "btn-connect";
-  btn.textContent = "CONNECT";
+  btn.textContent = "Connect";
   btn.addEventListener("click", async () => {
     const { connectToServer } = await import("./serverBrowser.js");
     connectToServer(server.ip, server.port);
@@ -490,12 +475,7 @@ export function buildServerRow(server, isFavoritesView = false) {
   tdName.className = "server-name-cell";
   tdName.textContent = server.name;
   tdName.title = server.name;
-  if (
-    isFavoritesView &&
-    !state.allServers.find(
-      (s) => s.ip === server.ip && s.port.toString() === server.port.toString(),
-    )
-  ) {
+  if (isFavoritesView && server.originalIndex === undefined) {
     tdName.style.color = "var(--text-dim)";
   }
 
@@ -505,16 +485,7 @@ export function buildServerRow(server, isFavoritesView = false) {
     ? `fav-player-cell-${server.id}`
     : `player-cell-${server.id || serverKey.replace(/[^a-zA-Z0-9]/g, "-")}`;
   const playerSpan = document.createElement("span");
-  const pct = server.maxPlayers ? server.players / server.maxPlayers : 0;
-  let badgeClass = "low";
-  if (
-    (pct >= 0.95 || server.players >= server.maxPlayers) &&
-    server.maxPlayers > 0
-  ) {
-    badgeClass = "high";
-  } else if (pct >= 0.7) {
-    badgeClass = "medium";
-  }
+  const badgeClass = getPlayerBadgeClass(server.players, server.maxPlayers);
   playerSpan.className = `player-badge ${badgeClass}`;
   playerSpan.textContent = `${server.players}/${server.maxPlayers}`;
   tdPlayers.appendChild(playerSpan);
@@ -575,7 +546,7 @@ export function renderMetadataBadges(server) {
   if (server.monetized) {
     const monetizedBadge = document.createElement("span");
     monetizedBadge.className = "hud-badge badge-approved";
-    monetizedBadge.innerHTML = "\u{1F4B0} APPROVED";
+    monetizedBadge.innerHTML = "\u{1F4B0} Approved";
     monetizedBadge.title =
       "Officially Approved by Bohemia Interactive for Monetization";
     badgesWrapper.appendChild(monetizedBadge);
@@ -593,7 +564,7 @@ export function renderMetadataBadges(server) {
   badgesWrapper.appendChild(pBadge);
   const cBadge = document.createElement("span");
   cBadge.className = `hud-badge badge-${server.modded ? "modded" : "vanilla"}`;
-  cBadge.textContent = server.modded ? "MODDED" : "VANILLA";
+  cBadge.textContent = server.modded ? "Modded" : "Vanilla";
   badgesWrapper.appendChild(cBadge);
   if (server.time) {
     const tBadge = document.createElement("span");
@@ -613,7 +584,7 @@ export function renderMetadataBadges(server) {
   if (server.password) {
     const lockBadge = document.createElement("span");
     lockBadge.className = "hud-badge badge-lock";
-    lockBadge.textContent = "\uD83D\uDD12 LOCKED";
+    lockBadge.textContent = "\uD83D\uDD12 Locked";
     badgesWrapper.appendChild(lockBadge);
   }
   return badgesWrapper;

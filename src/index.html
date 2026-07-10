@@ -255,7 +255,7 @@
               id="searchInput"
               aria-label="Search servers by name or IP"
               class="search-input"
-              placeholder="SEARCH SERVERS BY NAME OR IP..."
+              placeholder="Search servers by name or IP..."
             />
           </div>
 
@@ -272,7 +272,7 @@
                 fill="currentColor"
                 stroke="currentColor"
               ></app-icon>
-              DIRECT JOIN
+              Direct Join
             </button>
             <button
               aria-label="Toggle Filter Menu"
@@ -335,9 +335,9 @@
 
           <div class="filter-group">
             <span class="filter-label">CATEGORY:</span>
-            <button class="filter-pill active" id="filter-cat-all">ALL</button>
-            <button class="filter-pill" id="filter-cat-vanilla">VANILLA</button>
-            <button class="filter-pill" id="filter-cat-modded">MODDED</button>
+            <button class="filter-pill active" id="filter-cat-all">All</button>
+            <button class="filter-pill" id="filter-cat-vanilla">Vanilla</button>
+            <button class="filter-pill" id="filter-cat-modded">Modded</button>
           </div>
 
           <div class="filter-group">
@@ -355,7 +355,7 @@
                   fill="none"
                   stroke="currentColor"
                 ></app-icon>
-                ALL MAPS ▾
+                All Maps ▾
               </button>
               <div
                 class="multiselect-dropdown"
@@ -403,20 +403,47 @@
           </div>
 
           <div class="filter-group">
-            <span class="filter-label">PLAYERS:</span>
+            <span class="filter-label">COUNTRY:</span>
+            <div class="multiselect" id="multiselect-country">
+              <button
+                class="filter-pill multiselect-trigger"
+                id="ms-trigger-country"
+                style="display: inline-flex; align-items: center; gap: 6px"
+              >
+                <app-icon
+                  name="globe"
+                  style="width: 0.95rem; height: 0.95rem"
+                  stroke-width="2"
+                  fill="none"
+                  stroke="currentColor"
+                ></app-icon>
+                All Countries ▾
+              </button>
+              <div
+                class="multiselect-dropdown"
+                id="ms-dropdown-country"
+                style="display: none; max-height: 250px; overflow-y: auto;"
+              >
+                <!-- Checkboxes dynamically generated based on loaded list -->
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-group">
+            <span class="filter-label">Players:</span>
             <button
               class="filter-pill"
               id="filter-hide-empty"
               aria-pressed="false"
             >
-              HIDE EMPTY
+              Hide Empty
             </button>
             <button
               class="filter-pill"
               id="filter-hide-full"
               aria-pressed="false"
             >
-              HIDE FULL
+              Hide Full
             </button>
           </div>
 
@@ -435,7 +462,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              FAVORITES ONLY
+              Favorites Only
             </button>
             <button
               class="filter-pill"
@@ -450,7 +477,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              RECENTLY PLAYED
+              Recently Played
             </button>
           </div>
 
@@ -461,14 +488,14 @@
               id="filter-hide-fakes"
               aria-pressed="true"
             >
-              HIDE FAKES
+              Hide Fakes
             </button>
             <button
               class="filter-pill"
               id="filter-hide-locked"
               aria-pressed="false"
             >
-              HIDE LOCKED
+              Hide Locked
             </button>
           </div>
         </div>
@@ -497,8 +524,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            CONNECTION LOST — SERVER LIST MAY BE STALE. CHECK YOUR NETWORK
-            CONNECTION.
+            Connection lost — Server list may be stale. Check your network connection.
           </span>
         </div>
         <!-- Stats Bar -->
@@ -562,7 +588,7 @@
                     IP Address
                     <span class="sort-indicator"></span>
                   </th>
-                  <th style="width: 170px; text-align: right">HUD Link</th>
+                  <th style="width: 170px; text-align: right">Action</th>
                 </tr>
               </thead>
               <tbody id="serverListBody">
@@ -597,7 +623,7 @@
                 color: var(--text-muted);
               "
             >
-              SHOWING 0 - 0 OF 0 SERVERS
+              Showing 0 - 0 of 0 servers
             </div>
             <div class="flex gap-2">
               <button
@@ -605,14 +631,14 @@
                 class="btn btn-outline"
                 style="padding: 6px 12px; font-size: 0.75rem"
               >
-                « PREV
+                « Prev
               </button>
               <button
                 id="nextPageBtn"
                 class="btn btn-outline"
                 style="padding: 6px 12px; font-size: 0.75rem"
               >
-                NEXT »
+                Next »
               </button>
             </div>
           </div>
@@ -669,7 +695,7 @@
                     color: var(--text-muted);
                     text-transform: uppercase;
                   "
-                  >MODS DETECTED</span
+                  >Mods Detected</span
                 >
               </div>
               <div class="flex items-baseline gap-2">
@@ -690,7 +716,7 @@
                     color: var(--text-muted);
                     text-transform: uppercase;
                   "
-                  >STORAGE</span
+                  >Storage</span
                 >
               </div>
             </div>
@@ -714,7 +740,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              RE-SCAN LOCAL STORAGE
+              Re-scan Local Storage
             </button>
             <button
               id="checkDepsBtn"
@@ -734,7 +760,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              CHECK DEPENDENCIES
+              Check Dependencies
             </button>
           </div>
         </div>
@@ -764,7 +790,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              STORAGE ALLOCATION TELEMETRY
+              Storage Allocation Telemetry
             </span>
             <span
               id="diskSpaceReadout"
@@ -773,7 +799,7 @@
                 color: var(--accent-green);
                 text-shadow: 0 0 5px rgba(46, 196, 182, 0.5);
               "
-              >CALCULATING...</span
+              >Calculating...</span
             >
           </div>
           <div
@@ -853,7 +879,7 @@
                   border-radius: 2px;
                 "
               ></div>
-              SYSTEM / OTHER
+              System / Other
             </div>
             <div class="flex items-center gap-1">
               <div
@@ -865,7 +891,7 @@
                   border-radius: 2px;
                 "
               ></div>
-              DAYZ MODS
+              DayZ Mods
             </div>
             <div class="flex items-center gap-1">
               <div
@@ -876,7 +902,7 @@
                   border-radius: 2px;
                 "
               ></div>
-              FREE SPACE
+              Free Space
             </div>
           </div>
         </div>
@@ -934,7 +960,7 @@
                       padding: 30px;
                     "
                   >
-                    NO MODS DETECTED. SPECIFY WORKSHOP MOD PATH IN SETTINGS.
+                    No mods detected. Specify Workshop mod path in settings.
                   </td>
                 </tr>
               </tbody>
@@ -974,7 +1000,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              LOADOUTS
+              Loadouts
             </span>
             <select
               id="loadoutSelect"
@@ -1064,7 +1090,7 @@
               fill="currentColor"
               stroke="currentColor"
             ></app-icon>
-            QUICK LAUNCH
+            Quick Launch
           </button>
         </div>
       </div>
@@ -1163,27 +1189,27 @@
           style="margin-bottom: 15px"
         >
           <div class="stat-item">
-            SESSIONS:
+            Sessions:
             <span class="stat-value" id="teleTotalSessions">—</span>
           </div>
           <div class="stat-item">
-            TOTAL PLAYTIME:
+            Total Playtime:
             <span class="stat-value" id="teleTotalPlaytime">—</span>
           </div>
           <div class="stat-item">
-            AVERAGE SESSION:
+            Average Session:
             <span class="stat-value" id="teleAvgSession">—</span>
           </div>
           <div class="stat-item">
-            CRASHES:
+            Crashes:
             <span class="stat-value" id="teleTotalCrashes">—</span>
           </div>
           <div class="stat-item">
-            WARNINGS:
+            Warnings:
             <span class="stat-value" id="teleTotalWarnings">—</span>
           </div>
           <div class="stat-item">
-            DROPS:
+            Drops:
             <span class="stat-value" id="teleTotalDrops">—</span>
           </div>
         </div>
@@ -1201,7 +1227,7 @@
               border-radius: 4px;
             "
           >
-            LOADING TELEMETRY...
+            Loading telemetry...
           </div>
         </div>
       </div>
@@ -1237,7 +1263,7 @@
                 fill="currentColor"
                 stroke="currentColor"
               ></app-icon>
-              FAVORITES MANAGER
+              Favorites Manager
             </h2>
             <div style="display: flex; gap: 10px; align-items: center">
               <button
@@ -1269,7 +1295,7 @@
                   aria-label="Favorite Server Name"
                   class="search-input"
                   style="max-width: 200px; padding: 12px 15px"
-                  placeholder="NAME (OPTIONAL)..."
+                  placeholder="Name (optional)..."
                 />
                 <input
                   type="text"
@@ -1281,7 +1307,7 @@
                     padding: 12px 15px;
                     border-left: 1px solid var(--border);
                   "
-                  placeholder="IP ADDRESS..."
+                  placeholder="IP address..."
                 />
                 <input
                   type="text"
@@ -1289,7 +1315,7 @@
                   aria-label="Favorite Server Port"
                   class="search-input"
                   style="max-width: 100px; padding: 12px 15px"
-                  placeholder="PORT..."
+                  placeholder="Port..."
                 />
                 <button
                   id="addFavBtn"
@@ -1332,7 +1358,7 @@
                 <th style="width: 80px">Ping</th>
                 <th style="width: 250px">Metadata</th>
                 <th style="width: 220px">IP Address</th>
-                <th style="width: 170px; text-align: right">HUD Link</th>
+                <th style="width: 170px; text-align: right">Action</th>
               </tr>
             </thead>
             <tbody id="favoritesListBody">
@@ -1371,7 +1397,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            SETTINGS
+            Settings
           </h2>
           <div style="display: flex; gap: 12px">
             <button
@@ -1392,7 +1418,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              RESET TO DEFAULTS
+              Reset to Defaults
             </button>
             <button
               id="saveSettingsBtn"
@@ -1406,7 +1432,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              SAVE SETTINGS
+              SAVE Settings
             </button>
           </div>
         </div>
@@ -1422,7 +1448,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              APPEARANCE & AUDIO
+              Appearance & Audio
             </h3>
             <div class="form-group">
               <label for="themeSelect">HUD Color Theme</label>
@@ -1503,7 +1529,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              STORAGE DIRECTORIES
+              Storage Directories
             </h3>
             <div class="form-group">
               <label for="modDirectory">Workshop Mod Path</label>
@@ -1531,7 +1557,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              NETWORK POLLING
+              Network Polling
             </h3>
             <div style="display: flex; gap: 20px; align-items: stretch">
               <div class="form-group" style="flex: 1; box-sizing: border-box">
@@ -1630,7 +1656,7 @@
                 fill="currentColor"
                 stroke="currentColor"
               ></app-icon>
-              LAUNCH PRESETS
+              Launch Presets
             </h3>
             <div class="form-group">
               <label for="protonPath">Proton Compatibility Layer</label>
@@ -1740,7 +1766,7 @@
                 fill="none"
                 stroke="currentColor"
               ></app-icon>
-              PERFORMANCE TUNING
+              Performance Tuning
             </h3>
             <div
               class="form-group checkbox-group"
@@ -1881,13 +1907,13 @@
       <div class="footer-left">
         <div class="footer-indicator">
           <div class="footer-dot" id="footerStatusDot"></div>
-          <span id="footerStatusText">CONNECTED</span>
+          <span id="footerStatusText">Connected</span>
         </div>
         <span>DZLINUX <span class="app-version-text"></span></span>
       </div>
       <div class="footer-right">
-        <span id="footerLastRefresh">LAST REFRESH: —</span>
-        <span>Ctrl+R REFRESH · Ctrl+F SEARCH</span>
+        <span id="footerLastRefresh">Last Refresh: —</span>
+        <span>Ctrl+R Refresh · Ctrl+F Search</span>
       </div>
     </footer>
 
@@ -1903,7 +1929,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            SERVER MODS CHECKLIST & DISPATCH
+            Server Mods Checklist & Dispatch
           </h2>
         </div>
         <div class="modal-body">
@@ -1919,13 +1945,13 @@
 
           <!-- Console-like auto download feedback log -->
           <div id="modStatusContainer" class="console-log-box">
-            <span id="modStatusText">READY FOR COMMAND...</span>
+            <span id="modStatusText">Ready for command...</span>
           </div>
         </div>
 
         <div class="modal-actions">
           <button id="modalCancelBtn" class="btn btn-outline">
-            ABORT MISSION
+            Abort Mission
           </button>
           <button
             id="modalAutoDownloadBtn"
@@ -1939,7 +1965,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            SYNC OUT-OF-DATE MODS
+            Sync Out-of-date Mods
           </button>
         </div>
       </div>
@@ -1967,7 +1993,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            DIRECT JOIN
+            Direct Join
           </h2>
         </div>
         <div class="modal-body">
@@ -1976,7 +2002,7 @@
             establish a direct telemetry link.
           </p>
           <div class="form-group mb-4">
-            <label for="directIpInput">IP ADDRESS</label>
+            <label for="directIpInput">IP Address</label>
             <input
               type="text"
               id="directIpInput"
@@ -1985,7 +2011,7 @@
             />
           </div>
           <div class="form-group mb-4">
-            <label for="directPortInput">PORT</label>
+            <label for="directPortInput">Port</label>
             <input
               type="text"
               id="directPortInput"
@@ -2001,7 +2027,7 @@
           <button id="directConnectCancelBtn" class="btn btn-outline">
             CANCEL
           </button>
-          <button id="directConnectBtn" class="btn">CONNECT NOW</button>
+          <button id="directConnectBtn" class="btn">Connect Now</button>
         </div>
       </div>
     </div>
@@ -2025,7 +2051,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            UPDATE AVAILABLE
+            Update Available
           </h2>
         </div>
         <div class="modal-body">
@@ -2085,7 +2111,7 @@
           </div>
         </div>
         <div class="modal-actions">
-          <button id="updateDismissBtn" class="btn btn-outline">DISMISS</button>
+          <button id="updateDismissBtn" class="btn btn-outline">Dismiss</button>
           <button
             id="updateDownloadBtn"
             class="btn btn-primary"
@@ -2109,7 +2135,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            CONFIRM ACTION
+            Confirm Action
           </h2>
         </div>
         <div class="modal-body">
@@ -2119,7 +2145,7 @@
           <button id="confirmModalCancelBtn" class="btn btn-outline">
             CANCEL
           </button>
-          <button id="confirmModalOkBtn" class="btn">CONFIRM</button>
+          <button id="confirmModalOkBtn" class="btn">Confirm</button>
         </div>
       </div>
     </div>
@@ -2130,7 +2156,7 @@
         style="border-color: var(--accent); max-width: 600px"
       >
         <div class="modal-header">
-          <h2 style="color: var(--accent)">ABOUT DZLINUX</h2>
+          <h2 style="color: var(--accent)">About DzLinux</h2>
         </div>
         <div class="modal-body" style="max-height: 60vh; overflow-y: auto">
           <p
@@ -2180,7 +2206,7 @@
               margin-bottom: 10px;
             "
           >
-            OPEN SOURCE ACKNOWLEDGMENTS
+            Open Source Acknowledgments
           </h3>
           <p
             style="
@@ -2275,7 +2301,7 @@
           class="modal-actions"
           style="display: flex; justify-content: flex-end"
         >
-          <button id="aboutCloseBtn" class="btn btn-outline">CLOSE</button>
+          <button id="aboutCloseBtn" class="btn btn-outline">Close</button>
         </div>
       </div>
     </div>
@@ -2306,7 +2332,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            GAME CRASH DETECTED
+            Game Crash Detected
           </h2>
         </div>
         <div class="modal-body">
@@ -2339,7 +2365,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            COPY LOG
+            Copy Log
           </button>
         </div>
       </div>

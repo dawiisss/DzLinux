@@ -16,7 +16,7 @@ export async function refreshLocalModsCache() {
 export async function loadInstalledMods() {
   const tbody = document.getElementById("installedModsListBody");
   tbody.innerHTML =
-    '<tr><td colspan="6" class="empty-state-msg" style="padding: 30px;">SCANNING WORKSHOP STORAGE PIPELINE...</td></tr>';
+    '<tr><td colspan="6" class="empty-state-msg" style="padding: 30px;">Scanning Workshop storage pipeline...</td></tr>';
 
   await refreshLocalModsCache();
 
@@ -60,11 +60,11 @@ export async function loadInstalledMods() {
 
   if (state.localMods.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="6" class="empty-state-msg" style="padding: 30px;">NO INSTALLED WORKSHOP MODS DETECTED. DEFINE TARGET WORKSHOP FOLDER IN SETTINGS.</td></tr>';
+      '<tr><td colspan="6" class="empty-state-msg" style="padding: 30px;">No installed Workshop mods detected. Define target Workshop folder in Settings.</td></tr>';
     return;
   }
 
-  tbody.innerHTML = "";
+  tbody.replaceChildren();
   state.localMods.forEach((mod) => {
     const tr = document.createElement("tr");
 
@@ -221,13 +221,13 @@ export async function loadInstalledMods() {
           <div style="display:flex;align-items:center;gap:12px;flex:1;">
             <app-icon name="alert" style="width: 1.3rem; height: 1.3rem; color: #ffb703; flex-shrink: 0;"></app-icon>
             <div>
-              <div style="font-weight:700;color:#ffb703;font-size:0.9rem;">${count} MOD${count > 1 ? "S" : ""} OUTDATED — WORKSHOP MISMATCH DETECTED</div>
-              <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">${names}${more}</div>
+              <div style="font-weight:700;color:#ffb703;font-size:0.9rem;">${escapeHtml(String(count))} MOD${count > 1 ? "S" : ""} Outdated — Workshop Mismatch Detected</div>
+              <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">${names}${escapeHtml(more)}</div>
             </div>
           </div>
           <button id="updateAllMismatchBtn" class="btn" style="padding:6px 14px;font-size:0.8rem;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
             <app-icon name="download" style="width: 0.95rem; height: 0.95rem;"></app-icon>
-            UPDATE ALL
+            Update all
           </button>
           <button aria-label="Dismiss Mismatch Banner" title="Dismiss" id="dismissMismatchBtn" class="btn btn-outline" style="padding:6px 10px;font-size:0.75rem;">✕</button>
         `;
@@ -273,9 +273,10 @@ export async function loadInstalledMods() {
               warning.style.marginTop = "4px";
               warning.style.fontSize = "0.8rem";
               const days = mod.daysOutdated || 0;
+              const daysStr = days > 0 ? `${days} days` : "Recently";
               warning.innerHTML = `
                 <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ffb703; margin-right: 4px; vertical-align: middle;"></app-icon>
-                Workshop Mismatch (Outdated ${days > 0 ? days + " days" : "Recently"})
+                Workshop Mismatch (Outdated ${escapeHtml(String(daysStr))})
               `;
               nameCell.appendChild(warning);
             }
@@ -479,7 +480,7 @@ export async function initModManager() {
         const trees = await window.api.deps.resolveBatch(
           state.localMods.map((m) => m.id),
         );
-        depsContainer.innerHTML = "";
+        depsContainer.replaceChildren();
 
         let totalMissingDeps = 0;
         let hasErrors = false;
@@ -570,7 +571,7 @@ export async function initModManager() {
           warningBanner.style.color = "#ff5a5f";
           warningBanner.style.fontSize = "0.85rem";
           warningBanner.style.fontWeight = "700";
-          warningBanner.innerHTML = `⚠️ ${totalMissingDeps} MISSING TRANSITIVE DEPENDENCIES DETECTED — SUBSCRIBE VIA WORKSHOP TO RESOLVE`;
+          warningBanner.innerHTML = `⚠️ ${totalMissingDeps} Missing transitive dependencies detected — Subscribe via Workshop to resolve`;
           depsContainer.insertBefore(warningBanner, depsContainer.firstChild);
         }
 
@@ -585,7 +586,7 @@ export async function initModManager() {
           okBanner.style.fontSize = "0.85rem";
           okBanner.style.fontWeight = "700";
           okBanner.style.fontFamily = "'Share Tech Mono', monospace";
-          okBanner.innerHTML = "✓ ALL DEPENDENCIES SATISFIED";
+          okBanner.innerHTML = "✓ All dependencies satisfied";
           depsContainer.insertBefore(okBanner, depsContainer.firstChild);
 
           setTimeout(() => {
@@ -593,7 +594,7 @@ export async function initModManager() {
           }, 3000);
         }
       } catch (e) {
-        depsContainer.innerHTML = `<div style="color:#ff5a5f;padding:15px;">FAILED TO RESOLVE DEPENDENCIES: ${escapeHtml(e.message)}</div>`;
+        depsContainer.innerHTML = `<div style="color:#ff5a5f;padding:15px;">Failed to resolve dependencies: ${escapeHtml(e.message)}</div>`;
         console.error("Dependency resolver error:", e);
       }
     });

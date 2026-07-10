@@ -3,15 +3,19 @@ import { escapeHtml } from "../utils.js";
 import { showToast } from "../feedback.js";
 import { triggerSteamworksSync, refreshLocalModsCache } from "../modManager.js";
 import { buildServerRow, buildDetailRow } from "../serverRow.js";
-
-const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
-const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
+import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "../utils.js";
 import { getCombinedAndFilteredServers } from "./serverBrowserCore.js";
 import { updateStatsBar, refreshServers } from "./serverBrowserRender.js";
 
 export function renderServers() {
   const tbody = document.getElementById("serverListBody");
   if (!tbody) return;
+
+  // Dynamically update the country filter's options (if currently open) or its group pill
+  // visibility (if closed) as the active filtered server list changes.
+  const dropdown = document.getElementById("ms-dropdown-country");
+  const isOpen = dropdown && dropdown.style.display === "block";
+  document.dispatchEvent(new CustomEvent("dzlinux:populate-country-dropdown", { detail: { isOpen } }));
 
   let savedExpandedId = null;
   let savedScrollTop = 0;
@@ -63,7 +67,7 @@ export function renderServers() {
         case "ip":
           cmp = a.ip.localeCompare(b.ip);
           break;
-        case "ping":
+        case "ping": {
           const valA =
             a.realPing !== undefined && a.realPing !== -1
               ? a.realPing
@@ -92,7 +96,8 @@ export function renderServers() {
             if (cmp === 0) cmp = a.name.localeCompare(b.name);
             return state.sort.direction === "asc" ? cmp : -cmp;
           }
-        case "mods":
+        }
+        case "mods": {
           const modsA = a.mods ? a.mods.length : 0;
           const modsB = b.mods ? b.mods.length : 0;
           cmp = modsA - modsB;
@@ -100,6 +105,7 @@ export function renderServers() {
             cmp = (a.originalIndex ?? Infinity) - (b.originalIndex ?? Infinity);
           if (cmp === 0) cmp = a.name.localeCompare(b.name);
           break;
+        }
         default:
           cmp = a.players - b.players;
           if (cmp === 0)
@@ -129,7 +135,7 @@ export function renderServers() {
 
   const paginationInfo = document.getElementById("paginationInfo");
   if (paginationInfo) {
-    paginationInfo.textContent = `SHOWING ${totalServers ? startIdx + 1 : 0} - ${endIdx} OF ${totalServers} SERVERS (PAGE ${state.pagination.page}/${totalPages})`;
+    paginationInfo.textContent = `Showing ${totalServers ? startIdx + 1 : 0} - ${endIdx} of ${totalServers} servers (Page ${state.pagination.page}/${totalPages})`;
   }
 
   const prevBtn = document.getElementById("prevPageBtn");
@@ -203,8 +209,9 @@ export function renderServers() {
 }
 
 export async function connectToServer(ip, port) {
-  console.log(`Connecting to ${ip}:${port}... verifying mods`);
-  await addToHistory(ip, port);
+  try {
+    console.log(`Connecting to ${ip}:${port}... verifying mods`);
+    await addToHistory(ip, port);
 
   const serverObj = state.allServers.find(
     (s) => s.ip === ip && s.port.toString() === port.toString()
@@ -240,10 +247,10 @@ export async function connectToServer(ip, port) {
     const modal = document.getElementById("modModal");
     const list = document.getElementById("missingModsList");
     const statusText = document.getElementById("modStatusText");
-    statusText.innerText = "WAITING FOR YOU TO SUBSCRIBE VIA WORKSHOP...";
+    statusText.innerText = "Waiting for you to subscribe via Workshop...";
 
     const renderModalList = (currentMissingMods) => {
-      list.innerHTML = "";
+      list.replaceChildren();
       requiredMods.forEach((mod) => {
         const isMissing = currentMissingMods.some((m) => m.id === mod.id);
         const li = document.createElement("li");
@@ -258,12 +265,12 @@ export async function connectToServer(ip, port) {
 
         const statusLabel = document.createElement("span");
         statusLabel.className = `mod-status-label ${isMissing ? "missing" : "installed"}`;
-        statusLabel.textContent = isMissing ? "[NOT SUBSCRIBED]" : "[READY]";
+        statusLabel.textContent = isMissing ? "[Not Subscribed]" : "[Ready]";
         actionsDiv.appendChild(statusLabel);
 
         if (isMissing) {
           const subBtn = document.createElement("button");
-          subBtn.textContent = "SUBSCRIBE";
+          subBtn.textContent = "Subscribe";
           subBtn.addEventListener("click", () => {
             triggerSteamworksSync(mod.id, mod.name, statusLabel);
           });
@@ -274,7 +281,7 @@ export async function connectToServer(ip, port) {
              .then((info) => {
                if (info && info.total > 0) {
                  const pct = Math.floor(info.progress * 100);
-                 statusLabel.textContent = `[${pct}% SYNCING...]`;
+                 statusLabel.textContent = `[${pct}% Syncing...]`;
                  statusLabel.style.color = "var(--accent)";
                  subBtn.style.display = "none";
                }
@@ -298,20 +305,22 @@ export async function connectToServer(ip, port) {
       autoBtn.style.opacity = "1";
       autoBtn.innerHTML = `
         <app-icon name="download" style="width: 1rem; height: 1rem;"></app-icon>
-        SUBSCRIBE ALL & CONNECT
+        Subscribe All & Connect
       `;
-      autoBtn.onclick = () => {
-        autoBtn.disabled = true;
-        autoBtn.setAttribute("aria-disabled", "true");
-        autoBtn.innerHTML = `
+      const newAutoBtn = autoBtn.cloneNode(true);
+      autoBtn.parentNode.replaceChild(newAutoBtn, autoBtn);
+      newAutoBtn.addEventListener("click", () => {
+        newAutoBtn.disabled = true;
+        newAutoBtn.setAttribute("aria-disabled", "true");
+        newAutoBtn.innerHTML = `
           <app-icon name="loader" style="width: 1rem; height: 1rem;"></app-icon>
-          SYNCING...
+          Syncing...
         `;
-        autoBtn.style.opacity = "0.7";
+        newAutoBtn.style.opacity = "0.7";
         missingMods.forEach((mod) => {
           triggerSteamworksSync(mod.id, mod.name, null);
         });
-      };
+      });
     } else {
       autoBtn.style.display = "none";
     }
@@ -328,7 +337,7 @@ export async function connectToServer(ip, port) {
         clearInterval(state.currentModCheckInterval);
         state.currentModCheckInterval = null;
         statusText.innerText =
-          ">>>> ALL MODS VERIFIED! DISPATCHING GAME CLIENT...";
+          ">>>> All mods verified! Dispatching game client...";
         statusText.style.color = "var(--accent-green)";
         setTimeout(async () => {
           modal.style.display = "none";
@@ -340,13 +349,20 @@ export async function connectToServer(ip, port) {
       }
     }, 2500);
 
-    document.getElementById("modalCancelBtn").onclick = () => {
+    const cancelBtn = document.getElementById("modalCancelBtn");
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+    newCancelBtn.addEventListener("click", () => {
       if (state.currentModCheckInterval) {
         clearInterval(state.currentModCheckInterval);
         state.currentModCheckInterval = null;
       }
       modal.style.display = "none";
-    };
+    });
+  }
+  } catch (err) {
+    console.error(`Failed to connect to ${ip}:${port}:`, err);
+    showToast(`Failed to connect: ${err.message || "Unknown error"}`, "#ef233c", "⚠️");
   }
 }
 
@@ -400,3 +416,15 @@ export function initServerBrowser() {
     });
   }
 }
+
+// Event listeners for circular dependency avoidance
+document.addEventListener("dzlinux:render-servers", () => {
+  renderServers();
+});
+
+document.addEventListener("dzlinux:connect-server", (e) => {
+  if (e.detail && e.detail.server) {
+    connectToServer(e.detail.server);
+  }
+});
+

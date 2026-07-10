@@ -1,6 +1,6 @@
 # Maintainer: DzLinux Team <dawiisss@github.com>
 pkgname=dzlinux-bin
-pkgver=1.4.1
+pkgver=1.4.2
 pkgrel=1
 pkgdesc="A high-performance DayZ Server Browser and Mod Manager for Linux."
 arch=('x86_64')

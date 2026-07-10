@@ -117,7 +117,7 @@ class AppIcon extends HTMLElement {
     const name = this.getAttribute("name");
     const iconData = icons[name];
     if (!iconData) {
-      this.innerHTML = "";
+      this.replaceChildren();
       return;
     }
 

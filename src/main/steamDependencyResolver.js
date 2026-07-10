@@ -2,6 +2,23 @@ const axios = require("axios");
 
 const dependencyCache = new Map();
 const MAX_DEPTH = 5;
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+
+async function asyncPool(concurrency, iterable, iteratorFn) {
+  const ret = [];
+  const executing = new Set();
+  for (const item of iterable) {
+    const p = Promise.resolve().then(() => iteratorFn(item));
+    ret.push(p);
+    executing.add(p);
+    const clean = () => executing.delete(p);
+    p.then(clean).catch(clean);
+    if (executing.size >= concurrency) {
+      await Promise.race(executing);
+    }
+  }
+  return Promise.all(ret);
+}
 
 function makeNode(modId, name, children, flags = {}) {
   return {
@@ -43,7 +60,13 @@ async function resolveDependencies(modId, depth = 0, visited = new Set()) {
 
   const cacheKey = `${modId}:${depth}`;
   const cached = dependencyCache.get(cacheKey);
-  if (cached && !cached.error && !cached.truncated) return cached;
+  if (cached && !cached.error && !cached.truncated) {
+    if (Date.now() - cached.timestamp < CACHE_TTL_MS) {
+      return cached.result;
+    } else {
+      dependencyCache.delete(cacheKey);
+    }
+  }
 
   const result = makeNode(modId);
 
@@ -76,11 +99,9 @@ async function resolveDependencies(modId, depth = 0, visited = new Set()) {
         .filter((c) => c.publishedfileid)
         .map((c) => c.publishedfileid.toString());
 
-      const childPromises = childIds.map((childId) =>
+      const childResults = await asyncPool(4, childIds, (childId) =>
         resolveDependencies(childId, depth + 1, new Set(visited)),
       );
-
-      const childResults = await Promise.all(childPromises);
       result.children = childResults.filter((c) => c && c.id);
     }
   } catch (e) {
@@ -91,17 +112,16 @@ async function resolveDependencies(modId, depth = 0, visited = new Set()) {
   }
 
   // Cache successful results with depth to handle different truncation levels
-  dependencyCache.set(cacheKey, result);
+  dependencyCache.set(cacheKey, { result, timestamp: Date.now() });
   // Also cache at depth 0 for top-level lookups
   if (depth === 0) {
-    dependencyCache.set(`${modId}:0`, result);
+    dependencyCache.set(`${modId}:0`, { result, timestamp: Date.now() });
   }
   return result;
 }
 
 async function resolveBatchDependencies(modIds) {
-  const promises = modIds.map((id) => resolveDependencies(id));
-  return await Promise.all(promises);
+  return await asyncPool(4, modIds, (id) => resolveDependencies(id));
 }
 
 function getFlatList(tree) {

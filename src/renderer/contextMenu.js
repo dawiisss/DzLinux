@@ -2,8 +2,8 @@ import { state, addFavorite, removeFavorite } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
 import { renderFavoritesManager } from "./favorites.js";
 
-const STAR_FAV_SVG = `<app-icon name="star" fill="currentColor" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: #ffd700;"></app-icon>`;
-const STAR_UNFAV_SVG = `<app-icon name="star" fill="none" style="width: 1.1rem; height: 1.1rem; vertical-align: middle; color: var(--text-dim);"></app-icon>`;
+import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "./utils.js";
+
 const PLUG_SVG = `<app-icon name="plug" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
 const EYE_SVG = `<app-icon name="eye" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent-green);"></app-icon>`;
 const COPY_SVG = `<app-icon name="copy" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
@@ -58,9 +58,7 @@ export function initContextMenu() {
     };
 
     addMenuItem("Quick Connect", PLUG_SVG, () => {
-      import("./serverBrowser.js").then(({ connectToServer }) =>
-        connectToServer(server.ip, server.port),
-      );
+      document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server } }));
     });
 
     const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
@@ -79,9 +77,7 @@ export function initContextMenu() {
           );
         }
 
-        import("./serverBrowser.js").then(({ renderServers }) =>
-          renderServers(),
-        );
+        document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
 
         const starBtn = document.querySelector(`#row-${server.id} .star-btn`);
         if (starBtn) {

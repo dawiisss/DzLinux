@@ -2,7 +2,7 @@ import { state } from "../state.js";
 import { refreshLocalModsCache } from "../modManager.js";
 import { serverPassesFilters } from "./serverBrowserCore.js";
 import { buildServerRow, renderMetadataBadges } from "../serverRow.js";
-import { applyPingResult } from "../utils.js";
+import { applyPingResult, getPlayerBadgeClass, renderPingBadge } from "../utils.js";
 
 let isServersBatchListenerAdded = false;
 let _needsResort = false;
@@ -12,14 +12,13 @@ let _renderTimer = null;
 let _statsPending = false;
 let _statsTimer = null;
 
+const existingServersMap = new Map();
 const PING_TIMEOUT_MS = 10000;
 
 export async function refreshExpandedServerMods() {
   if (state.expandedServerId) {
     await refreshLocalModsCache();
-    import("../serverBrowser.js").then(({ renderServers }) => {
-      renderServers();
-    });
+    document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
   }
 }
 
@@ -104,9 +103,7 @@ export function scheduleRenderServers() {
   _renderTimer = setTimeout(() => {
     _renderTimer = null;
     _renderPending = false;
-    import("../serverBrowser.js").then(({ renderServers }) => {
-      renderServers();
-    });
+    document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
   }, 200);
 }
 
@@ -125,7 +122,7 @@ export function updateStatsInlineSync() {
   const allPinged = state.allServers.filter(
     (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
   );
-  const filteredCount = allPinged.filter(serverPassesFilters).length;
+  const filteredCount = allPinged.filter((s) => serverPassesFilters(s)).length;
   document.getElementById("statTotalServers").textContent = allPinged.length;
   document.getElementById("statTotalPlayers").textContent = allPinged.reduce(
     (sum, s) => sum + (s.players || 0),
@@ -159,7 +156,7 @@ export function insertServerRow(server) {
   const allPinged = state.allServers.filter(
     (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
   );
-  const filteredCount = allPinged.filter(serverPassesFilters).length;
+  const filteredCount = allPinged.filter((s) => serverPassesFilters(s)).length;
   const startIdx = (state.pagination.page - 1) * state.pagination.size;
   const endIdx = Math.min(startIdx + visibleRows + 1, filteredCount);
   const totalPages = Math.ceil(filteredCount / state.pagination.size) || 1;
@@ -255,12 +252,12 @@ export async function startBackgroundPinging() {
           `${server.ip}:${server.port}`.replace(/[^a-zA-Z0-9]/g, "-");
         const metaCell = document.getElementById(`meta-cell-${rowId}`);
         if (metaCell) {
-          metaCell.innerHTML = "";
+          metaCell.replaceChildren();
           metaCell.appendChild(renderMetadataBadges(server));
         }
         const favMetaCell = document.getElementById(`fav-meta-cell-${rowId}`);
         if (favMetaCell) {
-          favMetaCell.innerHTML = "";
+          favMetaCell.replaceChildren();
           favMetaCell.appendChild(renderMetadataBadges(server));
         }
       }
@@ -278,17 +275,8 @@ export async function startBackgroundPinging() {
           `${server.ip}:${server.port}`.replace(/[^a-zA-Z0-9]/g, "-");
         const playerCell = document.getElementById(`player-cell-${rowId}`);
         if (playerCell) {
-          const pct = server.maxPlayers
-            ? server.players / server.maxPlayers
-            : 0;
-          let bc = "low";
-          if (
-            (pct >= 0.95 || server.players >= server.maxPlayers) &&
-            server.maxPlayers > 0
-          )
-            bc = "high";
-          else if (pct >= 0.7) bc = "medium";
-          playerCell.innerHTML = "";
+          const bc = getPlayerBadgeClass(server.players, server.maxPlayers);
+          playerCell.replaceChildren();
           const ps = document.createElement("span");
           ps.className = `player-badge ${bc}`;
           ps.textContent = `${server.players}/${server.maxPlayers}`;
@@ -296,37 +284,22 @@ export async function startBackgroundPinging() {
         }
         const pingCell = document.getElementById(`ping-cell-${rowId}`);
         if (pingCell) {
-          pingCell.innerHTML = "";
-          const s = document.createElement("span");
-          let c = "ping-good";
-          if (server.realPing > 100) c = "ping-bad";
-          else if (server.realPing > 50) c = "ping-ok";
-          s.className = `ping-badge ${c}`;
-          s.textContent = `${server.realPing}ms`;
-          pingCell.appendChild(s);
+          pingCell.replaceChildren();
+          pingCell.appendChild(renderPingBadge(server.realPing));
         }
       }
 
       if (server.players > 0) {
         if (!_needsResort) {
-          let lowestVisible = Infinity;
-          document
-            .querySelectorAll("#serverListBody .player-badge")
-            .forEach((badge) => {
-              const p = parseInt(badge.textContent) || 0;
-              if (p < lowestVisible) lowestVisible = p;
+          _needsResort = true;
+          if (_resortTimer) clearTimeout(_resortTimer);
+          _resortTimer = setTimeout(() => {
+            _resortTimer = null;
+            _needsResort = false;
+            import("../serverBrowser.js").then(({ renderServers }) => {
+              if (state.expandedServerId === null) renderServers();
             });
-          if (server.players > lowestVisible) {
-            _needsResort = true;
-            if (_resortTimer) clearTimeout(_resortTimer);
-            _resortTimer = setTimeout(() => {
-              _resortTimer = null;
-              _needsResort = false;
-              import("../serverBrowser.js").then(({ renderServers }) => {
-                if (state.expandedServerId === null) renderServers();
-              });
-            }, 400);
-          }
+          }, 400);
         }
       }
       updateStatsInline();
@@ -337,9 +310,7 @@ export async function startBackgroundPinging() {
   );
 
   state.bgPing.isRunning = false;
-  import("../serverBrowser.js").then(({ renderServers }) => {
-    renderServers();
-  });
+  document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
 
   const stillUnpinged = state.allServers.filter(
     (s) => s.realPing === undefined
@@ -357,6 +328,7 @@ export async function refreshServers(isBackground = false) {
   const myGeneration = state.bgPing.generation;
 
   state.allServers = [];
+  existingServersMap.clear();
   state.totalPingedCount = 0;
   state.bgPing.queue = [];
   state.bgPing.isRunning = false;
@@ -380,15 +352,9 @@ export async function refreshServers(isBackground = false) {
         ) {
           return;
         }
-        const existingMap = new Map();
-        for (let i = 0; i < state.allServers.length; i++) {
-          const s = state.allServers[i];
-          existingMap.set(`${s.ip}:${s.port}`, i);
-        }
-
         batch.forEach((newServer) => {
           const key = `${newServer.ip}:${newServer.port}`;
-          const existingIdx = existingMap.has(key) ? existingMap.get(key) : -1;
+          const existingIdx = existingServersMap.has(key) ? existingServersMap.get(key) : -1;
 
           if (existingIdx !== -1) {
             const liveStats = {
@@ -410,7 +376,7 @@ export async function refreshServers(isBackground = false) {
               ...liveStats,
             };
           } else {
-            existingMap.set(key, state.allServers.length);
+            existingServersMap.set(key, state.allServers.length);
             state.allServers.push({
               ...newServer,
               originalIndex: state.allServers.length,
@@ -426,15 +392,9 @@ export async function refreshServers(isBackground = false) {
     const finalServers = await window.api.servers.fetch(myGeneration);
     if (myGeneration !== state.bgPing.generation) return;
     if (finalServers && finalServers.length > 0) {
-      const existingMap = new Map();
-      for (let i = 0; i < state.allServers.length; i++) {
-        const s = state.allServers[i];
-        existingMap.set(`${s.ip}:${s.port}`, i);
-      }
-
       finalServers.forEach((newServer) => {
         const key = `${newServer.ip}:${newServer.port}`;
-        const existingIdx = existingMap.has(key) ? existingMap.get(key) : -1;
+        const existingIdx = existingServersMap.has(key) ? existingServersMap.get(key) : -1;
 
         if (existingIdx !== -1) {
           state.allServers[existingIdx] = {
@@ -442,7 +402,7 @@ export async function refreshServers(isBackground = false) {
             ...newServer,
           };
         } else {
-          existingMap.set(key, state.allServers.length);
+          existingServersMap.set(key, state.allServers.length);
           state.allServers.push({
             ...newServer,
             originalIndex: state.allServers.length,
@@ -450,9 +410,7 @@ export async function refreshServers(isBackground = false) {
         }
       });
       state.expandedServerId = null;
-      import("../serverBrowser.js").then(({ renderServers }) => {
-        renderServers();
-      });
+      document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       if (!state.bgPing.isRunning) startBackgroundPinging();
     }
     setFooterStatus(true);
@@ -464,3 +422,11 @@ export async function refreshServers(isBackground = false) {
   updateFooterTimestamp();
   startCountdown();
 }
+
+document.addEventListener("dzlinux:update-stats", (e) => {
+  if (e.detail) {
+    updateStatsInline(e.detail.ip, e.detail.port, e.detail.queryPort, e.detail.ping, e.detail.statusObj, e.detail.forceOffline);
+  } else {
+    updateStatsInline();
+  }
+});

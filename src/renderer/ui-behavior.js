@@ -1,25 +1,74 @@
-import { applyFilters } from "./serverBrowser.js";
+import { applyFilters, serverPassesFilters } from "./serverBrowser/serverBrowserCore.js";
 import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
 import { state } from "./state.js";
-import { debounce } from "./utils.js";
+import { debounce, countryToFlag, EU_COUNTRIES } from "./utils.js";
 import { showToast } from "./feedback.js";
 import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
 
 
-let currentPerspFilter = "all";
-let currentCatFilter = "all";
-const currentMapFilter = new Set();
-let currentFavFilter = false;
-let currentHideEmpty = false;
-let currentHideFull = false;
-let currentHistoryFilter = false;
-let currentSortColumn = "players";
-let currentSortDirection = "desc";
-let currentHideFakes = true;
-let currentHideLocked = false;
+// Set storing currently selected country codes in the filter dropdown
+
+// Dictionary mapping common ISO country codes to readable names for dropdown presentation
+const COUNTRY_NAMES = {
+  US: "United States",
+  DE: "Germany",
+  FR: "France",
+  GB: "United Kingdom",
+  RU: "Russia",
+  PL: "Poland",
+  CZ: "Czechia",
+  CA: "Canada",
+  AU: "Australia",
+  NL: "Netherlands",
+  SE: "Sweden",
+  FI: "Finland",
+  UA: "Ukraine",
+  BR: "Brazil",
+  CN: "China",
+  JP: "Japan",
+  KR: "South Korea",
+  SG: "Singapore",
+  AT: "Austria",
+  BE: "Belgium",
+  CH: "Switzerland",
+  DK: "Denmark",
+  ES: "Spain",
+  IE: "Ireland",
+  IT: "Italy",
+  NO: "Norway",
+  PT: "Portugal",
+  RO: "Romania",
+  NZ: "New Zealand",
+  ZA: "South Africa",
+  TR: "Turkey",
+  HU: "Hungary",
+  SK: "Slovakia",
+  SI: "Slovenia",
+  HR: "Croatia",
+  RS: "Serbia",
+  BG: "Bulgaria",
+  GR: "Greece",
+  EE: "Estonia",
+  LV: "Latvia",
+  LT: "Lithuania",
+  CL: "Chile",
+  AR: "Argentina",
+  MX: "Mexico",
+  IN: "India",
+  HK: "Hong Kong",
+  TW: "Taiwan",
+  TH: "Thailand",
+  MY: "Malaysia",
+  VN: "Vietnam",
+  ID: "Indonesia",
+  PH: "Philippines",
+  IL: "Israel",
+  AE: "United Arab Emirates",
+  KZ: "Kazakhstan",
+};
 
 // --- Modals ---
 export function openDirectConnectModal() {
@@ -35,7 +84,6 @@ export function openAboutModal() {
 export function closeAboutModal() {
   document.getElementById("aboutModal").style.display = "none";
 }
-
 
 // --- Tabs & UI Feedback ---
 export function toggleFilters() {
@@ -76,7 +124,7 @@ export function switchTab(tabId) {
 }
 
 export function setPerspFilter(val) {
-  currentPerspFilter = val;
+  state.filters.perspective = val;
   document
     .querySelectorAll('[id^="filter-persp-"]')
     .forEach((btn) => btn.classList.remove("active"));
@@ -85,7 +133,7 @@ export function setPerspFilter(val) {
 }
 
 export function setCatFilter(val) {
-  currentCatFilter = val;
+  state.filters.category = val;
   document
     .querySelectorAll('[id^="filter-cat-"]')
     .forEach((btn) => btn.classList.remove("active"));
@@ -111,10 +159,10 @@ export function toggleMultiselect(name) {
 }
 
 export function toggleMapOption(val) {
-  if (currentMapFilter.has(val)) {
-    currentMapFilter.delete(val);
+  if (state.filters.maps.has(val)) {
+    state.filters.maps.delete(val);
   } else {
-    currentMapFilter.add(val);
+    state.filters.maps.add(val);
   }
   updateMapTrigger();
   triggerFiltering();
@@ -126,91 +174,203 @@ export function updateMapTrigger() {
     '#ms-dropdown-map input[type="checkbox"]',
   );
   checkboxes.forEach((cb) => {
-    cb.checked = currentMapFilter.has(cb.dataset.map);
+    cb.checked = state.filters.maps.has(cb.dataset.map);
   });
   const mapSvg = `<app-icon name="map" style="width: 0.95rem; height: 0.95rem;"></app-icon>`;
-  if (currentMapFilter.size === 0) {
-    tr.innerHTML = `${mapSvg} ALL MAPS ▾`;
+  if (state.filters.maps.size === 0) {
+    tr.innerHTML = `${mapSvg} All Maps ▾`;
     tr.classList.remove("active");
-  } else if (currentMapFilter.size >= checkboxes.length) {
-    tr.innerHTML = `${mapSvg} ALL MAPS ▾`;
+  } else if (state.filters.maps.size >= checkboxes.length) {
+    tr.innerHTML = `${mapSvg} All Maps ▾`;
   } else {
-    tr.innerHTML = `${mapSvg} ${currentMapFilter.size} MAPS ▾`;
+    tr.innerHTML = `${mapSvg} ${state.filters.maps.size} MAPS ▾`;
     tr.classList.add("active");
   }
 }
 
 export function toggleFavFilter() {
-  currentFavFilter = !currentFavFilter;
+  state.flags.favoritesOnly = !state.flags.favoritesOnly;
   const btn = document.getElementById("filter-fav-only");
-  btn.classList.toggle("active", currentFavFilter);
-  btn.setAttribute("aria-pressed", currentFavFilter.toString());
+  btn.classList.toggle("active", state.flags.favoritesOnly);
+  btn.setAttribute("aria-pressed", state.flags.favoritesOnly.toString());
   triggerFiltering();
 }
 
 export function toggleHideEmpty() {
-  currentHideEmpty = !currentHideEmpty;
+  state.flags.hideEmpty = !state.flags.hideEmpty;
   const btn = document.getElementById("filter-hide-empty");
-  btn.classList.toggle("active", currentHideEmpty);
-  btn.setAttribute("aria-pressed", currentHideEmpty.toString());
+  btn.classList.toggle("active", state.flags.hideEmpty);
+  btn.setAttribute("aria-pressed", state.flags.hideEmpty.toString());
   triggerFiltering();
 }
 
 export function toggleHideFull() {
-  currentHideFull = !currentHideFull;
+  state.flags.hideFull = !state.flags.hideFull;
   const btn = document.getElementById("filter-hide-full");
-  btn.classList.toggle("active", currentHideFull);
-  btn.setAttribute("aria-pressed", currentHideFull.toString());
+  btn.classList.toggle("active", state.flags.hideFull);
+  btn.setAttribute("aria-pressed", state.flags.hideFull.toString());
   triggerFiltering();
 }
 
 export function toggleHistoryFilter() {
-  currentHistoryFilter = !currentHistoryFilter;
+  state.flags.historyOnly = !state.flags.historyOnly;
   const btn = document.getElementById("filter-history");
-  btn.classList.toggle("active", currentHistoryFilter);
-  btn.setAttribute("aria-pressed", currentHistoryFilter.toString());
+  btn.classList.toggle("active", state.flags.historyOnly);
+  btn.setAttribute("aria-pressed", state.flags.historyOnly.toString());
   triggerFiltering();
 }
 
 export function toggleHideFakes() {
-  currentHideFakes = !currentHideFakes;
+  state.flags.hideFakes = !state.flags.hideFakes;
   const btn = document.getElementById("filter-hide-fakes");
-  btn.classList.toggle("active", currentHideFakes);
-  btn.setAttribute("aria-pressed", currentHideFakes.toString());
+  btn.classList.toggle("active", state.flags.hideFakes);
+  btn.setAttribute("aria-pressed", state.flags.hideFakes.toString());
   triggerFiltering();
+}
+
+// Toggles selection of a specific country code in the filter Set, then triggers re-filtering
+export function toggleCountryOption(val) {
+  if (state.filters.countries.has(val)) {
+    state.filters.countries.delete(val);
+  } else {
+    state.filters.countries.add(val);
+  }
+  updateCountryTrigger();
+  triggerFiltering();
+}
+
+// Synchronizes the checkboxes states and updates the trigger button text to display
+// "All Countries", the chosen region name, or the total count of checked items
+export function updateCountryTrigger() {
+  const tr = document.getElementById("ms-trigger-country");
+  if (!tr) return;
+
+  const checkboxes = document.querySelectorAll(
+    '#ms-dropdown-country input[type="checkbox"]',
+  );
+  checkboxes.forEach((cb) => {
+    cb.checked = state.filters.countries.has(cb.dataset.country);
+  });
+
+  const globeSvg = `<app-icon name="globe" style="width: 0.95rem; height: 0.95rem;"></app-icon>`;
+  if (state.filters.countries.size === 0) {
+    tr.innerHTML = `${globeSvg} All Countries ▾`;
+    tr.classList.remove("active");
+  } else {
+    let selectedText = "";
+    if (state.filters.countries.has("EU_EX_RU")) {
+      selectedText = "Europe (excl. RU)";
+    }
+
+    if (state.filters.countries.size === 1 && selectedText) {
+      tr.innerHTML = `${globeSvg} ${selectedText} ▾`;
+    } else {
+      tr.innerHTML = `${globeSvg} ${state.filters.countries.size} COUNTRIES ▾`;
+    }
+    tr.classList.add("active");
+  }
+}
+
+// Dynamically populates the checkboxes list in the country dropdown menu
+// Gather countries from servers passing all active filters except the country filter itself.
+// Toggles the entire filter group's visibility and preserves scroll position.
+export function populateCountryFilterDropdown(onlyUpdateVisibility = false) {
+  const dropdown = document.getElementById("ms-dropdown-country");
+  if (!dropdown) return;
+
+  const countries = new Set();
+  state.allServers.forEach((s) => {
+    if (s.country && serverPassesFilters(s, true)) {
+      countries.add(s.country.toUpperCase());
+    }
+  });
+
+  const filterGroup = dropdown.closest(".filter-group");
+  if (filterGroup) {
+    if (countries.size === 0) {
+      filterGroup.style.display = "none";
+      return;
+    } else {
+      filterGroup.style.display = "";
+    }
+  }
+
+  if (onlyUpdateVisibility) return;
+
+  const sortedCountries = Array.from(countries).sort();
+
+  // Save vertical scroll position to avoid resetting user view on update
+  const savedScrollTop = dropdown.scrollTop;
+
+  dropdown.replaceChildren();
+
+  // Check if there are active European servers (excl. RU) to render the virtual option
+  const hasEuropeServers = state.allServers.some((s) => {
+    return s.country && EU_COUNTRIES.has(s.country.toUpperCase()) && serverPassesFilters(s, true);
+  });
+
+  if (hasEuropeServers) {
+    const euLabel = document.createElement("label");
+    euLabel.className = "ms-item";
+
+    const euCheckbox = document.createElement("input");
+    euCheckbox.type = "checkbox";
+    euCheckbox.dataset.country = "EU_EX_RU";
+    euCheckbox.checked = state.filters.countries.has("EU_EX_RU");
+    euCheckbox.addEventListener("change", () => toggleCountryOption("EU_EX_RU"));
+
+    euLabel.appendChild(euCheckbox);
+    euLabel.appendChild(document.createTextNode(" 🇪🇺 Europe (excl. RU)"));
+    dropdown.appendChild(euLabel);
+  }
+
+  // Populate individual checkboxes for active countries
+  sortedCountries.forEach((code) => {
+    const label = document.createElement("label");
+    label.className = "ms-item";
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.dataset.country = code;
+    checkbox.checked = state.filters.countries.has(code);
+    checkbox.addEventListener("change", () => toggleCountryOption(code));
+
+    const name = COUNTRY_NAMES[code] || code;
+    const flag = countryToFlag(code);
+
+    label.appendChild(checkbox);
+    label.appendChild(document.createTextNode(` ${flag} ${name} (${code})`));
+    dropdown.appendChild(label);
+  });
+
+  updateCountryTrigger();
+
+  // Restore vertical scroll position
+  dropdown.scrollTop = savedScrollTop;
 }
 
 export function toggleHideLocked() {
-  currentHideLocked = !currentHideLocked;
+  state.flags.hideLocked = !state.flags.hideLocked;
   const btn = document.getElementById("filter-hide-locked");
-  btn.classList.toggle("active", currentHideLocked);
-  btn.setAttribute("aria-pressed", currentHideLocked.toString());
+  btn.classList.toggle("active", state.flags.hideLocked);
+  btn.setAttribute("aria-pressed", state.flags.hideLocked.toString());
   triggerFiltering();
 }
 
+import { renderServers } from "./serverBrowser/serverBrowserTable.js";
+
 export function triggerFiltering() {
-  applyFilters({
-    persp: currentPerspFilter,
-    cat: currentCatFilter,
-    maps: currentMapFilter,
-    favOnly: currentFavFilter,
-    hideEmpty: currentHideEmpty,
-    hideFull: currentHideFull,
-    history: currentHistoryFilter,
-    sortCol: currentSortColumn,
-    sortDir: currentSortDirection,
-    hideFakes: currentHideFakes,
-    hideLocked: currentHideLocked,
-  });
+  applyFilters();
+  renderServers();
 }
 
 // --- Sorting ---
 export function handleSort(column) {
-  if (currentSortColumn === column) {
-    currentSortDirection = currentSortDirection === "asc" ? "desc" : "asc";
+  if (state.sort.column === column) {
+    state.sort.direction = state.sort.direction === "asc" ? "desc" : "asc";
   } else {
-    currentSortColumn = column;
-    currentSortDirection =
+    state.sort.column = column;
+    state.sort.direction =
       column === "name" || column === "ip" ? "asc" : "desc";
   }
   document.querySelectorAll(".server-table th.sortable").forEach((th) => {
@@ -222,7 +382,7 @@ export function handleSort(column) {
   if (activeTh) {
     activeTh.classList.add("sort-active");
     const ind = activeTh.querySelector(".sort-indicator");
-    if (ind) ind.textContent = currentSortDirection === "asc" ? "▲" : "▼";
+    if (ind) ind.textContent = state.sort.direction === "asc" ? "▲" : "▼";
   }
   triggerFiltering();
 }
@@ -286,13 +446,16 @@ export function initUIBehavior() {
 
   // Dynamic Event Listeners
   const winMinBtn = document.getElementById("winMinBtn");
-  if (winMinBtn) winMinBtn.addEventListener("click", () => window.api.ui.windowMin());
+  if (winMinBtn)
+    winMinBtn.addEventListener("click", () => window.api.ui.windowMin());
 
   const winMaxBtn = document.getElementById("winMaxBtn");
-  if (winMaxBtn) winMaxBtn.addEventListener("click", () => window.api.ui.windowMax());
+  if (winMaxBtn)
+    winMaxBtn.addEventListener("click", () => window.api.ui.windowMax());
 
   const winCloseBtn = document.getElementById("winCloseBtn");
-  if (winCloseBtn) winCloseBtn.addEventListener("click", () => window.api.ui.windowClose());
+  if (winCloseBtn)
+    winCloseBtn.addEventListener("click", () => window.api.ui.windowClose());
 
   const aboutBtn = document.getElementById("aboutBtn");
   if (aboutBtn) aboutBtn.addEventListener("click", openAboutModal);
@@ -301,20 +464,29 @@ export function initUIBehavior() {
   if (aboutCloseBtn) aboutCloseBtn.addEventListener("click", closeAboutModal);
 
   const openLogFileLink = document.getElementById("openLogFileLink");
-  if (openLogFileLink) openLogFileLink.addEventListener("click", () => window.api.app.openLogFile());
+  if (openLogFileLink)
+    openLogFileLink.addEventListener("click", () =>
+      window.api.app.openLogFile(),
+    );
 
-  document.querySelectorAll("#tabs button, .sidebar-tabs button").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tabId = btn.id.replace("tab-", "").replace("sidebar-", "");
-      switchTab(tabId);
+  document
+    .querySelectorAll("#tabs button, .sidebar-tabs button")
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tabId = btn.id.replace("tab-", "").replace("sidebar-", "");
+        switchTab(tabId);
+      });
     });
-  });
 
   const directConnectOpenBtn = document.getElementById("directConnectOpenBtn");
-  if (directConnectOpenBtn) directConnectOpenBtn.addEventListener("click", openDirectConnectModal);
+  if (directConnectOpenBtn)
+    directConnectOpenBtn.addEventListener("click", openDirectConnectModal);
 
-  const directConnectCancelBtn = document.getElementById("directConnectCancelBtn");
-  if (directConnectCancelBtn) directConnectCancelBtn.addEventListener("click", closeDirectConnectModal);
+  const directConnectCancelBtn = document.getElementById(
+    "directConnectCancelBtn",
+  );
+  if (directConnectCancelBtn)
+    directConnectCancelBtn.addEventListener("click", closeDirectConnectModal);
 
   const directConnectBtn = document.getElementById("directConnectBtn");
   if (directConnectBtn) {
@@ -333,38 +505,57 @@ export function initUIBehavior() {
   }
 
   const toggleFiltersBtn = document.getElementById("toggleFiltersBtn");
-  if (toggleFiltersBtn) toggleFiltersBtn.addEventListener("click", toggleFilters);
+  if (toggleFiltersBtn)
+    toggleFiltersBtn.addEventListener("click", toggleFilters);
 
   const filterPerspAll = document.getElementById("filter-persp-all");
-  if (filterPerspAll) filterPerspAll.addEventListener("click", () => setPerspFilter("all"));
+  if (filterPerspAll)
+    filterPerspAll.addEventListener("click", () => setPerspFilter("all"));
 
   const filterPersp1pp = document.getElementById("filter-persp-1pp");
-  if (filterPersp1pp) filterPersp1pp.addEventListener("click", () => setPerspFilter("1pp"));
+  if (filterPersp1pp)
+    filterPersp1pp.addEventListener("click", () => setPerspFilter("1pp"));
 
   const filterPersp3pp = document.getElementById("filter-persp-3pp");
-  if (filterPersp3pp) filterPersp3pp.addEventListener("click", () => setPerspFilter("3pp"));
+  if (filterPersp3pp)
+    filterPersp3pp.addEventListener("click", () => setPerspFilter("3pp"));
 
   const filterCatAll = document.getElementById("filter-cat-all");
-  if (filterCatAll) filterCatAll.addEventListener("click", () => setCatFilter("all"));
+  if (filterCatAll)
+    filterCatAll.addEventListener("click", () => setCatFilter("all"));
 
   const filterCatVanilla = document.getElementById("filter-cat-vanilla");
-  if (filterCatVanilla) filterCatVanilla.addEventListener("click", () => setCatFilter("vanilla"));
+  if (filterCatVanilla)
+    filterCatVanilla.addEventListener("click", () => setCatFilter("vanilla"));
 
   const filterCatModded = document.getElementById("filter-cat-modded");
-  if (filterCatModded) filterCatModded.addEventListener("click", () => setCatFilter("modded"));
+  if (filterCatModded)
+    filterCatModded.addEventListener("click", () => setCatFilter("modded"));
 
   const msTriggerMap = document.getElementById("ms-trigger-map");
-  if (msTriggerMap) msTriggerMap.addEventListener("click", () => toggleMultiselect("map"));
+  if (msTriggerMap)
+    msTriggerMap.addEventListener("click", () => toggleMultiselect("map"));
 
-  document.querySelectorAll("#ms-dropdown-map input[type='checkbox']").forEach((cb) => {
-    cb.addEventListener("change", () => {
-      const mapName = cb.dataset.map;
-      toggleMapOption(mapName);
+  document
+    .querySelectorAll("#ms-dropdown-map input[type='checkbox']")
+    .forEach((cb) => {
+      cb.addEventListener("change", () => {
+        const mapName = cb.dataset.map;
+        toggleMapOption(mapName);
+      });
     });
-  });
+
+  const msTriggerCountry = document.getElementById("ms-trigger-country");
+  if (msTriggerCountry) {
+    msTriggerCountry.addEventListener("click", () => {
+      populateCountryFilterDropdown();
+      toggleMultiselect("country");
+    });
+  }
 
   const filterHideEmpty = document.getElementById("filter-hide-empty");
-  if (filterHideEmpty) filterHideEmpty.addEventListener("click", toggleHideEmpty);
+  if (filterHideEmpty)
+    filterHideEmpty.addEventListener("click", toggleHideEmpty);
 
   const filterHideFull = document.getElementById("filter-hide-full");
   if (filterHideFull) filterHideFull.addEventListener("click", toggleHideFull);
@@ -373,13 +564,16 @@ export function initUIBehavior() {
   if (filterFavOnly) filterFavOnly.addEventListener("click", toggleFavFilter);
 
   const filterHistory = document.getElementById("filter-history");
-  if (filterHistory) filterHistory.addEventListener("click", toggleHistoryFilter);
+  if (filterHistory)
+    filterHistory.addEventListener("click", toggleHistoryFilter);
 
   const filterHideFakes = document.getElementById("filter-hide-fakes");
-  if (filterHideFakes) filterHideFakes.addEventListener("click", toggleHideFakes);
+  if (filterHideFakes)
+    filterHideFakes.addEventListener("click", toggleHideFakes);
 
   const filterHideLocked = document.getElementById("filter-hide-locked");
-  if (filterHideLocked) filterHideLocked.addEventListener("click", toggleHideLocked);
+  if (filterHideLocked)
+    filterHideLocked.addEventListener("click", toggleHideLocked);
 
   document.querySelectorAll("th.sortable").forEach((th) => {
     th.addEventListener("click", () => {
@@ -404,8 +598,32 @@ export function applyTabVisibility(settings) {
   if (watchlistSidebarTab) watchlistSidebarTab.style.display = showWatchlist;
 
   const diagnosticsTab = document.getElementById("tab-diagnostics");
-  const diagnosticsSidebarTab = document.getElementById("sidebar-tab-diagnostics");
+  const diagnosticsSidebarTab = document.getElementById(
+    "sidebar-tab-diagnostics",
+  );
   const showDiagnostics = settings.showDiagnosticsTab !== false ? "" : "none";
   if (diagnosticsTab) diagnosticsTab.style.display = showDiagnostics;
-  if (diagnosticsSidebarTab) diagnosticsSidebarTab.style.display = showDiagnostics;
+  if (diagnosticsSidebarTab)
+    diagnosticsSidebarTab.style.display = showDiagnostics;
 }
+
+// Listen for custom events to avoid circular dependencies
+document.addEventListener("dzlinux:populate-country-dropdown", (e) => {
+  if (e.detail) {
+    populateCountryFilterDropdown(!e.detail.isOpen);
+  }
+});
+document.addEventListener("dzlinux:apply-tab-visibility", () => {
+  applyTabVisibility();
+});
+document.addEventListener("dzlinux:switch-tab", (e) => {
+  if (e.detail) {
+    switchTab(e.detail.tab);
+    if (e.detail.scrollKey) {
+      setTimeout(() => {
+        const row = document.getElementById(`row-${e.detail.scrollKey}`);
+        if (row) row.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 100);
+    }
+  }
+});

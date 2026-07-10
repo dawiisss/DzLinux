@@ -9,7 +9,7 @@ const { buildEnvironment } = require("./prepareEnv");
 
 let cachedProtonVersions = null;
 
-function scanProtonVersions() {
+async function scanProtonVersions() {
   if (cachedProtonVersions !== null) {
     return [...cachedProtonVersions];
   }
@@ -43,16 +43,18 @@ function scanProtonVersions() {
   ];
 
   for (const sp of searchPaths) {
-    if (!fs.existsSync(sp)) continue;
+    const exists = await fs.promises.access(sp).then(() => true).catch(() => false);
+    if (!exists) continue;
     try {
-      const items = fs.readdirSync(sp);
+      const items = await fs.promises.readdir(sp);
       for (const item of items) {
         if (item.toLowerCase().includes("proton")) {
           const fullPath = path.join(sp, item);
-          const isDir = fs.statSync(fullPath).isDirectory();
-          if (isDir) {
+          const stat = await fs.promises.stat(fullPath);
+          if (stat.isDirectory()) {
             const protonExe = path.join(fullPath, "proton");
-            if (fs.existsSync(protonExe)) {
+            const exeExists = await fs.promises.access(protonExe).then(() => true).catch(() => false);
+            if (exeExists) {
               versions.push({
                 name: item,
                 path: protonExe,
@@ -167,16 +169,19 @@ async function launchViaProton(args, settings, handleGameExit) {
     const cmd = execArgs[0];
     const argsList = execArgs.slice(1);
 
-    execFile(cmd, argsList, { env }, (error, _stdout, stderr) => {
-      if (error) {
-        console.error(
-          `Error launching game via Proton shell: ${error.message}`
-        );
-        console.error(`stderr: ${stderr}`);
-        handleGameExit(error);
-        return;
-      }
-      console.log("Game launched successfully via custom Proton shell.");
+    return new Promise((resolve, reject) => {
+      const child = execFile(cmd, argsList, { env }, (error, _stdout, stderr) => {
+        if (error) {
+          console.error(
+            `Error launching game via Proton shell: ${error.message}`
+          );
+          console.error(`stderr: ${stderr}`);
+          handleGameExit(error);
+        }
+        console.log("Game launched successfully via custom Proton shell.");
+      });
+      child.once('spawn', resolve);
+      child.once('error', reject);
     });
   } else {
     const prefix = [];
@@ -189,20 +194,23 @@ async function launchViaProton(args, settings, handleGameExit) {
 
     await steamworksManager.lockAndDelayForLaunch(restoreMangoConfig);
 
-    execFile(
-      wrappedArgs[0],
-      wrappedArgs.slice(1),
-      { env },
-      (error, _stdout, stderr) => {
-        if (error) {
-          console.error(`Error launching game via Proton: ${error.message}`);
-          if (stderr) console.error(`stderr: ${stderr}`);
-          handleGameExit(error);
-          return;
+    return new Promise((resolve, reject) => {
+      const child = execFile(
+        wrappedArgs[0],
+        wrappedArgs.slice(1),
+        { env },
+        (error, _stdout, stderr) => {
+          if (error) {
+            console.error(`Error launching game via Proton: ${error.message}`);
+            if (stderr) console.error(`stderr: ${stderr}`);
+            handleGameExit(error);
+          }
+          console.log("Game launched successfully via custom Proton.");
         }
-        console.log("Game launched successfully via custom Proton.");
-      }
-    );
+      );
+      child.once('spawn', resolve);
+      child.once('error', reject);
+    });
   }
 }
 

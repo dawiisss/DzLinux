@@ -17,13 +17,14 @@ const WATCHLIST_FILE = path.join(app.getPath("userData"), "watchlist.json");
  */
 let cachedWatchlist = null;
 
-function loadWatchlist() {
+async function loadWatchlist() {
   if (cachedWatchlist !== null) {
     return [...cachedWatchlist];
   }
   try {
-    if (fs.existsSync(WATCHLIST_FILE)) {
-      const content = fs.readFileSync(WATCHLIST_FILE, "utf8");
+    const exists = await fs.promises.access(WATCHLIST_FILE).then(() => true).catch(() => false);
+    if (exists) {
+      const content = await fs.promises.readFile(WATCHLIST_FILE, "utf8");
       cachedWatchlist = JSON.parse(content) || [];
       return [...cachedWatchlist];
     }
@@ -54,13 +55,10 @@ function loadWatchlist() {
  * @param {Array<{ip: string, port: number, name: string, active: boolean, threshold: number, mode: string, lastStatus: string}>} watchlist - The updated watchlist array.
  * @returns {boolean} True if the settings were successfully saved to disk, false otherwise.
  */
-function saveWatchlist(watchlist) {
+async function saveWatchlist(watchlist) {
   try {
     cachedWatchlist = [...watchlist];
-    fs.promises.writeFile(WATCHLIST_FILE, JSON.stringify(watchlist, null, 2), "utf8")
-      .catch((err) => {
-        console.error("Failed to write watchlist file asynchronously:", err.message);
-      });
+    await fs.promises.writeFile(WATCHLIST_FILE, JSON.stringify(watchlist, null, 2), "utf8");
     return true;
   } catch (e) {
     console.error("Failed to save watchlist:", e.message);
@@ -87,9 +85,9 @@ function saveWatchlist(watchlist) {
  *
  * @param {Array<{ip: string, port: number, status: string, players: number, name: string}>} currentServers - Array of freshly queried server status objects.
  */
-function processWatchlistChecks(currentServers) {
+async function processWatchlistChecks(currentServers) {
   const settings = settingsManager.loadSettings();
-  const watchlist = loadWatchlist();
+  const watchlist = await loadWatchlist();
   const globalThreshold =
     settings.watchlistThreshold !== undefined
       ? settings.watchlistThreshold
@@ -173,7 +171,7 @@ function processWatchlistChecks(currentServers) {
 
   if (changed) {
     // Reload fresh watchlist to avoid clobbering concurrent UI edits.
-    const freshWatchlist = loadWatchlist();
+    const freshWatchlist = await loadWatchlist();
 
     const oldByKey = new Map();
     watchlist.forEach((item) => oldByKey.set(`${item.ip}:${item.port}`, item));

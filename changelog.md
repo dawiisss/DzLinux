@@ -4,6 +4,62 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ## [Unreleased]
 
+### Added
+
+### Changed
+
+### Fixed
+
+## [1.4.2] - 2026-07-10
+
+### Added
+
+- **Server Country Code Added**: Added server country codes to the hosted_servers json.
+- **Country Filter Support**: Implemented a dynamic country filter dropdown in the Advanced Filter bar. It aggregates unique country codes from loaded servers and includes a virtual `Europe (excl. RU)` option matching any European country except Russia.
+- **Country Flag Boundary Tests**: Added comprehensive boundary unit tests for the `countryToFlag` helper function to validate invalid inputs such as `null`, `undefined`, empty values, incorrect lengths, types, and special characters.
+
+### Changed
+
+- **UI Casing Refactoring**: Replaced all-uppercase strings in UI copy and Toasts with sentence/title case across all renderer files to comply with Workspace Rule 10.
+- **Table Headers**: Renamed the "HUD Link" table header to "Action" in the main server browser and favorites lists.
+- **Async File System Migration**: Fully migrated background operations in `game/launchProton.js`, `ipcHandlers.js`, and `watchlist.js` to strictly use `fs.promises`, enforcing compliance with non-blocking event loop rules.
+
+### Optimized
+
+- **Steam Dependency Resolver Throttling**: Implemented an `asyncPool` concurrency limit (max 5) and TTL caching for `steamDependencyResolver.js` to eliminate unbounded Promise parallelization when fetching Steam Workshop mod details.
+- **Renderer CPU Bottlenecks**: Redesigned `serverBrowserCore.js`, `favorites.js`, and `serverRow.js` to index the global server list using `O(1)` Map lookups instead of deep `O(N)` scans when mapping favorited items or refreshing filters, significantly reducing CPU load and `O(N*M)` bottlenecks.
+- **Context Menu Memory Leak**: Migrated dynamic DOM creation in `contextMenu.js` to a static, pre-rendered hidden DOM element pattern to prevent memory leaks from uncollected event listeners.
+- **Diagnostics Dashboard DOM**: Extracted 300+ lines of raw DOM generation from `diagnostics.js` into semantic HTML templates inside `index.html`. Refactored `diagnostics.js` to hydrate these elements instead of manually recreating them.
+
+### Fixed
+
+- **Promise Unhandled Rejections**: Standardized `.catch()` handling across volatile systems (`clipboard.writeText` in `feedback.js` and Server Connection Promises in `serverBrowserTable.js`).
+- **Circular Dependencies**: Fixed import cyclic references between `contextMenu.js`, `favorites.js`, `settings.js`, `ui-behavior.js`, and `watchlist.js` by transitioning interconnected modules to an event-driven architecture using `document.dispatchEvent()`.
+- **Block Scoping Errors**: Wrapped legacy `switch` cases in `serverBrowserTable.js` with `{}` to securely encapsulate block-scoped variables and prevent re-declaration runtime errors.
+- **Event Listeners Integrity**: Replaced primitive `.onclick` bindings with standard `addEventListener()` calls across `updater.js` and renderer tables to support multiple, non-overriding listeners.
+- **XSS & Legacy DOM Avoidance**: Purged all uses of `.innerHTML = ""` throughout renderer logic and replaced them with the modern, high-performance `.replaceChildren()` API.
+- **ESLint Coverage**: Enforced `no-undef` compliance globally by confining `jest` global injections to an explicit `**/__tests__/**/*.js` override.
+- **Ping Loop DOM Overheads**: Removed direct DOM queries from the high-frequency pinging loop in `serverBrowserRender.js`, replacing them with performant data attributes.
+- **Server Browser List Population Performance**: Resolved a performance bottleneck where a server index map was rebuilt from scratch for every batch update, resulting in quadratic ($O(N^2)$) time complexity. It now utilizes a persistent module-level map, reducing lookup and insertion to linear ($O(N)$) time complexity.
+- **Query Pool Memory Leaks**: Added an `isAborted` early-exit mechanism to the `fetchDayZServers` query pool to prevent lingering closures and Out of Memory (OOM) crashes during concurrent fetches.
+- **Steamworks Shutdown Resource Leaks**: Fixed an uncancelled 15-second delay timeout in the `steamworksManager.js` shutdown routine that prevented clean garbage collection.
+- **Log Parser Error Handling**: Added `try/catch` and safe logging when calling `fs.promises.stat` inside mapping loops in the log parser, preventing unhandled promise rejections on missing log files.
+- **Watchlist Renderer Crashes**: Added defensive `.isDestroyed()` checks to the watchlist threshold IPC dispatcher to prevent exceptions when attempting to notify terminated renderer frames.
+- **Server Indexing Data Corruption**: Fixed an array mutation logic bug in `buildPhonebookServers` where the source array was being improperly spliced during iteration.
+- **Mismatch Banner XSS Hardening**: Sanitized dynamic variables (`daysOutdated`, `count`, and `more` strings) inside the outdated mods mismatch banner prior to `innerHTML` injection to prevent potential XSS injection attacks.
+- **Safe Loadout Dropdown Reset**: Refactored the loadout selection dropdown reset logic to clear and replace child elements using the standard DOM `.replaceChildren()` method instead of `.innerHTML` assignment.
+- **Watchlist Tab Navigation**: Fixed an undefined `window.switchTab` call in the watchlist by using a dynamic import to ensure the tab switching logic works without risking circular dependencies.
+- **Settings Auto-Discovery**: Fixed a bug where a factory reset would persist an empty mod directory state. The settings manager now properly flushes the path cache before re-running auto-discovery.
+- **Server Query Cache Race Conditions**: Removed duplicate and inconsistent in-memory writes that caused race conditions with the authoritative query port cache updater.
+- **Watchlist Async Writes**: Updated watchlist save functions to properly await asynchronous filesystem operations to ensure accurate success responses.
+- **Game Launch Error Handling**: Fixed a bug where `execFile` errors for Steam and Proton launches were not connected to their parent Promises, ensuring game start-up errors are now correctly propagated.
+
+
+### Security
+
+- **IPC Path Validation**: Hardened IPC path validation logic to restrict unauthorized access to arbitrary directories and properly resolve symlinks using `fs.realpathSync` to mitigate path traversal risks.
+- **Installer Checksum Verification**: Enhanced the `install.sh` download script to automatically download and verify `.sha256` checksum files for release assets prior to installation.
+
 ## [1.4.1] - 2026-07-05
 
 ### Changed

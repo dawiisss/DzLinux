@@ -279,8 +279,11 @@ export async function initSettings() {
   const quickLaunchBtn = document.getElementById("quickLaunchBtn");
 
   const updateLoadoutDropdown = () => {
-    loadoutSelect.innerHTML =
-      '<option value="">-- Create New Loadout --</option>';
+    const defaultOpt = document.createElement("option");
+    defaultOpt.value = "";
+    defaultOpt.textContent = "-- Create New Loadout --";
+    loadoutSelect.replaceChildren(defaultOpt);
+
     Object.keys(state.modLoadouts)
       .sort()
       .forEach((name) => {

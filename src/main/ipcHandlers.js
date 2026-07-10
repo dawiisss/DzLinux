@@ -39,7 +39,7 @@ function getAllowedPathPrefixes() {
       "/usr",
       "/opt",
       "/snap",
-      "/home",
+      app.getPath("home"),
     ];
   }
   return allowedPathPrefixes;
@@ -47,7 +47,12 @@ function getAllowedPathPrefixes() {
 
 function isAllowedPath(filePath) {
   if (typeof filePath !== "string") return false;
-  const resolved = path.resolve(filePath);
+  let resolved;
+  try {
+    resolved = fs.realpathSync(filePath);
+  } catch {
+    resolved = path.resolve(filePath);
+  }
   const prefixes = [...getAllowedPathPrefixes()];
   try {
     const currentSettings = settingsManager.loadSettings();
@@ -142,10 +147,12 @@ function registerIpcHandlers() {
   ipcMain.handle("save-watchlist", (_event, watchlist) =>
     watchlistManager.saveWatchlist(watchlist),
   );
-  ipcMain.handle("check-watchlist-thresholds", (event, currentServers) => {
-    const triggered = watchlistManager.processWatchlistChecks(currentServers);
+  ipcMain.handle("check-watchlist-thresholds", async (event, currentServers) => {
+    const triggered = await watchlistManager.processWatchlistChecks(currentServers);
     if (triggered && triggered.length > 0) {
-      event.sender.send("watchlist-notify", triggered);
+      if (!event.sender.isDestroyed()) {
+        event.sender.send("watchlist-notify", triggered);
+      }
     }
     return triggered;
   });
@@ -203,10 +210,11 @@ function registerIpcHandlers() {
     return shell.openExternal(url);
   });
   ipcMain.handle("check-gamemode", () => gameManager.checkGameMode());
-  ipcMain.handle("check-path-exists", (_event, filePath) => {
+  ipcMain.handle("check-path-exists", async (_event, filePath) => {
     if (!isAllowedPath(filePath)) return false;
     try {
-      return fs.existsSync(path.resolve(filePath));
+      await fs.promises.access(path.resolve(filePath));
+      return true;
     } catch {
       return false;
     }
