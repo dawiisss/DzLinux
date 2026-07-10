@@ -115,17 +115,18 @@ If you prefer not to use the automated install script, you can manually download
 | Dependency | Purpose | Status |
 |---|---|---|
 | **Steam client** | Game launching, Workshop mod management via native API | Required for full functionality |
+| **xdg-utils** (`xdg-utils`) | Opening external links, file managers, and desktop integration | Required |
 | **Proton / GE-Proton** | Custom compatibility layer | Highly Recommended |
 | **GameMode** (`gamemode`) | CPU governor optimization | Optional (Enhancement) |
 | **MangoHud** (`mangohud`) | Performance overlay | Optional (Enhancement) |
 
-Install performance dependencies:
+Install required and performance dependencies:
 ```bash
 # Ubuntu / Debian
-sudo apt install gamemode mangohud
+sudo apt install xdg-utils gamemode mangohud
 
 # Fedora
-sudo dnf install gamemode mangohud
+sudo dnf install xdg-utils gamemode mangohud
 ```
 
 ---
