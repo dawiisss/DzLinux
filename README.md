@@ -1,12 +1,15 @@
 # <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux — DayZ Launcher, Server Browser and Mod Manager for Linux
 
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/dawiisss/DzLinux?color=brightgreen&logo=github&label=release)](https://github.com/dawiisss/DzLinux/releases/latest)
+[![GitHub all releases](https://img.shields.io/github/downloads/dawiisss/DzLinux/total?color=blue&logo=github)](https://github.com/dawiisss/DzLinux/releases)
 [![Platform support](https://img.shields.io/badge/platform-Linux-orange?logo=linux)](https://github.com/dawiisss/DzLinux)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![GitHub Repo stars](https://img.shields.io/github/stars/dawiisss/DzLinux?style=social)](https://github.com/dawiisss/DzLinux/stargazers)
 
 DzLinux is a high-performance, native launcher, server browser, and mod manager for playing **DayZ on Linux**. It features dynamic Proton version detection, real-time server querying via A2S, automatic Steam Workshop mod verification, performance tuning (MangoHud, GameMode), and native desktop watchlist notifications.
 
 Play modded and vanilla DayZ on Linux with a zero-setup, optimized launcher.
-<img width="1398" height="796" alt="v141" src="https://github.com/user-attachments/assets/8eeb2bd4-b6a2-4978-828e-16c671e88a52" />
+<img width="1398" height="796" alt="DzLinux DayZ Server Browser and Mod Manager Interface on Linux" src="https://github.com/user-attachments/assets/8eeb2bd4-b6a2-4978-828e-16c671e88a52" />
 
 ---
 
