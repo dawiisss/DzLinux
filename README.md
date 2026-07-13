@@ -1,7 +1,6 @@
 # <img width="45" height="45" alt="icon" src="https://github.com/user-attachments/assets/7af6cc2e-344f-4047-9085-153c2b890d9c" /> DzLinux — DayZ Launcher, Server Browser and Mod Manager for Linux
 
 [![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/dawiisss/DzLinux?color=brightgreen&logo=github&label=release)](https://github.com/dawiisss/DzLinux/releases/latest)
-[![GitHub all releases](https://img.shields.io/github/downloads/dawiisss/DzLinux/total?color=blue&logo=github)](https://github.com/dawiisss/DzLinux/releases)
 [![Platform support](https://img.shields.io/badge/platform-Linux-orange?logo=linux)](https://github.com/dawiisss/DzLinux)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![GitHub Repo stars](https://img.shields.io/github/stars/dawiisss/DzLinux?style=social)](https://github.com/dawiisss/DzLinux/stargazers)
