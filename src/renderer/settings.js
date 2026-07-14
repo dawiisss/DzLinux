@@ -5,6 +5,7 @@ import { applyServerListMode } from "./theme.js";
 export async function initSettings() {
   const settings = state.settings;
 
+  document.getElementById("playerName").value = settings.playerName || "";
   const launchParamsInput = document.getElementById("launchParams");
   launchParamsInput.value = settings.launchParams || "";
   document.getElementById("modDirectory").value = settings.modDirectory || "";
@@ -128,6 +129,7 @@ export async function initSettings() {
   const saveSettingsSilently = async (silent = true) => {
     const newSettings = {
       ...state.settings,
+      playerName: document.getElementById("playerName").value,
       launchParams: document.getElementById("launchParams").value,
       modDirectory: document.getElementById("modDirectory").value,
       autoRefreshEnabled:

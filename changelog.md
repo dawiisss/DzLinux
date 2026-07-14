@@ -10,6 +10,18 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.4.3] - 2026-07-14
+
+### Added
+
+- Player name has been added to the launch parameters it can now be set from the Settings screen on the Launch Parameters card
+
+### Changed
+
+- Launch Presets tab switched with Storage Directories to make it more visible
+
+### Fixed
+
 ## [1.4.2] - 2026-07-10
 
 ### Added
@@ -53,7 +65,6 @@ All notable changes to the DzLinux launcher project will be documented in this f
 - **Server Query Cache Race Conditions**: Removed duplicate and inconsistent in-memory writes that caused race conditions with the authoritative query port cache updater.
 - **Watchlist Async Writes**: Updated watchlist save functions to properly await asynchronous filesystem operations to ensure accurate success responses.
 - **Game Launch Error Handling**: Fixed a bug where `execFile` errors for Steam and Proton launches were not connected to their parent Promises, ensuring game start-up errors are now correctly propagated.
-
 
 ### Security
 

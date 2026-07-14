@@ -78,6 +78,9 @@ function buildExtraParams(settings) {
   if (settings.maxMem && settings.maxMem.trim() !== "") {
     extraParams.push(`-maxMem=${sanitizeArg(settings.maxMem.trim())}`);
   }
+  if (settings.playerName && settings.playerName.trim() !== "") {
+    extraParams.push(`-name=${sanitizeArg(settings.playerName.trim())}`);
+  }
 
   return extraParams;
 }

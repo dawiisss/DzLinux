@@ -76,18 +76,18 @@ This command can also be used to update the version if you are using .deb / .rpm
 If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
 ### AppImage (Portable)
-1. Download `DzLinux-1.4.2.AppImage`.
+1. Download `DzLinux-1.4.3.AppImage`.
 2. Make it executable:
    ```bash
-   chmod +x DzLinux-1.4.2.AppImage
+   chmod +x DzLinux-1.4.3.AppImage
    ```
 3. Run or double-click to launch.
 
 ### Portable Archive (tar.gz)
-1. Download `dzlinux-1.4.2.tar.gz`.
+1. Download `dzlinux-1.4.3.tar.gz`.
 2. Extract to your games directory:
    ```bash
-   tar -xzf dzlinux-1.4.2.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.4.3.tar.gz -C ~/Games/
    ```
 3. Run the binary:
    ```bash
@@ -96,18 +96,18 @@ If you prefer not to use the automated install script, you can manually download
    ```
 
 ### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
-1. Download `dzlinux_1.4.2_amd64.deb`.
+1. Download `dzlinux_1.4.3_amd64.deb`.
 2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.4.2_amd64.deb
+   sudo dpkg -i dzlinux_1.4.3_amd64.deb
    sudo apt install -f
    ```
 
 ### RPM Package (rpm) - Fedora, RHEL, openSUSE
-1. Download `dzlinux-1.4.2.x86_64.rpm`.
+1. Download `dzlinux-1.4.3.x86_64.rpm`.
 2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-1.4.2.x86_64.rpm
+   sudo rpm -i dzlinux-1.4.3.x86_64.rpm
    ```
 
 ---

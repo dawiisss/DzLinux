@@ -7,6 +7,7 @@ const steamPaths = require("./steamPaths");
 const settingsPath = path.join(app.getPath("userData"), "settings.json");
 
 const defaultSettings = {
+  playerName: "",
   launchParams: "",
   steamUsername: "",
   modDirectory: "",

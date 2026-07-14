@@ -422,7 +422,7 @@
               <div
                 class="multiselect-dropdown"
                 id="ms-dropdown-country"
-                style="display: none; max-height: 250px; overflow-y: auto;"
+                style="display: none; max-height: 250px; overflow-y: auto"
               >
                 <!-- Checkboxes dynamically generated based on loaded list -->
               </div>
@@ -524,7 +524,8 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            Connection lost — Server list may be stale. Check your network connection.
+            Connection lost — Server list may be stale. Check your network
+            connection.
           </span>
         </div>
         <!-- Stats Bar -->
@@ -1520,7 +1521,7 @@
           </div>
 
           <!-- Mod Card -->
-          <div class="settings-card" style="grid-column: 2; grid-row: 1">
+          <div class="settings-card" style="grid-column: 2; grid-row: 2">
             <h3 style="display: inline-flex; align-items: center; gap: 8px">
               <app-icon
                 name="folder"
@@ -1647,7 +1648,7 @@
           </div>
 
           <!-- Launch Card -->
-          <div class="settings-card" style="grid-column: 2; grid-row: 2">
+          <div class="settings-card" style="grid-column: 2; grid-row: 1">
             <h3 style="display: inline-flex; align-items: center; gap: 8px">
               <app-icon
                 name="play"
@@ -1658,6 +1659,19 @@
               ></app-icon>
               Launch Presets
             </h3>
+            <div class="form-group" style="margin-bottom: 15px">
+              <label for="playerName">Player Name</label>
+              <input
+                type="text"
+                id="playerName"
+                class="form-input"
+                placeholder="Survivor"
+              />
+              <div class="settings-info" style="margin-top: 5px">
+                Sets your in-game name (adds -name="PlayerName" to launch
+                parameters).
+              </div>
+            </div>
             <div class="form-group">
               <label for="protonPath">Proton Compatibility Layer</label>
               <div style="display: flex; gap: 8px">
