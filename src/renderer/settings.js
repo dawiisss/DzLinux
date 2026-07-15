@@ -29,6 +29,8 @@ export async function initSettings() {
     settings.theme || "tactical-dark";
   document.getElementById("layoutModeSelect").value =
     settings.layoutMode || "modern";
+  document.getElementById("listModeSelect").value =
+    settings.listMode || "paging";
   document.getElementById("audioFeedback").value =
     settings.audioFeedback !== false ? "true" : "false";
   document.getElementById("showWatchlistTab").checked =
@@ -138,6 +140,7 @@ export async function initSettings() {
         parseInt(document.getElementById("autoRefreshTime").value) || 180,
       theme: document.getElementById("themeSelect").value,
       layoutMode: document.getElementById("layoutModeSelect").value,
+      listMode: document.getElementById("listModeSelect").value,
       audioFeedback: document.getElementById("audioFeedback").value === "true",
       showWatchlistTab: document.getElementById("showWatchlistTab").checked,
       showDiagnosticsTab: document.getElementById("showDiagnosticsTab").checked,
@@ -184,6 +187,7 @@ export async function initSettings() {
       const { startWatchlistPoll } = await import("./watchlist.js");
       startCountdown();
       startWatchlistPoll();
+      document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       if (!silent)
         showToast("Settings committed to local storage", "#ff9f1c", "💾");
     } else {
@@ -242,6 +246,7 @@ export async function initSettings() {
         history: [],
         theme: "tactical-dark",
         layoutMode: "modern",
+        listMode: "paging",
         sidebarPinned: false,
         serverListMode: "compact",
         autoRefreshEnabled: false,

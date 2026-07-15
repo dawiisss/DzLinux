@@ -138,7 +138,7 @@ export function updateStatsInlineSync() {
   const startIdx = (state.pagination.page - 1) * state.pagination.size;
   const endIdx = Math.min(startIdx + visibleRows, filteredCount);
   document.getElementById("paginationInfo").textContent =
-    `SHOWING ${filteredCount ? startIdx + 1 : 0} - ${endIdx} OF ${filteredCount} SERVERS (PAGE ${state.pagination.page}/${totalPages})`;
+    `Showing ${filteredCount ? startIdx + 1 : 0} - ${endIdx} of ${filteredCount} servers (Page ${state.pagination.page}/${totalPages})`;
   document.getElementById("nextPageBtn").disabled =
     state.pagination.page >= totalPages;
 }
@@ -161,7 +161,7 @@ export function insertServerRow(server) {
   const endIdx = Math.min(startIdx + visibleRows + 1, filteredCount);
   const totalPages = Math.ceil(filteredCount / state.pagination.size) || 1;
   document.getElementById("paginationInfo").textContent =
-    `SHOWING ${filteredCount ? startIdx + 1 : 0} - ${endIdx} OF ${filteredCount} SERVERS (PAGE ${state.pagination.page}/${totalPages})`;
+    `Showing ${filteredCount ? startIdx + 1 : 0} - ${endIdx} of ${filteredCount} servers (Page ${state.pagination.page}/${totalPages})`;
   document.getElementById("nextPageBtn").disabled =
     state.pagination.page >= totalPages;
 }
@@ -310,7 +310,11 @@ export async function startBackgroundPinging() {
   );
 
   state.bgPing.isRunning = false;
-  document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+  
+  const shouldRerender = state.sort.column === "ping" || document.getElementById("serverListBody").childElementCount === 0;
+  if (shouldRerender) {
+    document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+  }
 
   const stillUnpinged = state.allServers.filter(
     (s) => s.realPing === undefined
@@ -318,7 +322,10 @@ export async function startBackgroundPinging() {
   if (stillUnpinged > 0) {
     setTimeout(() => {
       if (state.bgPing.generation !== myGeneration) return;
-      if (!state.bgPing.isRunning) startBackgroundPinging();
+      if (state.sort.column === "ping") {
+        document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+      }
+      startBackgroundPinging();
     }, 15000);
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",
@@ -87,7 +87,7 @@
   "lint-staged": {
     "*.js": [
       "eslint --fix",
-      "jest --findRelatedTests"
+      "jest --findRelatedTests --passWithNoTests"
     ]
   }
 }

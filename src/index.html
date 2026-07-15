@@ -1483,7 +1483,14 @@
               </select>
             </div>
             <div class="form-group" style="margin-top: 15px">
-              <label for="serverListPageSize">Server List Page Size</label>
+              <label for="listModeSelect">Server List Rendering Mode</label>
+              <select id="listModeSelect" class="form-input">
+                <option value="paging">Pagination (Standard)</option>
+                <option value="virtual">Virtual List (Endless Scrolling)</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-top: 15px">
+              <label for="serverListPageSize">Servers Per Page / Scroll Load</label>
               <input
                 type="number"
                 id="serverListPageSize"

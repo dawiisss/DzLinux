@@ -22,7 +22,6 @@ export function initUpdater() {
   let downloaded = false;
   let fallbackDownloadUrl = null;
   let latestResult = null;
-  let isSilentCheck = false;
 
   const dismiss = () => {
     elements.modal.style.display = "none";
@@ -114,8 +113,16 @@ export function initUpdater() {
   const showUpdateAvailable = (info) => {
     elements.currentVersion.textContent = "v" + (info.currentVersion || "");
     elements.latestVersion.textContent = "v" + info.version;
-    elements.releaseNotes.textContent =
-      info.releaseNotes || "No release notes provided.";
+    
+    // Strip HTML tags since release notes from electron-updater come as HTML
+    const cleanNotes = (info.releaseNotes || "No release notes provided.")
+      .replace(/<br\s*\/?>/gi, "\n") // Convert breaks to newlines
+      .replace(/<\/p>/gi, "\n\n") // Add spacing for paragraphs
+      .replace(/<li>/gi, "• ") // Add bullet points for lists
+      .replace(/<\/?[^>]+(>|$)/g, "") // Strip all remaining HTML tags
+      .trim();
+
+    elements.releaseNotes.textContent = cleanNotes || "No release notes provided.";
     fallbackDownloadUrl = info.downloadUrl || null;
     if (fallbackDownloadUrl) {
       elements.downloadBtn.textContent = "Open release page";
@@ -138,13 +145,10 @@ export function initUpdater() {
       elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
       elements.checkForUpdatesBtn.title = "Update Available! Click to view.";
     }
-    if (!isSilentCheck) {
-      showUpdateAvailable({ ...info, currentVersion: current });
-    }
+    showUpdateAvailable({ ...info, currentVersion: current });
   });
 
   const checkAndShow = async () => {
-    isSilentCheck = false;
     try {
       const result = await window.api.updater.check();
       latestResult = result;
@@ -174,37 +178,9 @@ export function initUpdater() {
     }
   };
 
-  const performSilentCheck = async () => {
-    isSilentCheck = true;
-    try {
-      const result = await window.api.updater.check();
-      latestResult = result;
-      if (elements.checkForUpdatesBtn) {
-        if (
-          result &&
-          (result.kind === "available" || result.kind === "system-package")
-        ) {
-          elements.checkForUpdatesBtn.classList.add("update-btn-pulsate");
-          elements.checkForUpdatesBtn.title =
-            "Update Available! Click to view.";
-        } else {
-          elements.checkForUpdatesBtn.classList.remove("update-btn-pulsate");
-          elements.checkForUpdatesBtn.title = "Check for Updates";
-        }
-      }
-    } catch (err) {
-      console.error("Silent background update check failed:", err);
-    } finally {
-      setTimeout(() => {
-        isSilentCheck = false;
-      }, 5000);
-    }
-  };
+
 
   checkAndShow();
-
-  // Polling every 60 seconds (1 minute)
-  setInterval(performSilentCheck, 60000);
 
   if (elements.checkForUpdatesBtn) {
     elements.checkForUpdatesBtn.addEventListener("click", async () => {

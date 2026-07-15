@@ -41,6 +41,7 @@ const defaultSettings = {
   showWatchlistTab: true,
   showDiagnosticsTab: true,
   layoutMode: "modern",
+  listMode: "paging",
   sidebarPinned: false,
 };
 

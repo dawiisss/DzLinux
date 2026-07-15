@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Settings
   const settings = await window.api.settings.load();
   state.settings = settings;
+  state.pagination.size = settings.serverListPageSize || 50;
   setFavoritesFromSettings(settings);
   applyTabVisibility(settings);
 

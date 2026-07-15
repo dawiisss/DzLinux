@@ -78,7 +78,13 @@ export function buildDetailRow(server, isFavoritesView = false) {
       return;
     }
     if (state.expandedServerId === server.id) {
-            document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+      const oldDetail = document.getElementById(`detail-${server.id}`);
+      if (oldDetail) {
+        const savedScrollTop = oldDetail.scrollTop || 0;
+        const newDetail = buildDetailRow(server);
+        oldDetail.replaceWith(newDetail);
+        newDetail.scrollTop = savedScrollTop;
+      }
       const favTab = document.getElementById("favorites");
       if (favTab && favTab.classList.contains("active")) {
         document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
@@ -86,6 +92,38 @@ export function buildDetailRow(server, isFavoritesView = false) {
     }
   });
   headerDiv.appendChild(refreshModsBtn);
+
+  const subscribeAllBtn = document.createElement("button");
+  subscribeAllBtn.className = "btn-refresh-mods";
+  subscribeAllBtn.style.marginLeft = "8px";
+  subscribeAllBtn.title = "Subscribe to all missing mods";
+  subscribeAllBtn.innerHTML = `
+    <app-icon name="download" style="width: 0.8rem; height: 0.8rem;"></app-icon>
+    SUBSCRIBE ALL
+  `;
+  subscribeAllBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!server.mods || server.mods.length === 0) return;
+    
+    const missingMods = server.mods.filter((mod) => !state.localModsSet.has(mod.id));
+    if (missingMods.length === 0) {
+      showToast("All mods are already installed!", "#2ec4b6", "✓");
+      return;
+    }
+    
+    showToast(`Queuing ${missingMods.length} mods for subscription...`, "#48cae4", "📥");
+    missingMods.forEach((mod) => {
+      if (!state.activeDownloads.has(mod.id)) {
+        const lbl = document.getElementById(`status-label-${mod.id}`);
+        triggerSteamworksSync(mod.id, mod.name, lbl);
+      }
+    });
+  });
+  
+  if (server.mods && server.mods.some(mod => !state.localModsSet.has(mod.id))) {
+    headerDiv.appendChild(subscribeAllBtn);
+  }
+  
   detailDiv.appendChild(headerDiv);
 
   if (!server.mods || server.mods.length === 0) {
@@ -149,15 +187,13 @@ export function buildDetailRow(server, isFavoritesView = false) {
       nameSpan.textContent = mod.name;
       nameSpan.title = mod.name;
       infoDiv.appendChild(nameSpan);
-      const idSpan = document.createElement("span");
-      idSpan.className = "mod-pill-id";
-      idSpan.textContent = `ID: ${mod.id}`;
-      infoDiv.appendChild(idSpan);
+      // Removed Mod ID display for cleaner UI
       modPill.appendChild(infoDiv);
 
       const pillActions = document.createElement("div");
       pillActions.className = "mod-pill-actions";
       const statusLabel = document.createElement("span");
+      statusLabel.id = `status-label-${mod.id}`;
 
       const activeEntry = state.activeDownloads.get(mod.id);
       if (activeEntry) {
@@ -170,7 +206,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         statusLabel.textContent = "✓";
       } else {
         statusLabel.className = "mod-pill-status missing";
-        statusLabel.textContent = "Not Subscribed";
+        statusLabel.textContent = "";
         const downloadBtn = document.createElement("button");
         downloadBtn.innerHTML = '<app-icon name="download"></app-icon>';
         downloadBtn.title = "Sync Mod natively via Steam Client";

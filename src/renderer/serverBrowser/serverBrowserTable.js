@@ -124,25 +124,58 @@ export function renderServers() {
   updateStatsBar(filtered);
 
   const totalServers = filtered.length;
-  const totalPages = Math.ceil(totalServers / state.pagination.size) || 1;
+  const listMode = state.settings.listMode || "paging";
+  const paginationBar = document.querySelector(".pagination-bar");
 
-  if (state.pagination.page > totalPages) state.pagination.page = totalPages;
-  if (state.pagination.page < 1) state.pagination.page = 1;
-
-  const startIdx = (state.pagination.page - 1) * state.pagination.size;
-  const endIdx = Math.min(startIdx + state.pagination.size, totalServers);
-  const paginatedServers = filtered.slice(startIdx, endIdx);
-
-  const paginationInfo = document.getElementById("paginationInfo");
-  if (paginationInfo) {
-    paginationInfo.textContent = `Showing ${totalServers ? startIdx + 1 : 0} - ${endIdx} of ${totalServers} servers (Page ${state.pagination.page}/${totalPages})`;
+  if (paginationBar) {
+    paginationBar.style.display = listMode === "virtual" ? "none" : "flex";
   }
 
-  const prevBtn = document.getElementById("prevPageBtn");
-  if (prevBtn) prevBtn.disabled = state.pagination.page === 1;
+  let startIdx = 0;
+  let endIdx = 0;
 
-  const nextBtn = document.getElementById("nextPageBtn");
-  if (nextBtn) nextBtn.disabled = state.pagination.page === totalPages;
+  if (listMode === "paging") {
+    const totalPages = Math.ceil(totalServers / state.pagination.size) || 1;
+    if (state.pagination.page > totalPages) state.pagination.page = totalPages;
+    if (state.pagination.page < 1) state.pagination.page = 1;
+
+    startIdx = (state.pagination.page - 1) * state.pagination.size;
+    endIdx = Math.min(startIdx + state.pagination.size, totalServers);
+
+    if (tbody) {
+      tbody.style.paddingTop = "0px";
+      tbody.style.paddingBottom = "0px";
+    }
+
+    const paginationInfo = document.getElementById("paginationInfo");
+    if (paginationInfo) {
+      paginationInfo.textContent = `Showing ${totalServers ? startIdx + 1 : 0} - ${endIdx} of ${totalServers} servers (Page ${state.pagination.page}/${totalPages})`;
+    }
+
+    const prevBtn = document.getElementById("prevPageBtn");
+    if (prevBtn) prevBtn.disabled = state.pagination.page === 1;
+
+    const nextBtn = document.getElementById("nextPageBtn");
+    if (nextBtn) nextBtn.disabled = state.pagination.page === totalPages;
+  } else {
+    // Progressive Infinite Scroll
+    if (!state.virtualEndIdx) state.virtualEndIdx = state.pagination.size;
+    
+    // Reset virtualEndIdx if filters severely reduced totalServers
+    if (state.virtualEndIdx > totalServers + state.pagination.size) {
+       state.virtualEndIdx = state.pagination.size;
+    }
+
+    startIdx = 0;
+    endIdx = Math.min(state.virtualEndIdx, totalServers);
+
+    if (tbody) {
+      tbody.style.paddingTop = "0px";
+      tbody.style.paddingBottom = "0px";
+    }
+  }
+
+  const paginatedServers = filtered.slice(startIdx, endIdx);
 
   const existingRows = new Map();
   tbody
@@ -152,7 +185,12 @@ export function renderServers() {
     const match = tr.id.match(/^row-(.+)$/);
     if (match) existingRows.set(match[1], tr);
   });
-  tbody.querySelectorAll("tr.detail-row").forEach((tr) => tr.remove());
+  const existingDetail = tbody.querySelector("tr.detail-row");
+  if (existingDetail) {
+    if (!state.expandedServerId || existingDetail.id !== `detail-${state.expandedServerId}`) {
+       existingDetail.remove();
+    }
+  }
 
   let prevTr = null;
   paginatedServers.forEach((server) => {
@@ -162,13 +200,16 @@ export function renderServers() {
       const starBtn = tr.querySelector(".star-btn");
       if (starBtn) {
         const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
-        starBtn.innerHTML = isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG;
-        starBtn.className = `star-btn ${isFav ? "active" : ""}`;
-        starBtn.title = isFav ? "Remove from Favorites" : "Add to Favorites";
-        starBtn.setAttribute(
-          "aria-label",
-          isFav ? "Remove from Favorites" : "Add to Favorites"
-        );
+        const currentlyActive = starBtn.classList.contains("active");
+        if (isFav !== currentlyActive) {
+          starBtn.innerHTML = isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG;
+          starBtn.className = `star-btn ${isFav ? "active" : ""}`;
+          starBtn.title = isFav ? "Remove from Favorites" : "Add to Favorites";
+          starBtn.setAttribute(
+            "aria-label",
+            isFav ? "Remove from Favorites" : "Add to Favorites"
+          );
+        }
       }
       const nameCell = tr.querySelector(".server-name-cell");
       if (nameCell && nameCell.textContent !== server.name) {
@@ -180,7 +221,12 @@ export function renderServers() {
     }
 
     if (prevTr) {
-      if (prevTr.nextSibling !== tr) prevTr.after(tr);
+      let insertAfterNode = prevTr;
+      if (state.expandedServerId && prevTr.id === `row-${state.expandedServerId}`) {
+         const detailNode = document.getElementById(`detail-${state.expandedServerId}`);
+         if (detailNode) insertAfterNode = detailNode;
+      }
+      if (insertAfterNode.nextSibling !== tr) insertAfterNode.after(tr);
     } else {
       const firstRow = tbody.querySelector("tr.server-row");
       if (firstRow) {
@@ -198,12 +244,17 @@ export function renderServers() {
     const serverRow = document.getElementById(`row-${savedExpandedId}`);
     const server = state.allServers.find((s) => s.id === savedExpandedId);
     if (serverRow && server) {
-      const detailRow = buildDetailRow(server);
+      let detailRow = document.getElementById(`detail-${savedExpandedId}`);
+      if (!detailRow) {
+         detailRow = buildDetailRow(server);
+      }
       detailRow.scrollTop = savedScrollTop;
       serverRow.after(detailRow);
       serverRow.classList.add("expanded");
     } else {
       state.expandedServerId = null;
+      const detailRow = document.getElementById(`detail-${savedExpandedId}`);
+      if (detailRow) detailRow.remove();
     }
   }
 }
@@ -414,6 +465,35 @@ export function initServerBrowser() {
     refreshBtn.addEventListener("click", () => {
       refreshServers();
     });
+  }
+
+  const tableScroll = document.querySelector(".table-scroll");
+  if (tableScroll) {
+    tableScroll.addEventListener("scroll", () => {
+      if (state.expandedServerId) {
+        const detailRow = document.getElementById(`detail-${state.expandedServerId}`);
+        if (detailRow) {
+          const rect = detailRow.getBoundingClientRect();
+          const containerRect = tableScroll.getBoundingClientRect();
+          if (rect.bottom < containerRect.top || rect.top > containerRect.bottom) {
+            state.expandedServerId = null;
+            renderServers();
+          }
+        }
+      }
+
+      if (state.settings.listMode === "virtual") {
+        const { scrollTop, scrollHeight, clientHeight } = tableScroll;
+        // Load more when scrolled within 300px of the bottom
+        if (scrollTop + clientHeight >= scrollHeight - 300) {
+          const totalServers = getCombinedAndFilteredServers().length;
+          if (state.virtualEndIdx < totalServers) {
+            state.virtualEndIdx += state.pagination.size;
+            renderServers();
+          }
+        }
+      }
+    }, { passive: true });
   }
 }
 

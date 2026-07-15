@@ -10,6 +10,28 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.4.4] - 2026-07-14
+
+### Added
+
+- Added a "Virtual List (Endless Scrolling)" option in settings to provide a progressive infinite scrolling experience, eliminating the need to click through pagination buttons.
+- Added a "Subscribe All" button to the expanded server row header, allowing users to queue all missing mods for a server in a single click.
+
+### Changed
+
+- Streamlined the design of the mod chips in the expanded row by removing redundant "Not Subscribed" text and numeric Mod IDs for a cleaner look.
+- Mod chips now automatically transform into a fully installed state (green checkmark) in the DOM the moment a Steamworks download completes, eliminating the need for a manual refresh.
+- Completely decoupled the background ping loop from the table rendering engine and implemented in-place DOM sliding, instantly eliminating UI freezing and frame-drops when running massive chunk sizes (100+) in Virtual List mode.
+- Renamed the "Server List Page Size" settings label to "Servers Per Page / Scroll Load" to accurately reflect its dual functionality for both pagination and virtual chunk sizing.
+- Removed the active background polling interval for updates. The application now exclusively checks for updates on startup or when manually triggered by the user via the "Check for Updates" button to reduce background network overhead.
+- Expanded server rows now automatically collapse when they are scrolled out of the visible viewport, preventing layout jitter and keeping the DOM clean.
+- Standardized the pagination text string to sentence case consistently across all renderer events to fix uppercase flickering.
+
+### Fixed
+
+- Fixed a bug where clicking the Refresh button inside the expanded mod grid would leave the button stuck on "Fetching...". The mod grid now reconstructs itself in-place when a network fetch completes.
+- Fixed a bug where the custom 'Servers Per Page' setting would revert to the default 50 items when the application restarted. The rendering engine now properly synchronizes pagination boundaries directly from local configuration cache during the bootstrap sequence.
+
 ## [1.4.3] - 2026-07-14
 
 ### Added

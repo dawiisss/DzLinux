@@ -379,8 +379,21 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
             currentEntry.statusLabel &&
             currentEntry.statusLabel.isConnected
           ) {
-            currentEntry.statusLabel.textContent = "✓ Ready (Refresh Req)";
-            currentEntry.statusLabel.style.color = "var(--accent-green)";
+            currentEntry.statusLabel.textContent = "✓";
+            currentEntry.statusLabel.className = "mod-pill-status installed";
+            currentEntry.statusLabel.style.color = ""; // Let CSS handle color
+            
+            const pillActions = currentEntry.statusLabel.parentElement;
+            if (pillActions) {
+              const btn = pillActions.querySelector("button");
+              if (btn) btn.remove();
+              
+              const pillContainer = pillActions.parentElement;
+              if (pillContainer && pillContainer.classList.contains("mod-pill")) {
+                pillContainer.classList.remove("missing");
+                pillContainer.classList.add("installed");
+              }
+            }
           }
           showToast(`${modName} download complete`, "#2ec4b6", "✓");
           await refreshLocalModsCache();
