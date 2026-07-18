@@ -75,7 +75,7 @@ This command can also be used to update the version if you are using .deb / .rpm
 ### Persistent Application Logging
 - All runtime events, warnings, and errors are written to a persistent log file at `~/.config/dzlinux/logs/dzlinux.log`.
 - Log entries older than 7 days are automatically pruned on startup.
-- The log file location can be opened directly from the Settings screen.
+- The log file location can be opened directly from the About screen.
 
 ---
 
