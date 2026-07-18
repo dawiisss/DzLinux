@@ -29,6 +29,7 @@ This command can also be used to update the version if you are using .deb / .rpm
 * [Installation Options](#installation-options)
 * [System Requirements](#system-requirements)
 * [Quick Start Guide](#quick-start-guide)
+* [App Data and Logs](#app-data-and-logs)
 * [Bug Reporting and Feedback](#bug-reporting-and-feedback)
 * [License and Privacy](#license-and-privacy)
 
@@ -37,14 +38,18 @@ This command can also be used to update the version if you are using .deb / .rpm
 ## Key Features
 
 ### Dynamic Server Browser
-- Connects directly to global DayZ master list.
+- Connects directly to our DayZ master list.
 - Displays real-time player counts, ping latency, time-of-day, active mods, maps, and password protection status.
-- **Advanced Filters**: Filter servers dynamically by Country, Map, Perspective (1pp/3pp), and Category (Vanilla/Modded).
+- **Advanced Filters**: Filter servers dynamically by Country, Map, Perspective (1pp/3pp), Category (Vanilla/Modded), and connection status.
+- **Favorites Filter and Hide Favorites**: Pin favourite servers for quick access, or hide them from the main list to browse new servers more easily.
+- **Watchlist**: Track specific servers for player count thresholds and slot availability, with native desktop notifications when your rules match.
 - Automatically hides unreachable/offline servers to keep the list clean.
-- Favorites system with real-time ping updates.
+- **Virtual Scroll and Paging**: Switch between classic pagination and endless scrolling for large server lists.
 
 ### Native Mod Manager
 - **Workshop Validation**: Automatically checks server-required mods against your local Steam Workshop directory, highlighting missing or outdated mods *before* you connect.
+- **One-click Subscribe All**: Queue all missing mods for a server in a single click.
+- **Dependency Tree Inspector**: Visualise the full mod dependency graph and identify missing transitive dependencies.
 - **Mod Loadouts**: Save, rename, and toggle custom mod configurations.
 - Native Steam integration for one-click mod subscriptions.
 
@@ -56,19 +61,22 @@ This command can also be used to update the version if you are using .deb / .rpm
 - Inject optimal launch arguments with simple toggles: `-nosplash`, `-noPause`, `-limitFPS`, etc.
 - Native **MangoHud** integration for real-time FPS and hardware monitoring.
 - **Feral GameMode** and custom allocator support to maximize performance and prevent micro-stutters.
+- **DXVK** async shader compilation and thread control.
 
 ### Premium Customization and Layout Modes
 - **Layout Selection**: Switch instantly between the traditional **Classic Navigation** and a sleek **Modern Sidebar Layout** with collapsible, pinnable navigation.
 - **HUD Color Themes**: Includes 8+ curated color themes (including high-contrast dark profiles like *Tactical Dark*, *Vampire*, *Toxic*, *Cyberpunk*, *Forest Moss*, and clean light-mode themes like *Frostbite* and *Solar Sand*).
-  
-### Custom Server Watchlist
-- Track specific servers for player count thresholds and slot availability.
-- Triggers native desktop notifications when your target rules are matched.
 
-### Telemetry and Crash Diagnostics
-- View launch logs, telemetry charts, and session summaries.
-- Analyzes crash logs automatically and suggests actionable fixes.
-  
+### Crash Diagnostics
+- Automatically monitors game exit events and parses DayZ crash logs in real time.
+- Displays a crash summary modal with a description, log snippet, and suggested fix.
+- One-click copy of the full diagnostic report to clipboard for easy sharing.
+
+### Persistent Application Logging
+- All runtime events, warnings, and errors are written to a persistent log file at `~/.config/dzlinux/logs/dzlinux.log`.
+- Log entries older than 7 days are automatically pruned on startup.
+- The log file location can be opened directly from the Settings screen.
+
 ---
 
 ## Installation Options
@@ -76,18 +84,18 @@ This command can also be used to update the version if you are using .deb / .rpm
 If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
 ### AppImage (Portable)
-1. Download `DzLinux-1.4.4.AppImage`.
+1. Download `DzLinux-1.4.5.AppImage`.
 2. Make it executable:
    ```bash
-   chmod +x DzLinux-1.4.4.AppImage
+   chmod +x DzLinux-1.4.5.AppImage
    ```
 3. Run or double-click to launch.
 
 ### Portable Archive (tar.gz)
-1. Download `dzlinux-1.4.4.tar.gz`.
+1. Download `dzlinux-1.4.5.tar.gz`.
 2. Extract to your games directory:
    ```bash
-   tar -xzf dzlinux-1.4.4.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.4.5.tar.gz -C ~/Games/
    ```
 3. Run the binary:
    ```bash
@@ -96,18 +104,18 @@ If you prefer not to use the automated install script, you can manually download
    ```
 
 ### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
-1. Download `dzlinux_1.4.4_amd64.deb`.
+1. Download `dzlinux_1.4.5_amd64.deb`.
 2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.4.4_amd64.deb
+   sudo dpkg -i dzlinux_1.4.5_amd64.deb
    sudo apt install -f
    ```
 
 ### RPM Package (rpm) - Fedora, RHEL, openSUSE
-1. Download `dzlinux-1.4.4.x86_64.rpm`.
+1. Download `dzlinux-1.4.5.x86_64.rpm`.
 2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-1.4.4.x86_64.rpm
+   sudo rpm -i dzlinux-1.4.5.x86_64.rpm
    ```
 
 ---
@@ -135,16 +143,39 @@ sudo dnf install xdg-utils gamemode mangohud
 
 ## Quick Start Guide
 
-1. **Auto-Detection**: Launch DzLinux. Click the **Settings** icon to verify your DayZ paths. DzLinux auto-detects standard locations, but you can manually choose paths if installed on secondary drives.
+1. **Auto-Detection**: Launch DzLinux. Click the **Settings** icon to verify your DayZ paths. DzLinux auto-detects standard Steam library locations, but you can manually set paths if DayZ is installed on a secondary drive.
 2. **Select Proton**: Choose your preferred Proton version from the dropdown list.
-3. **Toggle Optimizations**: Enable performance features (GameMode, MangoHud) based on your system.
-4. **Connect**: Browse the Server Browser, choose a server (missing mods will be identified for syncing), and click **CONNECT** to play.
+3. **Toggle Optimizations**: Enable performance features (GameMode, MangoHud, DXVK async) based on your system.
+4. **Connect**: Browse the Server Browser, choose a server (missing mods will be identified for syncing), and click **Connect** to play.
+
+---
+
+## App Data and Logs
+
+DzLinux stores all user data locally at:
+
+```
+~/.config/dzlinux/
+```
+
+| File | Contents |
+|---|---|
+| `settings.json` | All user settings |
+| `watchlist.json` | Watchlist items |
+| `server_cache.json` | Cached server list (5-minute TTL) |
+| `custom_servers.json` | Manually added custom servers |
+| `query_port_cache.json` | Cached A2S query ports (30-day TTL) |
+| `monetization_cache.json` | Bohemia monetization approved list (24-hour TTL) |
+| `mods_metadata_cache.json` | Per-server mod lists from A2S queries (24-hour TTL) |
+| `logs/dzlinux.log` | Application log file (7-day rolling retention) |
+
+No data is ever sent to external servers. All queries and settings remain entirely local on your machine.
 
 ---
 
 ## Bug Reporting and Feedback
 
-Report issues and suggest features on our [Issues Page](https://github.com/dawiisss/DzLinux/issues). Please include your Linux distribution, Proton version, Steam path configuration, and any crash log outputs.
+Report issues and suggest features on our [Issues Page](https://github.com/dawiisss/DzLinux/issues). Please include your Linux distribution, Proton version, Steam path configuration, and any relevant entries from `~/.config/dzlinux/logs/dzlinux.log`.
 
 ---
 

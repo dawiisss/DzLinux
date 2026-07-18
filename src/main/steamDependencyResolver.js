@@ -113,10 +113,6 @@ async function resolveDependencies(modId, depth = 0, visited = new Set()) {
 
   // Cache successful results with depth to handle different truncation levels
   dependencyCache.set(cacheKey, { result, timestamp: Date.now() });
-  // Also cache at depth 0 for top-level lookups
-  if (depth === 0) {
-    dependencyCache.set(`${modId}:0`, { result, timestamp: Date.now() });
-  }
   return result;
 }
 

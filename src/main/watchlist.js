@@ -101,13 +101,13 @@ async function processWatchlistChecks(currentServers) {
   let matchedOnlineCount = 0;
   let triggeredCount = 0;
 
+  const serverMap = new Map(currentServers.map((s) => [`${s.ip}:${s.port}`, s]));
+
   watchlist.forEach((item) => {
     if (!item.active) return;
     activeCount++;
 
-    const server = currentServers.find(
-      (s) => s.ip === item.ip && s.port === item.port,
-    );
+    const server = serverMap.get(`${item.ip}:${item.port}`);
     if (!server || server.status !== "online") return;
     matchedOnlineCount++;
 
@@ -170,20 +170,7 @@ async function processWatchlistChecks(currentServers) {
   );
 
   if (changed) {
-    // Reload fresh watchlist to avoid clobbering concurrent UI edits.
-    const freshWatchlist = await loadWatchlist();
-
-    const oldByKey = new Map();
-    watchlist.forEach((item) => oldByKey.set(`${item.ip}:${item.port}`, item));
-
-    freshWatchlist.forEach((freshItem) => {
-      const oldItem = oldByKey.get(`${freshItem.ip}:${freshItem.port}`);
-      if (oldItem) {
-        freshItem.lastStatus = oldItem.lastStatus;
-      }
-    });
-
-    saveWatchlist(freshWatchlist);
+    await saveWatchlist(watchlist);
   }
 
   return triggeredNotifications;

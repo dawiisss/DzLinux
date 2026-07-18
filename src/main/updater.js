@@ -42,6 +42,7 @@ async function checkForUpdates() {
   try {
     const { data } = await axios.get(
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`,
+      { timeout: 10000 },
     );
     const latestVersion = (data.tag_name || "").replace(/^v/, "");
     const currentVersion = app.getVersion();

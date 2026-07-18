@@ -121,7 +121,7 @@ async function launchViaProton(args, settings, handleGameExit) {
     console.error("Failed to write steam_appid.txt", e);
   }
 
-  const env = buildEnvironment(settings, compatDataPath);
+  const env = await buildEnvironment(settings, compatDataPath);
 
   await configureDxvk(settings, compatDataPath, env);
 
@@ -172,13 +172,15 @@ async function launchViaProton(args, settings, handleGameExit) {
     return new Promise((resolve, reject) => {
       const child = execFile(cmd, argsList, { env }, (error, _stdout, stderr) => {
         if (error) {
+          console.log(`Failed to launch game via Proton shell: ${error.message}`);
           console.error(
             `Error launching game via Proton shell: ${error.message}`
           );
           console.error(`stderr: ${stderr}`);
           handleGameExit(error);
+        } else {
+          console.log("Game launched successfully via custom Proton shell.");
         }
-        console.log("Game launched successfully via custom Proton shell.");
       });
       child.once('spawn', resolve);
       child.once('error', reject);
@@ -204,8 +206,9 @@ async function launchViaProton(args, settings, handleGameExit) {
             console.error(`Error launching game via Proton: ${error.message}`);
             if (stderr) console.error(`stderr: ${stderr}`);
             handleGameExit(error);
+          } else {
+            console.log("Game launched successfully via custom Proton.");
           }
-          console.log("Game launched successfully via custom Proton.");
         }
       );
       child.once('spawn', resolve);

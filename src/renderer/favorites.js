@@ -4,6 +4,8 @@ import { renderServers } from "./serverBrowser.js";
 import { applyPingResult } from "./utils.js";
 import { buildServerRow, buildDetailRow } from "./serverRow.js";
 
+const placeholderCache = new Map();
+
 export function renderFavoritesManager() {
   const tbody = document.getElementById("favoritesListBody");
   if (!tbody) return;
@@ -24,22 +26,27 @@ export function renderFavoritesManager() {
     const _favKey = `${ip}:${port}`;
     let server = serverMap.get(_favKey);
     if (!server) {
-      server = {
-        id: `fav-${ip.replace(/\./g, "-")}-${port}`,
-        ip: ip,
-        port: port,
-        queryPort: fav.queryPort || null,
-        name: fav.name || "Unknown Server (Offline / Unlisted)",
-        players: 0,
-        maxPlayers: 0,
-        mods: [],
-        realPing: undefined,
-        country: "",
-        thirdPerson: false,
-        modded: false,
-        time: "",
-        password: false,
-      };
+      if (placeholderCache.has(_favKey)) {
+        server = placeholderCache.get(_favKey);
+      } else {
+        server = {
+          id: `fav-${ip.replace(/\./g, "-")}-${port}`,
+          ip: ip,
+          port: port,
+          queryPort: fav.queryPort || null,
+          name: fav.name || "Unknown Server (Offline / Unlisted)",
+          players: 0,
+          maxPlayers: 0,
+          mods: [],
+          realPing: undefined,
+          country: "",
+          thirdPerson: false,
+          modded: false,
+          time: "",
+          password: false,
+        };
+        placeholderCache.set(_favKey, server);
+      }
     }
 
     const isExpanded = state.expandedServerId === server.id;
@@ -87,8 +94,9 @@ export function initFavorites() {
 
       state.favorites.forEach((fav) => {
         const ip = fav.ip;
-        const port = parseInt(fav.port);
-        const server = serverMap.get(`${ip}:${port}`);
+        const port = parseInt(fav.port, 10);
+        const key = `${ip}:${port}`;
+        const server = serverMap.get(key) || placeholderCache.get(key);
         if (server) {
           server.realPing = undefined;
           server.isPinging = false;
@@ -98,8 +106,9 @@ export function initFavorites() {
       const pingPromises = state.favorites.map(async (fav) => {
         const ip = fav.ip;
         const port =
-          typeof fav.port === "number" ? fav.port : parseInt(fav.port);
-        const server = serverMap.get(`${ip}:${port}`);
+          typeof fav.port === "number" ? fav.port : parseInt(fav.port, 10);
+        const key = `${ip}:${port}`;
+        const server = serverMap.get(key) || placeholderCache.get(key);
         if (server) {
           const isFirstPing = server.realPing === undefined;
           try {

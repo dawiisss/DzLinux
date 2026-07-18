@@ -1,6 +1,9 @@
 import { state } from "./state.js";
 import { showToast, showConfirmModal } from "./feedback.js";
-import { applyServerListMode } from "./theme.js";
+import { applyServerListMode, applyLayoutMode } from "./theme.js";
+import { applyTabVisibility } from "./ui-behavior.js";
+import { startCountdown } from "./serverBrowser.js";
+import { startWatchlistPoll } from "./watchlist.js";
 
 export async function initSettings() {
   const settings = state.settings;
@@ -47,15 +50,20 @@ export async function initSettings() {
     settings.disableProtonLogs !== false;
   const gmCheckbox = document.getElementById("enableGameMode");
   gmCheckbox.checked = settings.enableGameMode === true;
-  window.api.game.checkGameMode().then((hasGameMode) => {
-    if (!hasGameMode) {
-      gmCheckbox.disabled = true;
-      gmCheckbox.checked = false;
-      gmCheckbox.parentElement.style.opacity = "0.5";
-      gmCheckbox.parentElement.title =
-        "Feral GameMode is not installed on this system. Install 'gamemode' to use this feature.";
-    }
-  });
+  window.api.game
+    .checkGameMode()
+    .then((hasGameMode) => {
+      if (!hasGameMode) {
+        gmCheckbox.disabled = true;
+        gmCheckbox.checked = false;
+        gmCheckbox.parentElement.style.opacity = "0.5";
+        gmCheckbox.parentElement.title =
+          "Feral GameMode is not installed on this system. Install 'gamemode' to use this feature.";
+      }
+    })
+    .catch((err) => {
+      console.error("GameMode check failed:", err);
+    });
   document.getElementById("nativeWayland").checked =
     settings.nativeWayland === true;
   document.getElementById("mallocSystem").checked =
@@ -128,7 +136,8 @@ export async function initSettings() {
   }
 
   // Settings persistence
-  const saveSettingsSilently = async (silent = true) => {
+  const saveSettingsSilently = async (silent) => {
+    const prev = state.settings || {};
     const newSettings = {
       ...state.settings,
       playerName: document.getElementById("playerName").value,
@@ -137,7 +146,7 @@ export async function initSettings() {
       autoRefreshEnabled:
         document.getElementById("autoRefreshEnabled").value === "true",
       autoRefreshTime:
-        parseInt(document.getElementById("autoRefreshTime").value) || 180,
+        parseInt(document.getElementById("autoRefreshTime").value, 10) || 180,
       theme: document.getElementById("themeSelect").value,
       layoutMode: document.getElementById("layoutModeSelect").value,
       listMode: document.getElementById("listModeSelect").value,
@@ -158,14 +167,14 @@ export async function initSettings() {
       mangoHudConfig: document.getElementById("mangoHudConfig").value,
       dxvkConfig: document.getElementById("dxvkConfig").value,
       serverListPageSize:
-        parseInt(document.getElementById("serverListPageSize").value) || 50,
+        parseInt(document.getElementById("serverListPageSize").value, 10) || 50,
       queryConcurrency:
-        parseInt(document.getElementById("queryConcurrency").value) || 500,
+        parseInt(document.getElementById("queryConcurrency").value, 10) || 500,
       serverListMode: document.getElementById("serverListMode").value,
       watchlistRefreshEnabled:
         document.getElementById("watchlistRefreshEnabled").value === "true",
       watchlistRefreshTime:
-        parseInt(document.getElementById("watchlistRefreshTime").value) || 10,
+        parseInt(document.getElementById("watchlistRefreshTime").value, 10) || 10,
     };
 
     state.pagination.size = newSettings.serverListPageSize;
@@ -176,17 +185,23 @@ export async function initSettings() {
       state.settings = newSettings;
 
       // Update tab visibility dynamically
-      const { applyTabVisibility } = await import("./ui-behavior.js");
       applyTabVisibility(newSettings);
-
-      const { applyLayoutMode } = await import("./theme.js");
       applyLayoutMode(newSettings.layoutMode);
 
-      // Restart countdown and watchlist polling with new settings
-      const { startCountdown } = await import("./serverBrowser.js");
-      const { startWatchlistPoll } = await import("./watchlist.js");
-      startCountdown();
-      startWatchlistPoll();
+      // Restart countdown and watchlist polling only if relevant settings changed
+      const refreshKeysChanged =
+        newSettings.autoRefreshEnabled !== prev.autoRefreshEnabled ||
+        newSettings.autoRefreshTime !== prev.autoRefreshTime;
+      if (refreshKeysChanged) {
+        startCountdown();
+      }
+
+      const watchlistPollKeysChanged =
+        newSettings.watchlistRefreshEnabled !== prev.watchlistRefreshEnabled ||
+        newSettings.watchlistRefreshTime !== prev.watchlistRefreshTime;
+      if (watchlistPollKeysChanged) {
+        startWatchlistPoll();
+      }
       document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       if (!silent)
         showToast("Settings committed to local storage", "#ff9f1c", "💾");
@@ -238,35 +253,11 @@ export async function initSettings() {
       );
       if (!confirmed) return;
 
-      const defaultSettings = {
-        launchParams: "",
-        steamUsername: "",
-        modDirectory: "",
-        favorites: [],
-        history: [],
-        theme: "tactical-dark",
-        layoutMode: "modern",
-        listMode: "paging",
-        sidebarPinned: false,
-        serverListMode: "compact",
-        autoRefreshEnabled: false,
-        protonPath: "default",
-        queryConcurrency: 500,
-        audioFeedback: true,
-        showWatchlistTab: true,
-        showDiagnosticsTab: true,
-        dxvkAsyncEnabled: true,
-        dxvkThreads: "0",
-        disableProtonLogs: true,
-        enableGameMode: false,
-        nativeWayland: false,
-        mallocSystem: true,
-        maxMem: "16000",
-        mallocTrim: true,
-        noEsync: false,
-        mangoHudConfig: "cpu_temp,gpu_temp,ram,fps,frame_timing",
-        dxvkConfig: "",
-      };
+      const defaultSettings = await window.api.settings.getDefaults();
+      if (!defaultSettings) {
+        showToast("Error retrieving settings defaults", "#ff5a5f", "❌");
+        return;
+      }
 
       const success = await window.api.settings.save(defaultSettings);
       if (success) {

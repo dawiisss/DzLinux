@@ -29,33 +29,40 @@ export async function loadInstalledMods() {
   document.getElementById("totalModsSize").textContent = `${totalSizeGB} GB`;
 
   if (state.settings.modDirectory) {
-    window.api.ui.getDiskSpace(state.settings.modDirectory).then((space) => {
-      if (space) {
-        const totalGB =
-          Math.round((space.total / (1024 * 1024 * 1024)) * 10) / 10;
-        const freeGB =
-          Math.round((space.free / (1024 * 1024 * 1024)) * 10) / 10;
-        document.getElementById("diskSpaceReadout").textContent =
-          `${freeGB} GB FREE OF ${totalGB} GB`;
+    window.api.ui
+      .getDiskSpace(state.settings.modDirectory)
+      .then((space) => {
+        if (space) {
+          const totalGB =
+            Math.round((space.total / (1024 * 1024 * 1024)) * 10) / 10;
+          const freeGB =
+            Math.round((space.free / (1024 * 1024 * 1024)) * 10) / 10;
+          document.getElementById("diskSpaceReadout").textContent =
+            `${freeGB} GB free of ${totalGB} GB`;
 
-        const usedPct = space.total
-          ? Math.max(
-              0,
-              ((space.used - totalSizeMB * 1024 * 1024) / space.total) * 100,
-            )
-          : 0;
-        const modsPct = space.total
-          ? Math.max(0, ((totalSizeMB * 1024 * 1024) / space.total) * 100)
-          : 0;
+          const usedPct = space.total
+            ? Math.max(
+                0,
+                ((space.used - totalSizeMB * 1024 * 1024) / space.total) * 100,
+              )
+            : 0;
+          const modsPct = space.total
+            ? Math.max(0, ((totalSizeMB * 1024 * 1024) / space.total) * 100)
+            : 0;
 
-        document.getElementById("storageMapUsed").style.width =
-          `${Math.max(0, usedPct)}%`;
-        document.getElementById("storageMapMods").style.width = `${modsPct}%`;
-      } else {
+          document.getElementById("storageMapUsed").style.width =
+            `${Math.max(0, usedPct)}%`;
+          document.getElementById("storageMapMods").style.width = `${modsPct}%`;
+        } else {
+          document.getElementById("diskSpaceReadout").textContent =
+            `Unknown disk capacity`;
+        }
+      })
+      .catch((err) => {
+        console.error("Disk space query failed:", err);
         document.getElementById("diskSpaceReadout").textContent =
-          `UNKNOWN DISK CAPACITY`;
-      }
-    });
+          "Unknown disk capacity";
+      });
   }
 
   if (state.localMods.length === 0) {
@@ -221,7 +228,7 @@ export async function loadInstalledMods() {
           <div style="display:flex;align-items:center;gap:12px;flex:1;">
             <app-icon name="alert" style="width: 1.3rem; height: 1.3rem; color: #ffb703; flex-shrink: 0;"></app-icon>
             <div>
-              <div style="font-weight:700;color:#ffb703;font-size:0.9rem;">${escapeHtml(String(count))} MOD${count > 1 ? "S" : ""} Outdated — Workshop Mismatch Detected</div>
+              <div style="font-weight:700;color:#ffb703;font-size:0.9rem;">${escapeHtml(String(count))} Mod${count > 1 ? "s" : ""} outdated — Workshop Mismatch Detected</div>
               <div style="font-size:0.8rem;color:var(--text-muted);margin-top:2px;">${names}${escapeHtml(more)}</div>
             </div>
           </div>
@@ -247,7 +254,11 @@ export async function loadInstalledMods() {
                 Updating...
               `;
               btn.disabled = true;
+              const generation = (misMatchBanner.dataset.generation = (
+                parseInt(misMatchBanner.dataset.generation || "0", 10) + 1
+              ).toString());
               for (const mod of result.outdatedMods) {
+                if (misMatchBanner.dataset.generation !== generation) break;
                 showToast(
                   `Updating ${mod.name}...`,
                   "#ff9f1c",
@@ -382,14 +393,17 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
             currentEntry.statusLabel.textContent = "✓";
             currentEntry.statusLabel.className = "mod-pill-status installed";
             currentEntry.statusLabel.style.color = ""; // Let CSS handle color
-            
+
             const pillActions = currentEntry.statusLabel.parentElement;
             if (pillActions) {
               const btn = pillActions.querySelector("button");
               if (btn) btn.remove();
-              
+
               const pillContainer = pillActions.parentElement;
-              if (pillContainer && pillContainer.classList.contains("mod-pill")) {
+              if (
+                pillContainer &&
+                pillContainer.classList.contains("mod-pill")
+              ) {
                 pillContainer.classList.remove("missing");
                 pillContainer.classList.add("installed");
               }
@@ -412,14 +426,20 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
   } catch (err) {
     console.error(err);
     state.activeDownloads.delete(modId);
+    if (statusLabel && statusLabel.isConnected) {
+      statusLabel.textContent = "Sync failed";
+      statusLabel.style.color = "#ff5a5f";
+    }
   }
 }
 
 export function getFlatListFromTree(tree) {
   const list = [];
+  const seen = new Set();
   function traverse(node) {
     if (!node || !node.id) return;
-    if (!list.some((l) => l.id === node.id)) {
+    if (!seen.has(node.id)) {
+      seen.add(node.id);
       list.push({ id: node.id, name: node.name });
     }
     for (const child of node.children || []) traverse(child);
@@ -448,11 +468,11 @@ export function buildDependencyTree(container, node, prefix, installedSet) {
     } else if (child.truncated) {
       statusIcon = "…";
       statusColor = "#ffb703";
-      extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [MAX DEPTH REACHED]</span>`;
+      extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Max depth reached]</span>`;
     } else if (child.circular) {
       statusIcon = "↻";
       statusColor = "#ffb703";
-      extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [CIRCULAR REFERENCE]</span>`;
+      extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Circular reference]</span>`;
     }
 
     const line = document.createElement("div");
@@ -495,7 +515,7 @@ export async function initModManager() {
         );
         depsContainer.replaceChildren();
 
-        let totalMissingDeps = 0;
+        const missingDepsSet = new Set();
         let hasErrors = false;
         const installedSet = new Set(state.localMods.map((m) => m.id));
 
@@ -516,20 +536,20 @@ export async function initModManager() {
 
           let statusIndicator = "";
           let statusColor = "";
-          let depsText = `${tree.children.length} DEP${tree.children.length !== 1 ? "S" : ""}`;
+          let depsText = `${tree.children.length} Dep${tree.children.length !== 1 ? "s" : ""}`;
           if (tree.error) {
             statusColor = "#ff5a5f";
-            statusIndicator = `⚠️ API ERROR`;
-            depsText = "FAILED";
+            statusIndicator = `⚠️ API error`;
+            depsText = "Failed";
           } else if (tree.truncated) {
             statusColor = "#ffb703";
-            statusIndicator = `… TRUNCATED (MAX DEPTH)`;
+            statusIndicator = `… Truncated (max depth)`;
           } else if (tree.circular) {
             statusColor = "#ffb703";
-            statusIndicator = `↻ CIRCULAR REF`;
+            statusIndicator = `↻ Circular ref`;
           } else if (missingChildren.length > 0) {
             statusColor = "#ff5a5f";
-            statusIndicator = `${missingChildren.length} MISSING`;
+            statusIndicator = `${missingChildren.length} Missing`;
           } else {
             statusColor = "var(--accent-green)";
             statusIndicator = "✓ OK";
@@ -568,11 +588,12 @@ export async function initModManager() {
 
           depsContainer.appendChild(card);
 
-          missingChildren.forEach(() => {
-            if (!totalMissingDeps) totalMissingDeps = 0;
-            totalMissingDeps++;
+          missingChildren.forEach((c) => {
+            missingDepsSet.add(c.id);
           });
         });
+
+        const totalMissingDeps = missingDepsSet.size;
 
         if (totalMissingDeps > 0) {
           const warningBanner = document.createElement("div");

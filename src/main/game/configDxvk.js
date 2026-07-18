@@ -7,8 +7,10 @@ async function configureDxvk(settings, compatDataPath, env) {
     dxvkCfg = settings.dxvkConfig.split("\n").filter((l) => l.trim());
   } else {
     if (settings.dxvkAsyncEnabled) dxvkCfg.push("dxvk.enableAsync = True");
-    if (settings.dxvkThreads !== "0")
-      dxvkCfg.push(`dxvk.numCompilerThreads = ${settings.dxvkThreads}`);
+    const threads = parseInt(settings.dxvkThreads, 10);
+    if (!isNaN(threads) && threads > 0) {
+      dxvkCfg.push(`dxvk.numCompilerThreads = ${threads}`);
+    }
   }
 
   if (dxvkCfg.length > 0) {

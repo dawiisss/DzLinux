@@ -103,6 +103,10 @@ async function checkMods(requiredMods) {
       }
     }
 
+    if (typeof mod.id !== "string" || !/^\d+$/.test(mod.id)) {
+      missingMods.push(mod);
+      continue;
+    }
     const modPath = path.join(settings.modDirectory, mod.id);
     const addonsPath = path.join(modPath, "addons");
     const addonsUpperPath = path.join(modPath, "Addons");
@@ -133,7 +137,13 @@ async function launchDayZ(ip, port, mods) {
   const extraParams = buildExtraParams(settings);
 
   const args = ip
-    ? ["-connect", ip, "-port", port.toString(), "-noLauncher"]
+    ? [
+        "-connect",
+        sanitizeArg(ip),
+        "-port",
+        sanitizeArg(port.toString()),
+        "-noLauncher",
+      ]
     : ["-noLauncher"];
 
   if (modString) {

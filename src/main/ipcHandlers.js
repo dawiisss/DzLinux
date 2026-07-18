@@ -45,11 +45,11 @@ function getAllowedPathPrefixes() {
   return allowedPathPrefixes;
 }
 
-function isAllowedPath(filePath) {
+async function isAllowedPath(filePath) {
   if (typeof filePath !== "string") return false;
   let resolved;
   try {
-    resolved = fs.realpathSync(filePath);
+    resolved = await fs.promises.realpath(filePath);
   } catch {
     resolved = path.resolve(filePath);
   }
@@ -71,6 +71,7 @@ function registerIpcHandlers() {
   ipcMain.handle("save-settings", (_event, settings) =>
     settingsManager.saveSettings(settings),
   );
+  ipcMain.handle("get-default-settings", () => settingsManager.getDefaultSettings());
   ipcMain.handle("fetch-servers", async (event, generationId) => {
     return serverManager.fetchDayZServers((batch) => {
       if (!event.sender.isDestroyed()) {
@@ -139,7 +140,11 @@ function registerIpcHandlers() {
   });
   ipcMain.handle("get-installed-mods", () => modManager.getInstalledMods());
   ipcMain.handle("check-mod-updates", (_event, mods) =>
-    modManager.checkModUpdates(mods),
+    modManager.checkModUpdates(
+      (Array.isArray(mods) ? mods : []).filter(
+        (m) => m && modManager.validateModId(String(m.id)),
+      ),
+    ),
   );
 
   // Watchlist Integration
@@ -164,7 +169,11 @@ function registerIpcHandlers() {
   });
 
   ipcMain.handle("check-mod-updates-detailed", (_event, mods) =>
-    modManager.checkModUpdatesDetailed(mods),
+    modManager.checkModUpdatesDetailed(
+      (Array.isArray(mods) ? mods : []).filter(
+        (m) => m && modManager.validateModId(String(m.id)),
+      ),
+    ),
   );
   ipcMain.handle("get-diagnostics", () => logParser.getRecentLogs());
   ipcMain.handle("get-session-summary", () => logParser.getSessionSummary());
@@ -211,7 +220,7 @@ function registerIpcHandlers() {
   });
   ipcMain.handle("check-gamemode", () => gameManager.checkGameMode());
   ipcMain.handle("check-path-exists", async (_event, filePath) => {
-    if (!isAllowedPath(filePath)) return false;
+    if (!(await isAllowedPath(filePath))) return false;
     try {
       await fs.promises.access(path.resolve(filePath));
       return true;
@@ -238,16 +247,22 @@ function registerIpcHandlers() {
   );
 
   // Dependency Tree Resolver
-  ipcMain.handle("resolve-mod-dependencies", (_event, modId) =>
-    steamDependencyResolver.resolveDependencies(modId),
-  );
-  ipcMain.handle("resolve-mod-dependencies-batch", (_event, modIds) =>
-    steamDependencyResolver.resolveBatchDependencies(modIds),
-  );
+  ipcMain.handle("resolve-mod-dependencies", (_event, modId) => {
+    if (!modManager.validateModId(String(modId))) {
+      return Promise.reject(new Error("Invalid modId"));
+    }
+    return steamDependencyResolver.resolveDependencies(modId);
+  });
+  ipcMain.handle("resolve-mod-dependencies-batch", (_event, modIds) => {
+    const validIds = (Array.isArray(modIds) ? modIds : [])
+      .map(String)
+      .filter((id) => modManager.validateModId(id));
+    return steamDependencyResolver.resolveBatchDependencies(validIds);
+  });
 
-  ipcMain.handle("get-disk-space", (_event, dirPath) => {
-    if (!isAllowedPath(dirPath) || !dirPath.startsWith("/")) {
-      return Promise.resolve(null);
+  ipcMain.handle("get-disk-space", async (_event, dirPath) => {
+    if (!(await isAllowedPath(dirPath)) || !dirPath.startsWith("/")) {
+      return null;
     }
     return new Promise((resolve) => {
       execFile("df", ["-k", dirPath], (error, stdout) => {

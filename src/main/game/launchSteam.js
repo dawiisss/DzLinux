@@ -24,8 +24,9 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) 
       if (error) {
         console.error(`Error launching game: ${error.message}`);
         handleGameExit(error);
+      } else {
+        console.log("Game launched successfully.");
       }
-      console.log("Game launched successfully.");
     });
     child.once('spawn', resolve);
     child.once('error', reject);

@@ -10,6 +10,7 @@ contextBridge.exposeInMainWorld("api", {
     load: () => ipcRenderer.invoke("load-settings"),
     save: (settings) => ipcRenderer.invoke("save-settings", settings),
     saveFavorites: (data) => ipcRenderer.invoke("save-favorites", data),
+    getDefaults: () => ipcRenderer.invoke("get-default-settings"),
   },
 
   servers: {

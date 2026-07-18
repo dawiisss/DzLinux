@@ -223,10 +223,26 @@ export async function startBackgroundPinging() {
         return;
       }
       server.isPinging = false;
-
       const isFirstPing = server.realPing === undefined;
 
       applyPingResult(server, statusObj);
+
+      if (!serverPassesFilters(server)) {
+        if (!_needsResort) {
+          _needsResort = true;
+          if (_resortTimer) clearTimeout(_resortTimer);
+          _resortTimer = setTimeout(() => {
+            _resortTimer = null;
+            _needsResort = false;
+            import("../serverBrowser.js").then(({ renderServers }) => {
+              if (state.expandedServerId === null) renderServers();
+            });
+          }, 400);
+        }
+        updateStatsInline();
+        return;
+      }
+
       if (statusObj !== null) {
         if (statusObj.name) {
           const rowEl = document.getElementById(`row-${server.id}`);
@@ -430,10 +446,6 @@ export async function refreshServers(isBackground = false) {
   startCountdown();
 }
 
-document.addEventListener("dzlinux:update-stats", (e) => {
-  if (e.detail) {
-    updateStatsInline(e.detail.ip, e.detail.port, e.detail.queryPort, e.detail.ping, e.detail.statusObj, e.detail.forceOffline);
-  } else {
-    updateStatsInline();
-  }
+document.addEventListener("dzlinux:update-stats", () => {
+  updateStatsInline();
 });

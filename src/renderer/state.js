@@ -25,10 +25,10 @@ export const state = {
   },
   flags: {
     favoritesOnly: false,
+    hideFavorites: false,
     hideEmpty: false,
     hideFull: false,
     historyOnly: false,
-    hideFakes: true,
     hideLocked: false,
   },
   sort: {
@@ -43,12 +43,8 @@ export const state = {
   localMods: [],
   localModsSet: new Set(),
 
-  // Audio
-  audioCtx: null,
-
   // Background pinging
   bgPing: {
-    queue: [],
     isRunning: false,
     generation: 0,
   },
@@ -86,7 +82,7 @@ export async function addFavorite(ip, port, queryPort, name) {
   if (!state.favoritesSet.has(key)) {
     state.favorites.push({
       ip,
-      port: parseInt(port),
+      port: parseInt(port, 10),
       queryPort: queryPort || null,
       name: name || "",
     });
@@ -111,6 +107,18 @@ export async function removeFavorite(ip, port) {
 export function setFavoritesFromSettings(settings) {
   state.favorites = settings.favorites || [];
   state.favoritesSet = new Set(state.favorites.map((f) => `${f.ip}:${f.port}`));
-  state.history = settings.history || [];
+  
+  const rawHistory = settings.history || [];
+  state.history = rawHistory.filter(
+    (h) => h && typeof h.ip === "string" && h.port
+  );
+  if (state.history.length !== rawHistory.length) {
+    settings.history = state.history;
+    if (window.api && window.api.settings && window.api.settings.save) {
+      window.api.settings.save(settings).catch((e) => {
+        console.error("Failed to save cleaned settings history:", e.message);
+      });
+    }
+  }
   state.historySet = new Set(state.history.map((h) => `${h.ip}:${h.port}`));
 }

@@ -245,7 +245,8 @@ async function axiosGetWithRetry(url, options = {}, retries = 3) {
         timeout: options.timeout || 10000,
       });
     } catch (err) {
-      if (attempt === retries) throw err;
+      const isClientError = err.response && err.response.status >= 400 && err.response.status < 500;
+      if (attempt === retries || isClientError) throw err;
       const delay = Math.pow(2, attempt) * 500;
       console.log(`Retry ${attempt}/${retries} for ${url} after ${delay}ms`);
       await new Promise((r) => setTimeout(r, delay));
@@ -382,7 +383,7 @@ function injectFavoritesPlaceholders(servers, favorites, serversMap) {
     const added = [];
     favorites.forEach((fav) => {
       const ip = fav.ip;
-      const port = typeof fav.port === "number" ? fav.port : parseInt(fav.port);
+      const port = typeof fav.port === "number" ? fav.port : parseInt(fav.port, 10);
       const mapKey = `${ip}:${port}`;
       const exists = serversMap.has(mapKey);
       if (!exists) {
@@ -408,17 +409,23 @@ function injectFavoritesPlaceholders(servers, favorites, serversMap) {
     });
 
     if (added.length > 0) {
-      // Shift existing indices in serversMap
+      // Shift existing indices in serversMap and originalIndex on server objects
       for (const [key, value] of serversMap.entries()) {
         serversMap.set(key, value + added.length);
       }
-      // Prepend to servers array
-      servers.unshift(...added);
-      // Register new indices in serversMap
+      servers.forEach((s) => {
+        if (s.originalIndex !== undefined) {
+          s.originalIndex += added.length;
+        }
+      });
+      // Register new indices in serversMap and set originalIndex on placeholders
       added.forEach((item, idx) => {
+        item.originalIndex = idx;
         const mapKey = `${item.ip}:${item.port}`;
         serversMap.set(mapKey, idx);
       });
+      // Prepend to servers array
+      servers.unshift(...added);
     }
   }
 }

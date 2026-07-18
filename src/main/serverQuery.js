@@ -109,14 +109,14 @@ module.exports = {
 // is atomically persisted; on cached-port failure the stale entry is evicted.
 // Uses a module-level singleton cache to survive parallel batch pinging.
 async function queryServerGameDig(ip, port, queryPort) {
-  const p = parseInt(port);
+  const p = parseInt(port, 10);
   const cacheKey = `${ip}:${p}`;
 
   // Read from the module-level singleton — never loads from disk mid-flight
   const cached = queryPortCache.get(cacheKey);
   const cachedPort = cached ? cached.port : null;
 
-  // Build port list: queryPort (from hosted list) first, then cached port, then game port
+  // Build port list: queryPort (from hosted list) first, then cached port
   const queryPorts = [];
   if (queryPort && queryPort > 0 && queryPort <= 65535) {
     queryPorts.push(queryPort);
@@ -129,8 +129,18 @@ async function queryServerGameDig(ip, port, queryPort) {
   ) {
     queryPorts.push(cachedPort);
   }
-  if (p > 0 && p <= 65535 && !queryPorts.includes(p)) {
-    queryPorts.push(p);
+
+  // If we don't have a known working port (no CDN port and no cached port),
+  // only then do we fall back to scanning the game port and its offsets.
+  if (queryPorts.length === 0) {
+    if (p > 0 && p <= 65535) {
+      queryPorts.push(p);
+    }
+    for (const candidate of [p + 1, p + 2, p + 3, 27016]) {
+      if (candidate > 0 && candidate <= 65535 && !queryPorts.includes(candidate)) {
+        queryPorts.push(candidate);
+      }
+    }
   }
 
   for (const qp of queryPorts) {
@@ -204,7 +214,6 @@ async function queryServerGameDig(ip, port, queryPort) {
       // Subsequent iterations will scan the regular port offsets and cache the
       // new working port if one is found.
       if (cachedPort !== null && qp === cachedPort) {
-        queryPortCache.delete(cacheKey);
         deleteQueryPortCacheEntry(cacheKey);
       }
     }

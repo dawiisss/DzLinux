@@ -41,6 +41,7 @@ async function pruneOldEntries() {
     const cutoff = Date.now() - LOG_MAX_AGE_MS;
     const lines = content.split("\n");
     const kept = [];
+    let lastLineWasKept = false;
 
     for (const line of lines) {
       if (!line.trim()) continue;
@@ -50,10 +51,13 @@ async function pruneOldEntries() {
         const ts = new Date(match[1]).getTime();
         if (ts >= cutoff) {
           kept.push(line);
+          lastLineWasKept = true;
+        } else {
+          lastLineWasKept = false;
         }
       } else {
-        // Continuation line (stack trace, multi-line output) — keep if last kept line exists
-        if (kept.length > 0) {
+        // Continuation line (stack trace, multi-line output) — keep if parent entry was kept
+        if (lastLineWasKept) {
           kept.push(line);
         }
       }

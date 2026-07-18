@@ -8,13 +8,20 @@ export function startWatchlistPoll() {
 
   if (state.settings.watchlistRefreshEnabled === false) return;
 
-  const pollSeconds = parseInt(state.settings.watchlistRefreshTime) || 10;
+  const pollSeconds = parseInt(state.settings.watchlistRefreshTime, 10) || 10;
+
+  let pollInProgress = false;
 
   const poll = async () => {
+    if (pollInProgress) return;
+    pollInProgress = true;
     try {
       const watchlist = await window.api.watchlist.load();
       const activeItems = watchlist.filter((item) => item.active);
-      if (activeItems.length === 0) return;
+      if (activeItems.length === 0) {
+        pollInProgress = false;
+        return;
+      }
 
       const dirtyItems = [];
 
@@ -79,6 +86,8 @@ export function startWatchlistPoll() {
       renderWatchlist();
     } catch (err) {
       console.error("[Watchlist] Poll failed:", err);
+    } finally {
+      pollInProgress = false;
     }
   };
 
@@ -138,7 +147,7 @@ export async function renderWatchlist() {
         item.active = input.checked;
         await window.api.watchlist.save(watchlist);
         showToast(
-          `Watchlist: ${item.name} ${item.active ? "activated" : "DEactivated"}`,
+          `Watchlist: ${item.name} ${item.active ? "activated" : "deactivated"}`,
           item.active ? "var(--accent-green)" : "var(--text-dim)",
           "👁️",
         );
@@ -282,7 +291,8 @@ export async function renderWatchlist() {
       connectBtn.style.marginRight = "6px";
       connectBtn.textContent = "Connect";
       connectBtn.addEventListener("click", () => {
-        document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server } }));
+        const target = server || { ip: item.ip, port: item.port };
+        document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server: target } }));
       });
       tdAction.appendChild(connectBtn);
 

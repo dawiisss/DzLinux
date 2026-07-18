@@ -9,6 +9,7 @@ import { initWatchlist, startWatchlistPoll } from "./watchlist.js";
 import { initContextMenu } from "./contextMenu.js";
 import { initServerBrowser, refreshServers } from "./serverBrowser.js";
 import { initUpdater } from "./updater.js";
+import { initCrashDiagnostic } from "./crashDiagnostic.js";
 import { initSteamProfile } from "./steamProfile.js";
 import { initUIBehavior, applyTabVisibility } from "./ui-behavior.js";
 
@@ -26,21 +27,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   setFavoritesFromSettings(settings);
   applyTabVisibility(settings);
 
+  const safeInit = async (name, fn) => {
+    try {
+      const res = fn();
+      if (res instanceof Promise) await res;
+    } catch (e) {
+      console.error(`Failed to initialize module: ${name}`, e);
+    }
+  };
+
   // Initialize all modules
-  initAudio();
-  initTheme(settings);
-  await initSettings();
-  initModManager();
-  initFavorites();
-  initWatchlist();
-  initContextMenu();
-  initServerBrowser();
-  initUpdater();
-  await initSteamProfile();
-  initUIBehavior();
+  await safeInit("Audio", initAudio);
+  await safeInit("Theme", () => initTheme(settings));
+  await safeInit("Settings", initSettings);
+  await safeInit("ModManager", initModManager);
+  await safeInit("Favorites", initFavorites);
+  await safeInit("Watchlist", initWatchlist);
+  await safeInit("ContextMenu", initContextMenu);
+  await safeInit("ServerBrowser", initServerBrowser);
+  await safeInit("Updater", initUpdater);
+  await safeInit("CrashDiagnostic", initCrashDiagnostic);
+  await safeInit("SteamProfile", initSteamProfile);
+  await safeInit("UIBehavior", initUIBehavior);
 
   // Initial data loads
-  await refreshLocalModsCache();
-  refreshServers();
-  startWatchlistPoll();
+  await safeInit("LocalModsCache", refreshLocalModsCache);
+  try {
+    refreshServers();
+  } catch (e) {
+    console.error("Failed to run initial refreshServers:", e);
+  }
+  try {
+    startWatchlistPoll();
+  } catch (e) {
+    console.error("Failed to run initial startWatchlistPoll:", e);
+  }
 });

@@ -10,6 +10,44 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.4.5] - 2026-07-18
+
+### Added
+
+- **Warnings for Corrupted Mods:** Added clear warning messages when mod metadata files (`mod.cpp`) are unreadable to help troubleshoot corrupted mod installations.
+- **Hide Favorites Filter:** Added a "Hide Favorites" filter to hide favorited servers from the main browser list (designed to help players with large favorite lists easily browse other servers).
+
+### Changed
+
+- **More Responsive Settings & Mod Loading:** Optimized settings saving and mod list loading so changes take effect instantly and the interface feels faster.
+- **Sleeker, Cleaner Text:** Standardized casing across all menus and buttons (e.g., "GB free of", "Refresh", "Subscribe all") for a consistent look and feel.
+- **Performance Cleanups:** Tidied up background code, removed unused modules, and improved app startup efficiency.
+
+### Fixed
+
+- **Server Connection & Playlists:**
+  - Fixed a connection bug where clicking "Connect" from certain views could fail to launch the game.
+  - Completely removed "Hide Fakes" filter button and its associated state logic, the hosted serverlist already does checks to combat fakes.
+  - Favorite servers that are unlisted or offline now remain visible in the Favorites tab as dimmed placeholders, rather than disappearing completely.
+  - Fixed favorites migration from older versions of the launcher losing their custom names.
+  - Automatically heals and cleans up corrupted server history entries on startup to prevent UI crashes.
+  - Fixed watchlist connection shortcuts to fall back to direct join if a watched server isn't found in the browser.
+- **Faster, Smoother Launcher Startup:**
+  - Rewrote directory scanners (such as looking for Steam and Workshop folders) to run in the background, keeping the window responsive during launch.
+  - Fixed an interface lag issue when copying crash logs.
+- **Mod & Dependency Troubleshooting:**
+  - Fixed the mod list refresh button getting stuck on "Fetching..." when offline.
+  - Prevented duplicate mod updates from running in parallel in the background.
+  - Shows "Sync failed" instead of getting stuck on "Syncing..." if a mod subscription fails.
+  - Fixed a calculation issue in the mod dependency scanner that could double-count missing items.
+  - Added strict mod ID filters to keep background services stable.
+- **Updates & General Stability:**
+  - Single-instance enforcement: The launcher now ensures only one window is open at a time, preventing conflicts.
+  - Safe-loading bootstrap: If a launcher component fails to load, the remaining modules will still load safely instead of crashing the entire app.
+  - Added a timeout to update checks so the launcher won't freeze if GitHub is offline or slow.
+  - Added helper notifications if update downloads fail, allowing you to easily retry.
+  - Fixed safety boundaries for DXVK shader compiler settings, disk space queries, and GameMode triggers to prevent crashes.
+
 ## [1.4.4] - 2026-07-14
 
 ### Added

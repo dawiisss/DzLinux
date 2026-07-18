@@ -1,6 +1,5 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const _os = require("node:os");
 const { app } = require("electron");
 const steamPaths = require("./steamPaths");
 
@@ -79,10 +78,14 @@ function loadSettings() {
   }
 
   const settings = { ...defaultSettings };
+  let legacyNames = {};
+  let legacyPorts = {};
   try {
     if (fs.existsSync(settingsPath)) {
       const data = fs.readFileSync(settingsPath, "utf8");
       const parsed = JSON.parse(data);
+      legacyNames = parsed.favoriteNames || {};
+      legacyPorts = parsed.favoritePorts || {};
       // Only merge known setting keys to prevent prototype pollution
       for (const key of Object.keys(parsed)) {
         if (SETTINGS_KEYS.has(key)) {
@@ -99,8 +102,8 @@ function loadSettings() {
     settings.favorites.length > 0 &&
     typeof settings.favorites[0] === "string"
   ) {
-    const names = settings.favoriteNames || {};
-    const ports = settings.favoritePorts || {};
+    const names = legacyNames;
+    const ports = legacyPorts;
     settings.favorites = settings.favorites
       .map((key) => {
         const parsed = parseFavKeyInline(key);
@@ -137,7 +140,7 @@ async function saveSettings(settings) {
     // Auto-discover if empty
     if (!safeSettings.modDirectory) {
       steamPaths._clearCache();
-      safeSettings.modDirectory = findDayzWorkshopFolder();
+      safeSettings.modDirectory = await steamPaths.findDayzWorkshopFolderAsync();
     }
 
     // Update cache immediately
@@ -155,6 +158,7 @@ async function saveSettings(settings) {
 module.exports = {
   loadSettings,
   saveSettings,
+  getDefaultSettings: () => ({ ...defaultSettings }),
   _clearCache: () => {
     cachedSettings = null;
   },

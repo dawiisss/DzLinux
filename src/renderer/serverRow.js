@@ -38,7 +38,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
     "Refresh mods for this server via A2S query (replaces cached record)";
   refreshModsBtn.innerHTML = `
     <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
-    REFRESH
+    Refresh
   `;
   refreshModsBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
@@ -77,6 +77,11 @@ export function buildDetailRow(server, isFavoritesView = false) {
       showToast("Failed to refresh mods", "#ff5a5f", "⚠️");
       return;
     }
+    refreshModsBtn.disabled = false;
+    refreshModsBtn.innerHTML = `
+      <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
+      Refresh
+    `;
     if (state.expandedServerId === server.id) {
       const oldDetail = document.getElementById(`detail-${server.id}`);
       if (oldDetail) {
@@ -99,19 +104,25 @@ export function buildDetailRow(server, isFavoritesView = false) {
   subscribeAllBtn.title = "Subscribe to all missing mods";
   subscribeAllBtn.innerHTML = `
     <app-icon name="download" style="width: 0.8rem; height: 0.8rem;"></app-icon>
-    SUBSCRIBE ALL
+    Subscribe all
   `;
   subscribeAllBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!server.mods || server.mods.length === 0) return;
-    
-    const missingMods = server.mods.filter((mod) => !state.localModsSet.has(mod.id));
+
+    const missingMods = server.mods.filter(
+      (mod) => !state.localModsSet.has(mod.id),
+    );
     if (missingMods.length === 0) {
       showToast("All mods are already installed!", "#2ec4b6", "✓");
       return;
     }
-    
-    showToast(`Queuing ${missingMods.length} mods for subscription...`, "#48cae4", "📥");
+
+    showToast(
+      `Queuing ${missingMods.length} mods for subscription...`,
+      "#48cae4",
+      "📥",
+    );
     missingMods.forEach((mod) => {
       if (!state.activeDownloads.has(mod.id)) {
         const lbl = document.getElementById(`status-label-${mod.id}`);
@@ -119,11 +130,14 @@ export function buildDetailRow(server, isFavoritesView = false) {
       }
     });
   });
-  
-  if (server.mods && server.mods.some(mod => !state.localModsSet.has(mod.id))) {
+
+  if (
+    server.mods &&
+    server.mods.some((mod) => !state.localModsSet.has(mod.id))
+  ) {
     headerDiv.appendChild(subscribeAllBtn);
   }
-  
+
   detailDiv.appendChild(headerDiv);
 
   if (!server.mods || server.mods.length === 0) {
@@ -145,9 +159,13 @@ export function buildDetailRow(server, isFavoritesView = false) {
             server.hasQueriedMods = true;
             if (state.expandedServerId === server.id) {
               if (isFavoritesView) {
-                document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
+                document.dispatchEvent(
+                  new CustomEvent("dzlinux:render-favorites"),
+                );
               } else {
-                document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+                document.dispatchEvent(
+                  new CustomEvent("dzlinux:render-servers"),
+                );
               }
             }
           })
@@ -199,7 +217,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
       if (activeEntry) {
         activeEntry.statusLabel = statusLabel;
         statusLabel.className = "mod-pill-status";
-        statusLabel.textContent = activeEntry.lastStatusText || "SYNCING...";
+        statusLabel.textContent = activeEntry.lastStatusText || "Syncing...";
         statusLabel.style.color = "var(--accent)";
       } else if (isInstalledLocal) {
         statusLabel.className = "mod-pill-status installed";
@@ -258,7 +276,7 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
 
     if (isFavoritesView) {
       state.expandedServerId = isExpanded ? null : server.id;
-            document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
+      document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
     } else {
       if (state.expandedServerId === server.id) {
         state.expandedServerId = null;
@@ -299,7 +317,7 @@ function buildStarCell(server, serverKey, isFav) {
   );
   starBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-        if (state.favoritesSet.has(serverKey)) {
+    if (state.favoritesSet.has(serverKey)) {
       await removeFavorite(server.ip, server.port);
       starBtn.innerHTML = STAR_UNFAV_SVG;
       starBtn.className = "star-btn";
@@ -349,7 +367,7 @@ function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
       tdPing.appendChild(approxSpan);
     } else {
       tdPing.style.color = "var(--text-dim)";
-      tdPing.textContent = isFavoritesView ? "PINGING..." : "--";
+      tdPing.textContent = isFavoritesView ? "Pinging..." : "--";
     }
     if (isFavoritesView && !server.isPinging) {
       const isFirstPing = server.realPing === undefined;
@@ -605,7 +623,7 @@ export function renderMetadataBadges(server) {
   if (server.time) {
     const tBadge = document.createElement("span");
     tBadge.className = "hud-badge badge-time";
-    const hr = parseInt(server.time.split(":")[0]);
+    const hr = parseInt(server.time.split(":")[0], 10);
     const sun = hr >= 6 && hr <= 18 ? "\u2600\uFE0F" : "\uD83C\uDF19";
     tBadge.textContent = `${sun} ${server.time}`;
     badgesWrapper.appendChild(tBadge);

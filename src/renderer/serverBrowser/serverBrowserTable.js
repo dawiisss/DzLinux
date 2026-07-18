@@ -260,6 +260,10 @@ export function renderServers() {
 }
 
 export async function connectToServer(ip, port) {
+  if (typeof ip !== "string" || (!port && port !== 0)) {
+    showToast("Invalid server address", "#ef233c", "⚠️");
+    return;
+  }
   try {
     console.log(`Connecting to ${ip}:${port}... verifying mods`);
     await addToHistory(ip, port);
@@ -503,8 +507,9 @@ document.addEventListener("dzlinux:render-servers", () => {
 });
 
 document.addEventListener("dzlinux:connect-server", (e) => {
-  if (e.detail && e.detail.server) {
-    connectToServer(e.detail.server);
+  const s = e.detail?.server;
+  if (s && s.ip && s.port) {
+    connectToServer(s.ip, s.port);
   }
 });
 

@@ -61,43 +61,11 @@ export function initUpdater() {
 
   window.api.updater.onError((err) => {
     console.error("Update error:", err.message);
+    downloadInProgress = false;
+    elements.progressContainer.style.display = "none";
+    elements.downloadBtn.style.display = "inline-flex";
+    showToast("Update download failed. Please try again.", "#ff5a5f", "⚠️");
   });
-
-  const crashModal = document.getElementById("crashDiagnosticModal");
-  const crashDesc = document.getElementById("crashDiagnosticDescription");
-  const crashSnippet = document.getElementById("crashDiagnosticSnippet");
-  const crashFix = document.getElementById("crashDiagnosticFix");
-  const crashCloseBtn = document.getElementById("crashDiagnosticCloseBtn");
-  const crashCopyBtn = document.getElementById("crashDiagnosticCopyBtn");
-
-  if (crashModal) {
-    window.api.diagnostics.onGameCrashed((diagnostic) => {
-      if (diagnostic && diagnostic.status === "CRASH") {
-        crashDesc.textContent =
-          diagnostic.description || "Unknown error occurred.";
-        crashSnippet.textContent = diagnostic.snippet || "> LOG UNAVAILABLE";
-        crashFix.textContent =
-          "🛠️ SUGGESTED FIX: " +
-          (diagnostic.suggestedFix || "Check community forums for assistance.");
-
-        crashModal.style.display = "flex";
-
-        crashCopyBtn.addEventListener("click", () => {
-          const text = `[CRASH DIAGNOSTIC]\nStatus: ${diagnostic.status}\nDescription: ${diagnostic.description}\nSnippet: ${diagnostic.snippet}\nSuggested Fix: ${diagnostic.suggestedFix}`;
-          navigator.clipboard
-            .writeText(text)
-            .then(() => {
-              showToast("Crash log copied to clipboard", "#ff5a5f", "📋");
-            })
-            .catch(() => {});
-        });
-      }
-    });
-
-    crashCloseBtn.addEventListener("click", () => {
-      crashModal.style.display = "none";
-    });
-  }
 
   const showSystemPackage = (info) => {
     elements.currentVersion.textContent = "v" + (info.currentVersion || "");
@@ -113,7 +81,7 @@ export function initUpdater() {
   const showUpdateAvailable = (info) => {
     elements.currentVersion.textContent = "v" + (info.currentVersion || "");
     elements.latestVersion.textContent = "v" + info.version;
-    
+
     // Strip HTML tags since release notes from electron-updater come as HTML
     const cleanNotes = (info.releaseNotes || "No release notes provided.")
       .replace(/<br\s*\/?>/gi, "\n") // Convert breaks to newlines
@@ -122,7 +90,8 @@ export function initUpdater() {
       .replace(/<\/?[^>]+(>|$)/g, "") // Strip all remaining HTML tags
       .trim();
 
-    elements.releaseNotes.textContent = cleanNotes || "No release notes provided.";
+    elements.releaseNotes.textContent =
+      cleanNotes || "No release notes provided.";
     fallbackDownloadUrl = info.downloadUrl || null;
     if (fallbackDownloadUrl) {
       elements.downloadBtn.textContent = "Open release page";
@@ -177,8 +146,6 @@ export function initUpdater() {
       console.error("Startup update check failed:", err);
     }
   };
-
-
 
   checkAndShow();
 

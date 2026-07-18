@@ -19,6 +19,17 @@ const STEAM_DIR_CANDIDATES = [
 let cachedSteamInstallPath = null;
 let cachedDayzWorkshopFolder = null;
 
+const fsPromises = fs.promises;
+
+async function existsAsync(p) {
+  try {
+    await fsPromises.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function getSteamInstallPath() {
   if (cachedSteamInstallPath !== null) {
     return cachedSteamInstallPath;
@@ -29,8 +40,20 @@ function getSteamInstallPath() {
       return dir;
     }
   }
-  cachedSteamInstallPath = path.join(os.homedir(), ".local", "share", "Steam"); // Default fallback
-  return cachedSteamInstallPath;
+  return path.join(os.homedir(), ".local", "share", "Steam");
+}
+
+async function getSteamInstallPathAsync() {
+  if (cachedSteamInstallPath !== null) {
+    return cachedSteamInstallPath;
+  }
+  for (const dir of STEAM_DIR_CANDIDATES) {
+    if (await existsAsync(dir)) {
+      cachedSteamInstallPath = dir;
+      return dir;
+    }
+  }
+  return path.join(os.homedir(), ".local", "share", "Steam");
 }
 
 function findDayzWorkshopFolder() {
@@ -74,7 +97,50 @@ function findDayzWorkshopFolder() {
       return mainWorkshopPath;
     }
   }
-  cachedDayzWorkshopFolder = "";
+  return "";
+}
+
+async function findDayzWorkshopFolderAsync() {
+  if (cachedDayzWorkshopFolder !== null) {
+    return cachedDayzWorkshopFolder;
+  }
+  const steamPath = await getSteamInstallPathAsync();
+
+  if (steamPath && await existsAsync(steamPath)) {
+    const vdfPath = path.join(steamPath, "steamapps", "libraryfolders.vdf");
+    if (await existsAsync(vdfPath)) {
+      const vdfContent = await fsPromises.readFile(vdfPath, "utf8");
+      const pathRegex = /"path"\s+"([^"]+)"/g;
+      let match;
+      while ((match = pathRegex.exec(vdfContent)) !== null) {
+        const libPath = match[1];
+        const workshopPath = path.join(
+          libPath,
+          "steamapps",
+          "workshop",
+          "content",
+          "221100",
+        );
+        if (await existsAsync(workshopPath)) {
+          cachedDayzWorkshopFolder = workshopPath;
+          return workshopPath;
+        }
+      }
+    }
+
+    // Fallback to default steam install location
+    const mainWorkshopPath = path.join(
+      steamPath,
+      "steamapps",
+      "workshop",
+      "content",
+      "221100",
+    );
+    if (await existsAsync(mainWorkshopPath)) {
+      cachedDayzWorkshopFolder = mainWorkshopPath;
+      return mainWorkshopPath;
+    }
+  }
   return "";
 }
 
@@ -98,7 +164,9 @@ function getDayzLogsCandidatePaths() {
 
 module.exports = {
   getSteamInstallPath,
+  getSteamInstallPathAsync,
   findDayzWorkshopFolder,
+  findDayzWorkshopFolderAsync,
   getDayzLogsCandidatePaths,
   _clearCache: () => {
     cachedSteamInstallPath = null;

@@ -466,6 +466,21 @@
             </button>
             <button
               class="filter-pill"
+              id="filter-hide-fav"
+              aria-pressed="false"
+              style="display: inline-flex; align-items: center; gap: 6px"
+            >
+              <app-icon
+                name="star-off"
+                style="width: 1rem; height: 1rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
+              Hide Favorites
+            </button>
+            <button
+              class="filter-pill"
               id="filter-history"
               aria-pressed="false"
               style="display: inline-flex; align-items: center; gap: 6px"
@@ -483,13 +498,6 @@
 
           <div class="filter-group">
             <span class="filter-label">CONNECTION:</span>
-            <button
-              class="filter-pill active"
-              id="filter-hide-fakes"
-              aria-pressed="true"
-            >
-              Hide Fakes
-            </button>
             <button
               class="filter-pill"
               id="filter-hide-locked"

@@ -1,4 +1,7 @@
-import { applyFilters, serverPassesFilters } from "./serverBrowser/serverBrowserCore.js";
+import {
+  applyFilters,
+  serverPassesFilters,
+} from "./serverBrowser/serverBrowserCore.js";
 import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
@@ -7,7 +10,6 @@ import { state } from "./state.js";
 import { debounce, countryToFlag, EU_COUNTRIES } from "./utils.js";
 import { showToast } from "./feedback.js";
 import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
-
 
 // Set storing currently selected country codes in the filter dropdown
 
@@ -183,7 +185,7 @@ export function updateMapTrigger() {
   } else if (state.filters.maps.size >= checkboxes.length) {
     tr.innerHTML = `${mapSvg} All Maps ▾`;
   } else {
-    tr.innerHTML = `${mapSvg} ${state.filters.maps.size} MAPS ▾`;
+    tr.innerHTML = `${mapSvg} ${state.filters.maps.size} Maps ▾`;
     tr.classList.add("active");
   }
 }
@@ -193,6 +195,34 @@ export function toggleFavFilter() {
   const btn = document.getElementById("filter-fav-only");
   btn.classList.toggle("active", state.flags.favoritesOnly);
   btn.setAttribute("aria-pressed", state.flags.favoritesOnly.toString());
+
+  if (state.flags.favoritesOnly && state.flags.hideFavorites) {
+    state.flags.hideFavorites = false;
+    const hideBtn = document.getElementById("filter-hide-fav");
+    if (hideBtn) {
+      hideBtn.classList.remove("active");
+      hideBtn.setAttribute("aria-pressed", "false");
+    }
+  }
+
+  triggerFiltering();
+}
+
+export function toggleHideFavFilter() {
+  state.flags.hideFavorites = !state.flags.hideFavorites;
+  const btn = document.getElementById("filter-hide-fav");
+  btn.classList.toggle("active", state.flags.hideFavorites);
+  btn.setAttribute("aria-pressed", state.flags.hideFavorites.toString());
+
+  if (state.flags.hideFavorites && state.flags.favoritesOnly) {
+    state.flags.favoritesOnly = false;
+    const favBtn = document.getElementById("filter-fav-only");
+    if (favBtn) {
+      favBtn.classList.remove("active");
+      favBtn.setAttribute("aria-pressed", "false");
+    }
+  }
+
   triggerFiltering();
 }
 
@@ -220,13 +250,7 @@ export function toggleHistoryFilter() {
   triggerFiltering();
 }
 
-export function toggleHideFakes() {
-  state.flags.hideFakes = !state.flags.hideFakes;
-  const btn = document.getElementById("filter-hide-fakes");
-  btn.classList.toggle("active", state.flags.hideFakes);
-  btn.setAttribute("aria-pressed", state.flags.hideFakes.toString());
-  triggerFiltering();
-}
+
 
 // Toggles selection of a specific country code in the filter Set, then triggers re-filtering
 export function toggleCountryOption(val) {
@@ -265,7 +289,7 @@ export function updateCountryTrigger() {
     if (state.filters.countries.size === 1 && selectedText) {
       tr.innerHTML = `${globeSvg} ${selectedText} ▾`;
     } else {
-      tr.innerHTML = `${globeSvg} ${state.filters.countries.size} COUNTRIES ▾`;
+      tr.innerHTML = `${globeSvg} ${state.filters.countries.size} Countries ▾`;
     }
     tr.classList.add("active");
   }
@@ -306,7 +330,11 @@ export function populateCountryFilterDropdown(onlyUpdateVisibility = false) {
 
   // Check if there are active European servers (excl. RU) to render the virtual option
   const hasEuropeServers = state.allServers.some((s) => {
-    return s.country && EU_COUNTRIES.has(s.country.toUpperCase()) && serverPassesFilters(s, true);
+    return (
+      s.country &&
+      EU_COUNTRIES.has(s.country.toUpperCase()) &&
+      serverPassesFilters(s, true)
+    );
   });
 
   if (hasEuropeServers) {
@@ -317,7 +345,9 @@ export function populateCountryFilterDropdown(onlyUpdateVisibility = false) {
     euCheckbox.type = "checkbox";
     euCheckbox.dataset.country = "EU_EX_RU";
     euCheckbox.checked = state.filters.countries.has("EU_EX_RU");
-    euCheckbox.addEventListener("change", () => toggleCountryOption("EU_EX_RU"));
+    euCheckbox.addEventListener("change", () =>
+      toggleCountryOption("EU_EX_RU"),
+    );
 
     euLabel.appendChild(euCheckbox);
     euLabel.appendChild(document.createTextNode(" 🇪🇺 Europe (excl. RU)"));
@@ -414,14 +444,12 @@ export function initUIBehavior() {
   }
 
   // Set initial sort indicator
-  document.addEventListener("DOMContentLoaded", () => {
-    const th = document.getElementById("th-players");
-    if (th) {
-      th.classList.add("sort-active");
-      const ind = th.querySelector(".sort-indicator");
-      if (ind) ind.textContent = "▼";
-    }
-  });
+  const th = document.getElementById("th-players");
+  if (th) {
+    th.classList.add("sort-active");
+    const ind = th.querySelector(".sort-indicator");
+    if (ind) ind.textContent = "▼";
+  }
 
   // Global hotkeys: Ctrl+F (focus search) and Ctrl+R (refresh list)
   window.addEventListener("keydown", (e) => {
@@ -563,13 +591,14 @@ export function initUIBehavior() {
   const filterFavOnly = document.getElementById("filter-fav-only");
   if (filterFavOnly) filterFavOnly.addEventListener("click", toggleFavFilter);
 
+  const filterHideFav = document.getElementById("filter-hide-fav");
+  if (filterHideFav) filterHideFav.addEventListener("click", toggleHideFavFilter);
+
   const filterHistory = document.getElementById("filter-history");
   if (filterHistory)
     filterHistory.addEventListener("click", toggleHistoryFilter);
 
-  const filterHideFakes = document.getElementById("filter-hide-fakes");
-  if (filterHideFakes)
-    filterHideFakes.addEventListener("click", toggleHideFakes);
+
 
   const filterHideLocked = document.getElementById("filter-hide-locked");
   if (filterHideLocked)
@@ -613,9 +642,7 @@ document.addEventListener("dzlinux:populate-country-dropdown", (e) => {
     populateCountryFilterDropdown(!e.detail.isOpen);
   }
 });
-document.addEventListener("dzlinux:apply-tab-visibility", () => {
-  applyTabVisibility();
-});
+
 document.addEventListener("dzlinux:switch-tab", (e) => {
   if (e.detail) {
     switchTab(e.detail.tab);

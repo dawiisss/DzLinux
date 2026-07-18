@@ -23,8 +23,15 @@ describe("serverQuery", () => {
   });
 
   afterEach(async () => {
-    // Wait for any pending cache writes to finish before deleting the temp directory
-    await new Promise((r) => setTimeout(r, 20));
+    try {
+      const sqPath = require.resolve("../../src/main/serverQuery");
+      const sq = require.cache[sqPath]?.exports;
+      if (sq && typeof sq.getCacheWriteQueue === "function") {
+        await sq.getCacheWriteQueue();
+      }
+    } catch {
+      // Ignore resolution errors if module wasn't loaded
+    }
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 

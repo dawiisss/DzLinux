@@ -33,8 +33,8 @@ function buildModString(settings, mods) {
     .join(";");
 }
 
-function buildEnvironment(settings, compatDataPath) {
-  const clientInstallPath = steamPaths.getSteamInstallPath();
+async function buildEnvironment(settings, compatDataPath) {
+  const clientInstallPath = await steamPaths.getSteamInstallPathAsync();
   const env = Object.assign({}, process.env, {
     STEAM_COMPAT_DATA_PATH: compatDataPath,
     STEAM_COMPAT_CLIENT_INSTALL_PATH: clientInstallPath,

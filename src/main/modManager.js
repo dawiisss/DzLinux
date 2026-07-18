@@ -87,7 +87,11 @@ async function getInstalledMods() {
           );
           if (overviewMatch)
             overview = overviewMatch[1].replace(/\r?\n/g, " ").trim();
-        } catch {}
+        } catch (err) {
+          if (err.code !== "ENOENT") {
+            console.warn(`Failed to parse mod.cpp for mod ${folder}:`, err.message);
+          }
+        }
 
         // Estimate folder size in MB recursively (asynchronous)
         let sizeBytes = 0;
@@ -137,7 +141,7 @@ async function getFolderSize(dirPath) {
   const queue = [dirPath];
 
   while (queue.length > 0) {
-    const currentDir = queue.shift();
+    const currentDir = queue.pop();
     try {
       const files = await fsPromises.readdir(currentDir, {
         withFileTypes: true,
@@ -179,8 +183,10 @@ function validateModId(modId) {
 }
 
 function safeModPath(modDirectory, modId) {
-  const resolved = path.resolve(path.join(modDirectory, modId));
-  if (!resolved.startsWith(path.resolve(modDirectory))) {
+  const baseResolved = path.resolve(modDirectory);
+  const resolved = path.resolve(path.join(baseResolved, modId));
+  const prefix = baseResolved.endsWith(path.sep) ? baseResolved : baseResolved + path.sep;
+  if (!resolved.startsWith(prefix) && resolved !== baseResolved) {
     return null;
   }
   return resolved;

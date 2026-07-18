@@ -143,7 +143,7 @@ async function unsubscribeMod(modId) {
   try {
     return await sendRequest("unsubscribeMod", modId);
   } catch (e) {
-    console.error(`Failed to unsubscribe to mod ${modId}:`, e);
+    console.error(`Failed to unsubscribe from mod ${modId}:`, e);
     return false;
   }
 }

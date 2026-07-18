@@ -36,6 +36,7 @@ export function serverPassesFilters(server, excludeCountryFilter = false) {
 
   const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
   if (state.flags.favoritesOnly && !isFav) return false;
+  if (state.flags.hideFavorites && isFav) return false;
 
   if (state.flags.hideEmpty && server.players === 0) return false;
   if (state.flags.hideFull && server.players >= server.maxPlayers) return false;
@@ -79,40 +80,10 @@ export function applyFilters() {
 
 export function getCombinedAndFilteredServers() {
   const result = [];
-  const serverSet = new Set();
 
   for (const s of state.allServers) {
-    serverSet.add(`${s.ip}:${s.port}`);
     if (serverPassesFilters(s)) {
       result.push(s);
-    }
-  }
-
-  for (const fav of state.favorites) {
-    const ip = fav.ip;
-    const port = typeof fav.port === "number" ? fav.port : parseInt(fav.port);
-    const key = `${ip}:${port}`;
-    if (!serverSet.has(key)) {
-      const fakeServer = {
-        id: `fav-${ip}-${port}`,
-        name: fav.name || "UNKNOWN SERVER (OFFLINE / UNLISTED)",
-        ip: ip,
-        port: port,
-        queryPort: fav.queryPort || null,
-        players: 0,
-        maxPlayers: 0,
-        status: "offline",
-        mods: [],
-        thirdPerson: true,
-        modded: false,
-        ping: undefined,
-        country: "",
-        isPinging: false,
-        realPing: -1,
-      };
-      if (serverPassesFilters(fakeServer)) {
-        result.push(fakeServer);
-      }
     }
   }
 

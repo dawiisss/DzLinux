@@ -168,7 +168,7 @@ export function applyPingResult(server, statusObj) {
     }
     return true;
   } else {
-    server.realPing = server.ping || 120;
+    server.realPing = -1;
     server.failedPing = true;
     return false;
   }

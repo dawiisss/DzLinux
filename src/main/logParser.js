@@ -188,8 +188,9 @@ async function analyzeLog(log) {
     for (let i = content.length - 1; i >= 0; i--) {
       const l = content[i].trim();
       const m = l.match(timeRegex);
-      if (m && !endTimeStr) {
+      if (m) {
         endTimeStr = m[1];
+        break;
       }
     }
 
@@ -404,8 +405,8 @@ async function getSessionSummary() {
     if (log.playtime && log.playtime !== "0m") {
       const hMatch = log.playtime.match(/(\d+)h/);
       const mMatch = log.playtime.match(/(\d+)m(?!\s*h)/);
-      const hours = hMatch ? parseInt(hMatch[1]) : 0;
-      const mins = mMatch ? parseInt(mMatch[1]) : 0;
+      const hours = hMatch ? parseInt(hMatch[1], 10) : 0;
+      const mins = mMatch ? parseInt(mMatch[1], 10) : 0;
       totalPlaytimeSeconds += hours * 3600 + mins * 60;
       sessionsWithTime++;
     }

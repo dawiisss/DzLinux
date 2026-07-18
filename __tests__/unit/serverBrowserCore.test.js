@@ -4,6 +4,7 @@ const vm = require("vm");
 
 describe("serverBrowserCore - serverPassesFilters", () => {
   let serverPassesFilters;
+  let getCombinedAndFilteredServers;
   let context;
 
   beforeEach(() => {
@@ -29,10 +30,10 @@ describe("serverBrowserCore - serverPassesFilters", () => {
         },
         flags: {
           favoritesOnly: false,
+          hideFavorites: false,
           hideEmpty: false,
           hideFull: false,
           historyOnly: false,
-          hideFakes: true,
           hideLocked: false,
         },
         favoritesSet: new Set(),
@@ -42,7 +43,6 @@ describe("serverBrowserCore - serverPassesFilters", () => {
       EU_COUNTRIES: new Set([
         "AL", "AD", "AT", "BY", "BE", "BA", "BG", "HR", "CY", "CZ", "DK", "EE",
         "FI", "FR", "DE", "GR", "HU", "IS", "IE", "IT", "LV", "LI", "LT", "LU",
-        "MT", "MD", "MC", "ME", "NL", "MK", "NO", "PL", "PT", "RO", "SM", "RS",
         "SK", "SI", "ES", "SE", "CH", "UA", "GB", "VA",
       ]),
     };
@@ -51,6 +51,7 @@ describe("serverBrowserCore - serverPassesFilters", () => {
     vm.runInContext(cleanCode, context);
 
     serverPassesFilters = context.serverPassesFilters;
+    getCombinedAndFilteredServers = context.getCombinedAndFilteredServers;
   });
 
   test("server passes filters by default", () => {
@@ -164,5 +165,63 @@ describe("serverBrowserCore - serverPassesFilters", () => {
 
     expect(serverPassesFilters(serverDE, false)).toBe(false);
     expect(serverPassesFilters(serverDE, true)).toBe(true);
+  });
+
+  describe("getCombinedAndFilteredServers", () => {
+    beforeEach(() => {
+      context.state.allServers = [
+        {
+          id: "server-1",
+          ip: "1.1.1.1",
+          port: 2302,
+          name: "Online Server",
+          realPing: 50,
+          failedPing: false,
+          players: 10,
+          maxPlayers: 60,
+        },
+        {
+          id: "server-2",
+          ip: "2.2.2.2",
+          port: 2302,
+          name: "Offline Favorite",
+          realPing: -1,
+          failedPing: true,
+        },
+      ];
+      context.state.favorites = [
+        {
+          ip: "1.1.1.1",
+          port: 2302,
+          name: "Online Server",
+        },
+        {
+          ip: "2.2.2.2",
+          port: 2302,
+          name: "Offline Favorite",
+        },
+      ];
+      context.state.favoritesSet = new Set(["1.1.1.1:2302", "2.2.2.2:2302"]);
+      context.state.flags.favoritesOnly = false;
+    });
+
+    test("does not return offline/unlisted favorite placeholders when favoritesOnly is false", () => {
+      const result = getCombinedAndFilteredServers();
+      expect(result).toHaveLength(1);
+      expect(result[0].ip).toBe("1.1.1.1");
+    });
+
+    test("does not return offline favorites even when favoritesOnly is true", () => {
+      context.state.flags.favoritesOnly = true;
+      const result = getCombinedAndFilteredServers();
+      expect(result).toHaveLength(1);
+      expect(result[0].ip).toBe("1.1.1.1");
+    });
+
+    test("filters out favorites when hideFavorites is true", () => {
+      context.state.flags.hideFavorites = true;
+      const result = getCombinedAndFilteredServers();
+      expect(result).toHaveLength(0);
+    });
   });
 });
