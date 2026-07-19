@@ -6,8 +6,9 @@ import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
-import { state } from "./state.js";
+import { state, saveFiltersToSettings } from "./state.js";
 import { debounce, countryToFlag, EU_COUNTRIES } from "./utils.js";
+import { hideContextMenu, setCurrentContextMenu } from "./contextMenu.js";
 import { showToast } from "./feedback.js";
 import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
 
@@ -311,12 +312,7 @@ export function populateCountryFilterDropdown(onlyUpdateVisibility = false) {
 
   const filterGroup = dropdown.closest(".filter-group");
   if (filterGroup) {
-    if (countries.size === 0) {
-      filterGroup.style.display = "none";
-      return;
-    } else {
-      filterGroup.style.display = "";
-    }
+    filterGroup.style.display = "";
   }
 
   if (onlyUpdateVisibility) return;
@@ -392,6 +388,190 @@ import { renderServers } from "./serverBrowser/serverBrowserTable.js";
 export function triggerFiltering() {
   applyFilters();
   renderServers();
+  if (state.settings && state.settings.autoSaveFilters) {
+    saveFiltersToSettings().catch((err) => {
+      console.error("Failed to automatically save filters:", err);
+    });
+  }
+}
+
+export function syncFiltersUI() {
+  const searchInput = document.getElementById("searchInput");
+  if (searchInput) {
+    searchInput.value = state.filters.name || "";
+  }
+
+  // Perspective pills
+  document
+    .querySelectorAll('[id^="filter-persp-"]')
+    .forEach((btn) => btn.classList.remove("active"));
+  const perspBtn = document.getElementById("filter-persp-" + (state.filters.perspective || "all"));
+  if (perspBtn) perspBtn.classList.add("active");
+
+  // Category pills
+  document
+    .querySelectorAll('[id^="filter-cat-"]')
+    .forEach((btn) => btn.classList.remove("active"));
+  const catBtn = document.getElementById("filter-cat-" + (state.filters.category || "all"));
+  if (catBtn) catBtn.classList.add("active");
+
+  // Maps multiselect trigger & checks
+  updateMapTrigger();
+
+  // Countries multiselect trigger & checks
+  updateCountryTrigger();
+
+  // Flags active/aria-pressed states
+  const flagFavOnly = document.getElementById("filter-fav-only");
+  if (flagFavOnly) {
+    flagFavOnly.classList.toggle("active", state.flags.favoritesOnly);
+    flagFavOnly.setAttribute("aria-pressed", state.flags.favoritesOnly.toString());
+  }
+
+  const flagHideFav = document.getElementById("filter-hide-fav");
+  if (flagHideFav) {
+    flagHideFav.classList.toggle("active", state.flags.hideFavorites);
+    flagHideFav.setAttribute("aria-pressed", state.flags.hideFavorites.toString());
+  }
+
+  const flagHideEmpty = document.getElementById("filter-hide-empty");
+  if (flagHideEmpty) {
+    flagHideEmpty.classList.toggle("active", state.flags.hideEmpty);
+    flagHideEmpty.setAttribute("aria-pressed", state.flags.hideEmpty.toString());
+  }
+
+  const flagHideFull = document.getElementById("filter-hide-full");
+  if (flagHideFull) {
+    flagHideFull.classList.toggle("active", state.flags.hideFull);
+    flagHideFull.setAttribute("aria-pressed", state.flags.hideFull.toString());
+  }
+
+  const flagHistory = document.getElementById("filter-history");
+  if (flagHistory) {
+    flagHistory.classList.toggle("active", state.flags.historyOnly);
+    flagHistory.setAttribute("aria-pressed", state.flags.historyOnly.toString());
+  }
+
+  const flagHideLocked = document.getElementById("filter-hide-locked");
+  if (flagHideLocked) {
+    flagHideLocked.classList.toggle("active", state.flags.hideLocked);
+    flagHideLocked.setAttribute("aria-pressed", state.flags.hideLocked.toString());
+  }
+}
+
+export async function resetFilters() {
+  state.filters.name = "";
+  state.filters.nameLower = "";
+  state.filters.perspective = "all";
+  state.filters.category = "all";
+  state.filters.maps.clear();
+  state.filters.countries.clear();
+
+  state.flags.favoritesOnly = false;
+  state.flags.hideFavorites = false;
+  state.flags.hideEmpty = false;
+  state.flags.hideFull = false;
+  state.flags.historyOnly = false;
+  state.flags.hideLocked = false;
+
+  syncFiltersUI();
+  await saveFiltersToSettings();
+  triggerFiltering();
+
+  showToast("Filters reset to default", "#2ec4b6", "rotate-ccw");
+}
+
+export function toggleFilterMenu() {
+  const menuExists = document.getElementById("filter-context-menu");
+  if (menuExists) {
+    hideContextMenu();
+    return;
+  }
+
+  hideContextMenu();
+
+  const menu = document.createElement("div");
+  menu.id = "filter-context-menu";
+  menu.className = "context-menu";
+
+  menu.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  const addMenuItem = (label, iconName, onClick, classNames = "") => {
+    const item = document.createElement("div");
+    item.className = `context-menu-item ${classNames}`;
+    const iconSpan = document.createElement("span");
+    iconSpan.innerHTML = `<app-icon name="${iconName}" style="width: 1rem; height: 1rem; vertical-align: middle;"></app-icon>`;
+    item.appendChild(iconSpan);
+    item.appendChild(document.createTextNode(` ${label}`));
+    item.addEventListener("click", () => {
+      onClick();
+    });
+    menu.appendChild(item);
+    return item;
+  };
+
+  addMenuItem("Save Current Filters", "save", async () => {
+    await saveFiltersToSettings();
+    showToast("Filters saved successfully", "#2ec4b6", "save");
+    hideContextMenu();
+  });
+
+  addMenuItem("Reset to Default", "rotate-ccw", async () => {
+    await resetFilters();
+    hideContextMenu();
+  }, "dropdown-item-danger");
+
+  const divider = document.createElement("div");
+  divider.className = "context-menu-divider";
+  menu.appendChild(divider);
+
+  const autoSaveItem = document.createElement("label");
+  autoSaveItem.className = "context-menu-item";
+  autoSaveItem.style.cursor = "pointer";
+  autoSaveItem.style.display = "flex";
+  autoSaveItem.style.alignItems = "center";
+  autoSaveItem.style.gap = "10px";
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.id = "chk-auto-save-filters";
+  checkbox.checked = state.settings ? state.settings.autoSaveFilters === true : false;
+  checkbox.style.accentColor = "var(--accent)";
+  checkbox.style.cursor = "pointer";
+
+  checkbox.addEventListener("change", async () => {
+    if (state.settings) {
+      state.settings.autoSaveFilters = checkbox.checked;
+      if (checkbox.checked) {
+        await saveFiltersToSettings();
+        showToast("Auto-save enabled & filters saved", "#2ec4b6", "save");
+      } else {
+        await window.api.settings.save(state.settings);
+        showToast("Auto-save disabled", "#ff9f1c", "save");
+      }
+    }
+  });
+
+  autoSaveItem.appendChild(checkbox);
+  autoSaveItem.appendChild(document.createTextNode(" Save Automatically"));
+  menu.appendChild(autoSaveItem);
+
+  const filterMenuBtn = document.getElementById("filterMenuBtn");
+  if (filterMenuBtn) {
+    const rect = filterMenuBtn.getBoundingClientRect();
+    menu.style.position = "fixed";
+    menu.style.top = `${rect.bottom + 6}px`;
+    document.body.appendChild(menu);
+
+    const menuRect = menu.getBoundingClientRect();
+    let leftPos = rect.right - menuRect.width;
+    if (leftPos < 0) leftPos = rect.left;
+    menu.style.left = `${leftPos}px`;
+  }
+
+  setCurrentContextMenu(menu);
 }
 
 // --- Sorting ---
@@ -419,6 +599,7 @@ export function handleSort(column) {
 
 // --- Setup ---
 export function initUIBehavior() {
+  syncFiltersUI();
   // Close multiselect on outside click
   document.addEventListener("click", (e) => {
     if (
@@ -524,7 +705,7 @@ export function initUIBehavior() {
       const ip = ipInput ? ipInput.value.trim() : "";
       const port = portInput ? portInput.value.trim() : "";
       if (!ip || !port) {
-        showToast("Please enter both IP and port", "#ff5a5f", "⚠️");
+        showToast("Please enter both IP and port", "#ff5a5f", "alert");
         return;
       }
       connectToServer(ip, port);
@@ -603,6 +784,15 @@ export function initUIBehavior() {
   const filterHideLocked = document.getElementById("filter-hide-locked");
   if (filterHideLocked)
     filterHideLocked.addEventListener("click", toggleHideLocked);
+
+  const filterMenuBtn = document.getElementById("filterMenuBtn");
+  if (filterMenuBtn) {
+    filterMenuBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFilterMenu();
+    });
+  }
 
   document.querySelectorAll("th.sortable").forEach((th) => {
     th.addEventListener("click", () => {

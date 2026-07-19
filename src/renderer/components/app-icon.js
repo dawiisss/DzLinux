@@ -98,6 +98,21 @@ const icons = {
   },
   "signal": {
     paths: `<path d="M2 20h.01"/> <path d="M7 20v-4"/> <path d="M12 20v-8"/> <path d="M17 20V8"/> <path d="M22 20V4"/>`
+  },
+  "rotate-ccw": {
+    paths: `<path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>`
+  },
+  "more-vertical": {
+    paths: `<circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/>`
+  },
+  "bell": {
+    paths: `<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>`
+  },
+  "target": {
+    paths: `<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>`
+  },
+  "zap": {
+    paths: `<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>`
   }
 };
 

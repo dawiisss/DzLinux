@@ -19,7 +19,7 @@ export function initCrashDiagnostic() {
     navigator.clipboard
       .writeText(latestCrashText)
       .then(() => {
-        showToast("Crash log copied to clipboard", "#ff5a5f", "📋");
+        showToast("Crash log copied to clipboard", "#ff5a5f", "clipboard");
       })
       .catch(() => {});
   });

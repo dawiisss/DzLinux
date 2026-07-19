@@ -138,3 +138,8 @@ export function initContextMenu() {
     currentContextMenu = menu;
   });
 }
+
+export function setCurrentContextMenu(menu) {
+  hideContextMenu();
+  currentContextMenu = menu;
+}

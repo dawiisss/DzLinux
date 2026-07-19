@@ -13,7 +13,7 @@
     />
     <link rel="stylesheet" href="./styles/main.css" />
   </head>
-  <body>
+  <body class="compact-mode layout-modern">
     <!-- Custom Frameless Titlebar -->
     <div class="titlebar">
       <div class="titlebar-title">
@@ -504,6 +504,24 @@
               aria-pressed="false"
             >
               Hide Locked
+            </button>
+          </div>
+
+          <div class="filter-group" style="margin-left: auto;">
+            <button
+              class="filter-pill"
+              id="filterMenuBtn"
+              title="Filter Options"
+              aria-label="Filter Options"
+              style="padding: 4px 6px; display: inline-flex; align-items: center; justify-content: center;"
+            >
+              <app-icon
+                name="more-vertical"
+                style="width: 0.95rem; height: 0.95rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
             </button>
           </div>
         </div>

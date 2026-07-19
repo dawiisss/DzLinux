@@ -204,9 +204,9 @@ export async function initSettings() {
       }
       document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       if (!silent)
-        showToast("Settings committed to local storage", "#ff9f1c", "💾");
+        showToast("Settings committed to local storage", "#ff9f1c", "save");
     } else {
-      if (!silent) showToast("Error committing settings", "#ff5a5f", "❌");
+      if (!silent) showToast("Error committing settings", "#ff5a5f", "x");
     }
   };
 
@@ -225,7 +225,7 @@ export async function initSettings() {
         showToast(
           "Using Steam default applaunch — no custom Proton path to test",
           "#ff9f1c",
-          "ℹ️",
+          "info",
         );
         return;
       }
@@ -234,13 +234,13 @@ export async function initSettings() {
         showToast(
           "Proton path verified — compatibility layer found",
           "#2ec4b6",
-          "✓",
+          "check",
         );
       } else {
         showToast(
           "Proton path not found. Check your compatibilitytools.d directory.",
           "#ff5a5f",
-          "⚠️",
+          "alert",
         );
       }
     });
@@ -255,7 +255,7 @@ export async function initSettings() {
 
       const defaultSettings = await window.api.settings.getDefaults();
       if (!defaultSettings) {
-        showToast("Error retrieving settings defaults", "#ff5a5f", "❌");
+        showToast("Error retrieving settings defaults", "#ff5a5f", "x");
         return;
       }
 
@@ -264,7 +264,7 @@ export async function initSettings() {
         state.settings = defaultSettings;
         location.reload();
       } else {
-        showToast("Error resetting settings", "#ff5a5f", "❌");
+        showToast("Error resetting settings", "#ff5a5f", "x");
       }
     });
 
@@ -317,7 +317,7 @@ export async function initSettings() {
   saveLoadoutBtn.addEventListener("click", async () => {
     const name = loadoutNameInput.value.trim();
     if (!name) {
-      showToast("Please enter a loadout name", "#ff5a5f", "⚠️");
+      showToast("Please enter a loadout name", "#ff5a5f", "alert");
       return;
     }
 
@@ -332,7 +332,7 @@ export async function initSettings() {
     loadoutSelect.value = name;
     deleteLoadoutBtn.style.display = "inline-block";
 
-    showToast(`Loadout "${name}" saved`, "#2ec4b6", "💾");
+    showToast(`Loadout "${name}" saved`, "#2ec4b6", "save");
   });
 
   deleteLoadoutBtn.addEventListener("click", async () => {
@@ -348,7 +348,7 @@ export async function initSettings() {
       const checkboxes = document.querySelectorAll(".mod-select-checkbox");
       checkboxes.forEach((cb) => (cb.checked = false));
 
-      showToast(`Loadout "${name}" deleted`, "#ff5a5f", "🗑️");
+      showToast(`Loadout "${name}" deleted`, "#ff5a5f", "trash");
     }
   });
 
@@ -361,7 +361,7 @@ export async function initSettings() {
       })
       .filter(Boolean);
 
-    showToast("Initializing direct launch from loadout...", "#2ec4b6", "🚀");
+    showToast("Initializing direct launch from loadout...", "#2ec4b6", "play");
     window.api.game.launch("", "", selectedMods);
   });
 }

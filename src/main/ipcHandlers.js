@@ -295,6 +295,7 @@ function registerIpcHandlers() {
     shell.showItemInFolder(logPath);
   });
 
+
   ipcMain.on("window-min", () => {
     const win = BrowserWindow.getFocusedWindow();
     if (win) win.minimize();

@@ -149,7 +149,7 @@ export async function renderWatchlist() {
         showToast(
           `Watchlist: ${item.name} ${item.active ? "activated" : "deactivated"}`,
           item.active ? "var(--accent-green)" : "var(--text-dim)",
-          "👁️",
+          "eye",
         );
       });
       const span = document.createElement("span");
@@ -248,7 +248,7 @@ export async function renderWatchlist() {
         showToast(
           `Threshold updated to ${item.threshold} players`,
           "var(--accent)",
-          "🎯",
+          "target",
         );
       });
 
@@ -350,7 +350,7 @@ export function initWatchlist() {
 
   window.api.watchlist.onNotify((notifications) => {
     notifications.forEach((n) => {
-      showToast(n.title, "var(--accent-green)", "🔔");
+      showToast(n.title, "var(--accent-green)", "bell");
     });
   });
 

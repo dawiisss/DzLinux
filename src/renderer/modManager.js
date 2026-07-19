@@ -118,7 +118,7 @@ export async function loadInstalledMods() {
         showToast(
           `Opening Workshop for ${mod.name || mod.id}`,
           "#2ec4b6",
-          "⬇️",
+          "download",
         );
         window.api.mods.openWorkshop(mod.id);
       });
@@ -130,7 +130,7 @@ export async function loadInstalledMods() {
       idSpan.title = "Click to copy ID";
       idSpan.addEventListener("click", () => {
         copyToClipboard(mod.id);
-        showToast("Mod ID copied to clipboard", "#2ec4b6", "📋");
+        showToast("Mod ID copied to clipboard", "#2ec4b6", "clipboard");
       });
       const copyIcon = document.createElement("app-icon");
       copyIcon.setAttribute("name", "copy");
@@ -189,9 +189,9 @@ export async function loadInstalledMods() {
         const totalSizeGB = Math.round((totalSizeMB / 1024) * 10) / 10;
         document.getElementById("totalModsSize").textContent =
           `${totalSizeGB} GB`;
-        showToast(`${mod.name} unsubscribed`, "#2ec4b6", "🗑️");
+        showToast(`${mod.name} unsubscribed`, "#2ec4b6", "trash");
       } else {
-        showToast("Failed to unsubscribe", "#ff5a5f", "⚠️");
+        showToast("Failed to unsubscribe", "#ff5a5f", "alert");
         deleteBtn.textContent = "Unsubscribe";
         deleteBtn.disabled = false;
       }
@@ -272,7 +272,7 @@ export async function loadInstalledMods() {
                 Update All
               `;
               btn.disabled = false;
-              showToast("All outdated mods queued for update", "#2ec4b6", "✓");
+              showToast("All outdated mods queued for update", "#2ec4b6", "check");
             });
 
           result.outdatedMods.forEach((mod) => {
@@ -316,7 +316,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
     const success = await window.api.steamworks.subscribe(modId);
     if (!success) {
       window.api.mods.subscribe(modId);
-      showToast(`Opening Steam for ${modName}`, "#2ec4b6", "⬇️");
+      showToast(`Opening Steam for ${modName}`, "#2ec4b6", "download");
       if (statusLabel) {
         statusLabel.textContent = "Subscribing...";
         statusLabel.style.color = "var(--accent)";
@@ -324,7 +324,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
       return;
     }
 
-    showToast(`Syncing ${modName} via Steam protocol`, "#2ec4b6", "⬇️");
+    showToast(`Syncing ${modName} via Steam protocol`, "#2ec4b6", "download");
 
     const entry = {
       modName,
@@ -409,7 +409,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
               }
             }
           }
-          showToast(`${modName} download complete`, "#2ec4b6", "✓");
+          showToast(`${modName} download complete`, "#2ec4b6", "check");
           await refreshLocalModsCache();
         }
       } catch (err) {

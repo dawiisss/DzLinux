@@ -261,7 +261,7 @@ export function renderServers() {
 
 export async function connectToServer(ip, port) {
   if (typeof ip !== "string" || (!port && port !== 0)) {
-    showToast("Invalid server address", "#ef233c", "⚠️");
+    showToast("Invalid server address", "#ef233c", "alert");
     return;
   }
   try {
@@ -277,7 +277,7 @@ export async function connectToServer(ip, port) {
     requiredMods = serverObj.mods;
   } else {
     console.log("Querying server for detailed rules via GameDig...");
-    showToast("Querying server for detailed rules...", "#ff9f1c", "🛰️");
+    showToast("Querying server for detailed rules...", "#ff9f1c", "signal");
     requiredMods = await window.api.servers.queryMods(
       ip,
       port,
@@ -289,12 +289,12 @@ export async function connectToServer(ip, port) {
     await window.api.game.checkRequired(requiredMods);
 
   if (hasAllMods) {
-    showToast("All mods synced! Launching DayZ client...", "#2ec4b6", "🚀");
+    showToast("All mods synced! Launching DayZ client...", "#2ec4b6", "play");
     if (state.settings.enableGameMode) {
       showToast(
         "GameMode active — system prioritization engaged",
         "#48cae4",
-        "⚡"
+        "zap"
       );
     }
     window.api.game.launch(ip, port, requiredMods);
@@ -417,7 +417,7 @@ export async function connectToServer(ip, port) {
   }
   } catch (err) {
     console.error(`Failed to connect to ${ip}:${port}:`, err);
-    showToast(`Failed to connect: ${err.message || "Unknown error"}`, "#ef233c", "⚠️");
+    showToast(`Failed to connect: ${err.message || "Unknown error"}`, "#ef233c", "alert");
   }
 }
 

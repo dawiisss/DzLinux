@@ -1,4 +1,4 @@
-import { state, setFavoritesFromSettings } from "./state.js";
+import { state, setFavoritesFromSettings, setFiltersFromSettings } from "./state.js";
 import "./components/app-icon.js";
 import { initAudio } from "./audio.js";
 import { initTheme } from "./theme.js";
@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   state.settings = settings;
   state.pagination.size = settings.serverListPageSize || 50;
   setFavoritesFromSettings(settings);
+  setFiltersFromSettings(settings);
   applyTabVisibility(settings);
 
   const safeInit = async (name, fn) => {

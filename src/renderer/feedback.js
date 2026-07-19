@@ -1,6 +1,6 @@
 // No utils needed here
 
-export function showToast(message, borderHex = "#2ec4b6", icon = "📋") {
+export function showToast(message, borderHex = "#2ec4b6", icon = "clipboard") {
   const existing = document.querySelector(".toast");
   if (existing) existing.remove();
 
@@ -8,12 +8,18 @@ export function showToast(message, borderHex = "#2ec4b6", icon = "📋") {
   toast.className = "toast";
   toast.style.borderLeftColor = borderHex;
 
-  const iconSpan = document.createElement("span");
-  if (icon.trim().startsWith("<")) {
-    iconSpan.innerHTML = icon;
-  } else {
-    iconSpan.textContent = icon;
+  let iconHtml = icon;
+  if (typeof icon === "string" && !icon.trim().startsWith("<")) {
+    if (/^[a-z0-9-]+$/.test(icon)) {
+      iconHtml = `<app-icon name="${icon}" style="width: 1.1rem; height: 1.1rem; vertical-align: middle;"></app-icon>`;
+    } else {
+      // Fallback: render the original string (like an emoji) directly as text
+      iconHtml = icon;
+    }
   }
+
+  const iconSpan = document.createElement("span");
+  iconSpan.innerHTML = iconHtml;
   toast.appendChild(iconSpan);
   toast.appendChild(document.createTextNode("\u00A0 \u00A0 "));
   toast.appendChild(document.createTextNode(message));
@@ -29,10 +35,10 @@ export function showToast(message, borderHex = "#2ec4b6", icon = "📋") {
 
 export function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
-    showToast("IP address copied to system clipboard", "#2ec4b6", "📋");
+    showToast("IP address copied to system clipboard", "#2ec4b6", "clipboard");
   }).catch((err) => {
     console.error("Clipboard copy failed", err);
-    showToast("Failed to copy to clipboard", "#ef233c", "⚠️");
+    showToast("Failed to copy to clipboard", "#ef233c", "alert");
   });
 }
 

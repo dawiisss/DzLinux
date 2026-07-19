@@ -6,9 +6,21 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Added
 
+- **Persistent Search Filters:** Search query, perspective, category, maps list, countries list, and filter flag parameters are now saved and persisted across launcher restarts.
+- **Filter Options Menu:** Added a dedicated options button (`more-vertical`) on the far right of the filters bar that opens a context menu with options to manually save current filters, reset filters to default, and toggle the **Save Automatically** preference.
+- **New SVG Icons:** Registered `rotate-ccw`, `more-vertical`, `bell`, `target`, and `zap` SVG vector shapes in the central registry.
+
 ### Changed
 
+- **SVG Toast Icons:** Migrated all toast notifications throughout the application to explicitly use vector SVG icons (e.g. `save`, `alert`, `check`, `clipboard`, `eye`, `target`, `bell`, `zap`) instead of standard emojis. Simplified `showToast()` to automatically render standard icon identifiers as SVGs with a robust text fallback.
+
+- **Master List Generation Improvements:** Refactored the server crawler and Steam API logic to retrieve a more complete and accurate master list of DayZ servers.
+- **Enhanced Fake Server Protection:** Implemented player limit validations and strict inline deduplication checks to further reduce malicious and spoofed fake servers.
+
 ### Fixed
+
+- **Country Filter Display:** Fixed an issue where the Country dropdown would disappear when no countries matched the active filters, keeping it visible at all times.
+- **Startup Layout Shifting:** Hardcoded `compact-mode` and `layout-modern` classes on the HTML `<body>` element to align with settings defaults, preventing layout reflow shifts during application boot.
 
 ## [1.4.5] - 2026-07-18
 

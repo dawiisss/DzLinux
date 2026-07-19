@@ -137,7 +137,7 @@ export async function loadDiagnostics() {
         navigator.clipboard
           .writeText(text)
           .then(() => {
-            showToast("Log snippet copied to clipboard", "#2ec4b6", "📋");
+            showToast("Log snippet copied to clipboard", "#2ec4b6", "clipboard");
           })
           .catch(() => {});
       });

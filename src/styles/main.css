@@ -1970,6 +1970,15 @@ footer {
   color: var(--accent);
 }
 
+.context-menu-item.dropdown-item-danger {
+  color: var(--accent-red);
+}
+
+.context-menu-item.dropdown-item-danger:hover {
+  background: rgba(255, 90, 95, 0.15) !important;
+  color: var(--text-bright) !important;
+}
+
 .context-menu-divider {
   height: 1px;
   background: var(--border);

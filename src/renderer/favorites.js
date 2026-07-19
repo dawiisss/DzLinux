@@ -66,21 +66,21 @@ export function initFavorites() {
     const name = document.getElementById("favNameInput").value.trim();
 
     if (!ip || !port) {
-      showToast("Please enter both IP and port", "#ff5a5f", "⚠️");
+      showToast("Please enter both IP and port", "#ff5a5f", "alert");
       return;
     }
 
     const favKey = `${ip}:${port}`;
     if (!state.favoritesSet.has(favKey)) {
       await addFavorite(ip, port, null, name);
-      showToast("Added to favorites", "#ff9f1c", "⭐");
+      showToast("Added to favorites", "#ff9f1c", "star");
       document.getElementById("favIpInput").value = "";
       document.getElementById("favPortInput").value = "";
       document.getElementById("favNameInput").value = "";
       renderServers();
       renderFavoritesManager();
     } else {
-      showToast("Server already favorited", "#ff5a5f", "⚠️");
+      showToast("Server already favorited", "#ff5a5f", "alert");
     }
   });
 

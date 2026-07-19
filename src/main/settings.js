@@ -42,6 +42,18 @@ const defaultSettings = {
   layoutMode: "modern",
   listMode: "paging",
   sidebarPinned: false,
+  autoSaveFilters: false,
+  filterName: "",
+  filterPerspective: "all",
+  filterCategory: "all",
+  filterMaps: [],
+  filterCountries: [],
+  flagFavoritesOnly: false,
+  flagHideFavorites: false,
+  flagHideEmpty: false,
+  flagHideFull: false,
+  flagHistoryOnly: false,
+  flagHideLocked: false,
 };
 
 function findDayzWorkshopFolder() {

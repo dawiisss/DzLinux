@@ -66,7 +66,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         server.mods = [];
         server.hasQueriedMods = true;
         server.isQueryingMods = false;
-        showToast("No mods found for this server", "#ff9f1c", "⚠️");
+        showToast("No mods found for this server", "#ff9f1c", "alert");
       }
     } catch {
       refreshModsBtn.disabled = false;
@@ -74,7 +74,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
         Refresh
       `;
-      showToast("Failed to refresh mods", "#ff5a5f", "⚠️");
+      showToast("Failed to refresh mods", "#ff5a5f", "alert");
       return;
     }
     refreshModsBtn.disabled = false;
@@ -114,14 +114,14 @@ export function buildDetailRow(server, isFavoritesView = false) {
       (mod) => !state.localModsSet.has(mod.id),
     );
     if (missingMods.length === 0) {
-      showToast("All mods are already installed!", "#2ec4b6", "✓");
+      showToast("All mods are already installed!", "#2ec4b6", "check");
       return;
     }
 
     showToast(
       `Queuing ${missingMods.length} mods for subscription...`,
       "#48cae4",
-      "📥",
+      "download",
     );
     missingMods.forEach((mod) => {
       if (!state.activeDownloads.has(mod.id)) {
