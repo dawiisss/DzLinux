@@ -13,6 +13,7 @@ if (process.versions && process.versions.electron) {
 
 const QUERY_PORT_CACHE_FILE = path.join(userDataPath, "query_port_cache.json");
 const QUERY_PORT_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days per entry
+const QUERY_PORT_CACHE_MAX_ENTRIES = 5000;
 
 // Module-level singleton — loaded once at startup, shared across all concurrent queries.
 // The in-memory Map is the authoritative cache; reads are always against this singleton.
@@ -31,7 +32,10 @@ function loadQueryPortCache() {
         const validEntries = new Map();
         for (const [key, entry] of Object.entries(data.entries)) {
           if (entry.timestamp && now - entry.timestamp < QUERY_PORT_CACHE_TTL) {
-            validEntries.set(key, { port: entry.port, timestamp: entry.timestamp });
+            validEntries.set(key, {
+              port: entry.port,
+              timestamp: entry.timestamp,
+            });
           }
         }
         console.log(
@@ -83,6 +87,14 @@ function performWrite() {
 
 function saveQueryPortCacheEntry(cacheKey, port) {
   queryPortCache.set(cacheKey, { port, timestamp: Date.now() });
+
+  // Evict oldest entries when the cache exceeds the max size.
+  // Map preserves insertion order, so the first entry is the oldest.
+  while (queryPortCache.size > QUERY_PORT_CACHE_MAX_ENTRIES) {
+    const oldestKey = queryPortCache.keys().next().value;
+    queryPortCache.delete(oldestKey);
+  }
+
   triggerWrite();
 }
 
@@ -137,7 +149,11 @@ async function queryServerGameDig(ip, port, queryPort) {
       queryPorts.push(p);
     }
     for (const candidate of [p + 1, p + 2, p + 3, 27016]) {
-      if (candidate > 0 && candidate <= 65535 && !queryPorts.includes(candidate)) {
+      if (
+        candidate > 0 &&
+        candidate <= 65535 &&
+        !queryPorts.includes(candidate)
+      ) {
         queryPorts.push(candidate);
       }
     }

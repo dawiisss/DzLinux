@@ -6,6 +6,16 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [1.4.6] - 2026-07-20
+
+### Added
+
+- **Environment Settings Tooltips:** Added interactive info tooltips (`<app-icon name="info">`) to Linux environment and wrapper options (MangoHud, GameMode, DXVK Async, PROTON_LOG, MALLOC_TRIM, PROTON_NO_ESYNC) in Settings, clarifying custom Proton support and providing exact Steam Launch Option syntax (`mangohud %command%`, `gamemoderun %command%`, etc.).
+- **Proton Environment Enhancements:** Ensured `MANGOHUD=1` is automatically populated in process environment variables when launching through custom Proton paths.
 - **Persistent Search Filters:** Search query, perspective, category, maps list, countries list, and filter flag parameters are now saved and persisted across launcher restarts.
 - **Filter Options Menu:** Added a dedicated options button (`more-vertical`) on the far right of the filters bar that opens a context menu with options to manually save current filters, reset filters to default, and toggle the **Save Automatically** preference.
 - **New SVG Icons:** Registered `rotate-ccw`, `more-vertical`, `bell`, `target`, and `zap` SVG vector shapes in the central registry.
@@ -13,14 +23,17 @@ All notable changes to the DzLinux launcher project will be documented in this f
 ### Changed
 
 - **SVG Toast Icons:** Migrated all toast notifications throughout the application to explicitly use vector SVG icons (e.g. `save`, `alert`, `check`, `clipboard`, `eye`, `target`, `bell`, `zap`) instead of standard emojis. Simplified `showToast()` to automatically render standard icon identifiers as SVGs with a robust text fallback.
-
 - **Master List Generation Improvements:** Refactored the server crawler and Steam API logic to retrieve a more complete and accurate master list of DayZ servers.
 - **Enhanced Fake Server Protection:** Implemented player limit validations and strict inline deduplication checks to further reduce malicious and spoofed fake servers.
+- **MangoHud Configuration**: Migrated MangoHud configuration from writing/backing up the global `MangoHud.conf` file to passing options via the `MANGOHUD_CONFIG` environment variable, eliminating disk writes, backups, and restore delays.
 
 ### Fixed
 
 - **Country Filter Display:** Fixed an issue where the Country dropdown would disappear when no countries matched the active filters, keeping it visible at all times.
 - **Startup Layout Shifting:** Hardcoded `compact-mode` and `layout-modern` classes on the HTML `<body>` element to align with settings defaults, preventing layout reflow shifts during application boot.
+- **Server Query Cache Bounding**: Bounded the query port cache Map to 5,000 entries with oldest-entry eviction on overflow to prevent unbounded memory growth.
+- **Game Launch Error UX**: Added pre-flight path validation for both Proton and the DayZ game binary. The launcher now rejects the game launch promise with helpful messages and displays a toast notification to the user rather than failing silently.
+- **Log Stream Stability**: Improved `logger.js` to wait for file stream opening and catch unhandled stream error events, preventing application crashes during intensive logging.
 
 ## [1.4.5] - 2026-07-18
 

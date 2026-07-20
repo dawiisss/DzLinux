@@ -1758,8 +1758,13 @@
                   gap: 5px;
                   color: var(--accent);
                 "
-                ><input type="checkbox" id="flagMangoHud" /> MangoHud</label
-              >
+                ><input type="checkbox" id="flagMangoHud" /> MangoHud
+                <app-icon
+                  name="info"
+                  style="width: 0.85rem; height: 0.85rem; color: var(--text-dim); cursor: help; vertical-align: middle;"
+                  title="Applies directly in custom Proton mode. For Steam launch, add 'mangohud %command%' to Steam Launch Options for DayZ."
+                ></app-icon>
+              </label>
             </div>
 
             <div
@@ -1826,24 +1831,30 @@
             >
               <label style="display: flex; align-items: center; gap: 10px"
                 ><input type="checkbox" id="dxvkAsyncEnabled" /> Enable DXVK
-                Async (Stutter reduction)</label
-              >
+                Async (Stutter reduction)
+                <app-icon
+                  name="info"
+                  style="width: 0.85rem; height: 0.85rem; color: var(--text-dim); cursor: help; vertical-align: middle;"
+                  title="Applies directly in custom Proton mode. For Steam launch, add 'DXVK_ASYNC=1 %command%' to Steam Launch Options for DayZ."
+                ></app-icon
+              ></label>
               <label style="display: flex; align-items: center; gap: 10px"
                 ><input type="checkbox" id="disableProtonLogs" /> Disable
-                PROTON_LOG (Saves I/O overhead)</label
-              >
+                PROTON_LOG (Saves I/O overhead)
+                <app-icon
+                  name="info"
+                  style="width: 0.85rem; height: 0.85rem; color: var(--text-dim); cursor: help; vertical-align: middle;"
+                  title="Applies directly in custom Proton mode. For Steam launch, add 'PROTON_LOG=0 %command%' to Steam Launch Options for DayZ."
+                ></app-icon
+              ></label>
               <label style="display: flex; align-items: center; gap: 10px">
                 <input type="checkbox" id="enableGameMode" />
                 Use GameMode (gamemoderun)
-                <span
-                  style="
-                    font-size: 0.7rem;
-                    color: var(--text-dim);
-                    cursor: help;
-                  "
-                  title="Install via: sudo apt install gamemode (Debian/Ubuntu) or sudo pacman -S gamemode (Arch)"
-                  >ⓘ</span
-                >
+                <app-icon
+                  name="info"
+                  style="width: 0.85rem; height: 0.85rem; color: var(--text-dim); cursor: help; vertical-align: middle;"
+                  title="Applies directly in custom Proton mode. For Steam launch, add 'gamemoderun %command%' to Steam Launch Options for DayZ. (Install via: sudo apt install gamemode / sudo pacman -S gamemode)"
+                ></app-icon>
               </label>
               <label
                 style="
@@ -1868,12 +1879,22 @@
               >
               <label style="display: flex; align-items: center; gap: 10px"
                 ><input type="checkbox" id="mallocTrim" /> Aggressive Memory
-                Trim (MALLOC_TRIM_THRESHOLD_=0)</label
-              >
+                Trim (MALLOC_TRIM_THRESHOLD_=0)
+                <app-icon
+                  name="info"
+                  style="width: 0.85rem; height: 0.85rem; color: var(--text-dim); cursor: help; vertical-align: middle;"
+                  title="Applies directly in custom Proton mode. For Steam launch, add 'MALLOC_TRIM_THRESHOLD_=0 %command%' to Steam Launch Options for DayZ."
+                ></app-icon
+              ></label>
               <label style="display: flex; align-items: center; gap: 10px"
                 ><input type="checkbox" id="noEsync" /> Disable Proton Esync
-                (PROTON_NO_ESYNC=1)</label
-              >
+                (PROTON_NO_ESYNC=1)
+                <app-icon
+                  name="info"
+                  style="width: 0.85rem; height: 0.85rem; color: var(--text-dim); cursor: help; vertical-align: middle;"
+                  title="Applies directly in custom Proton mode. For Steam launch, add 'PROTON_NO_ESYNC=1 %command%' to Steam Launch Options for DayZ."
+                ></app-icon
+              ></label>
             </div>
             <div class="form-group" style="margin-top: 15px">
               <label for="maxMem"

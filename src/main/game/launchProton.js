@@ -4,7 +4,6 @@ const os = require("node:os");
 const { execFile } = require("node:child_process");
 const steamworksManager = require("../steamworksManager");
 const { configureDxvk } = require("./configDxvk");
-const { configureMangoHud } = require("./configMangohud");
 const { buildEnvironment } = require("./prepareEnv");
 
 let cachedProtonVersions = null;
@@ -27,7 +26,7 @@ async function scanProtonVersions() {
       ".local",
       "share",
       "Steam",
-      "compatibilitytools.d"
+      "compatibilitytools.d",
     ),
     path.join(
       os.homedir(),
@@ -38,12 +37,15 @@ async function scanProtonVersions() {
       "share",
       "Steam",
       "steamapps",
-      "common"
+      "common",
     ),
   ];
 
   for (const sp of searchPaths) {
-    const exists = await fs.promises.access(sp).then(() => true).catch(() => false);
+    const exists = await fs.promises
+      .access(sp)
+      .then(() => true)
+      .catch(() => false);
     if (!exists) continue;
     try {
       const items = await fs.promises.readdir(sp);
@@ -53,7 +55,10 @@ async function scanProtonVersions() {
           const stat = await fs.promises.stat(fullPath);
           if (stat.isDirectory()) {
             const protonExe = path.join(fullPath, "proton");
-            const exeExists = await fs.promises.access(protonExe).then(() => true).catch(() => false);
+            const exeExists = await fs.promises
+              .access(protonExe)
+              .then(() => true)
+              .catch(() => false);
             if (exeExists) {
               versions.push({
                 name: item,
@@ -82,6 +87,12 @@ async function scanProtonVersions() {
 }
 
 async function launchViaProton(args, settings, handleGameExit) {
+  if (!settings.protonPath || typeof settings.protonPath !== "string") {
+    throw new Error(
+      "No Proton path configured. Set a custom Proton version in Settings.",
+    );
+  }
+
   console.log(`Launching DayZ via custom Proton: ${settings.protonPath}`);
 
   const existsAsync = async (p) =>
@@ -89,6 +100,10 @@ async function launchViaProton(args, settings, handleGameExit) {
       .access(p)
       .then(() => true)
       .catch(() => false);
+
+  if (!(await existsAsync(settings.protonPath))) {
+    throw new Error(`Proton executable not found at: ${settings.protonPath}`);
+  }
 
   let steamappsPath = "";
   if (settings.modDirectory && settings.modDirectory.includes("steamapps")) {
@@ -103,17 +118,16 @@ async function launchViaProton(args, settings, handleGameExit) {
     : "";
 
   if (!(await existsAsync(dayzExe))) {
-    console.error(
-      "Cannot find DayZ_x64.exe for direct Proton launch. Ensure workshop mod path is correct."
+    throw new Error(
+      "Cannot find DayZ_x64.exe for direct Proton launch. Ensure your Steam library and Workshop mod paths are correct.",
     );
-    return;
   }
 
   const appidFile = path.join(
     steamappsPath,
     "common",
     "DayZ",
-    "steam_appid.txt"
+    "steam_appid.txt",
   );
   try {
     await fs.promises.writeFile(appidFile, "221100", "utf8");
@@ -124,8 +138,6 @@ async function launchViaProton(args, settings, handleGameExit) {
   const env = await buildEnvironment(settings, compatDataPath);
 
   await configureDxvk(settings, compatDataPath, env);
-
-  const { restoreMangoConfig } = await configureMangoHud(settings);
 
   const protonArgs = ["waitforexitandrun", dayzExe, ...args];
   const launchArgs = [settings.protonPath, ...protonArgs];
@@ -147,7 +159,7 @@ async function launchViaProton(args, settings, handleGameExit) {
       } else if (token.includes("%command%")) {
         const expandedToken = token.replace(
           "%command%",
-          launchArgs.map((a) => `"${a}"`).join(" ")
+          launchArgs.map((a) => `"${a}"`).join(" "),
         );
         execArgs.push(
           ...(expandedToken.match(/(?:[^\s"]+|"[^"]*")+/g) || []).map((p) => {
@@ -155,7 +167,7 @@ async function launchViaProton(args, settings, handleGameExit) {
               return p.slice(1, -1);
             }
             return p;
-          })
+          }),
         );
       } else {
         execArgs.push(token);
@@ -164,26 +176,30 @@ async function launchViaProton(args, settings, handleGameExit) {
 
     console.log("Executing via execFile with %command% expansion");
 
-    await steamworksManager.lockAndDelayForLaunch(restoreMangoConfig);
+    await steamworksManager.lockAndDelayForLaunch();
 
     const cmd = execArgs[0];
     const argsList = execArgs.slice(1);
 
     return new Promise((resolve, reject) => {
-      const child = execFile(cmd, argsList, { env }, (error, _stdout, stderr) => {
-        if (error) {
-          console.log(`Failed to launch game via Proton shell: ${error.message}`);
-          console.error(
-            `Error launching game via Proton shell: ${error.message}`
-          );
-          console.error(`stderr: ${stderr}`);
-          handleGameExit(error);
-        } else {
-          console.log("Game launched successfully via custom Proton shell.");
-        }
-      });
-      child.once('spawn', resolve);
-      child.once('error', reject);
+      const child = execFile(
+        cmd,
+        argsList,
+        { env },
+        (error, _stdout, stderr) => {
+          if (error) {
+            console.log(
+              `Proton process exited with non-zero code (${error.code || error.message})`
+            );
+            if (stderr) console.log(`stderr output on exit: ${stderr}`);
+            handleGameExit(error);
+          } else {
+            console.log("Proton process exited cleanly.");
+          }
+        },
+      );
+      child.once("spawn", resolve);
+      child.once("error", reject);
     });
   } else {
     const prefix = [];
@@ -194,7 +210,7 @@ async function launchViaProton(args, settings, handleGameExit) {
 
     console.log(`Executing: ${wrappedArgs.join(" ")}`);
 
-    await steamworksManager.lockAndDelayForLaunch(restoreMangoConfig);
+    await steamworksManager.lockAndDelayForLaunch();
 
     return new Promise((resolve, reject) => {
       const child = execFile(
@@ -203,16 +219,18 @@ async function launchViaProton(args, settings, handleGameExit) {
         { env },
         (error, _stdout, stderr) => {
           if (error) {
-            console.error(`Error launching game via Proton: ${error.message}`);
-            if (stderr) console.error(`stderr: ${stderr}`);
+            console.log(
+              `Proton process exited with non-zero code (${error.code || error.message})`
+            );
+            if (stderr) console.log(`stderr output on exit: ${stderr}`);
             handleGameExit(error);
           } else {
-            console.log("Game launched successfully via custom Proton.");
+            console.log("Proton process exited cleanly.");
           }
-        }
+        },
       );
-      child.once('spawn', resolve);
-      child.once('error', reject);
+      child.once("spawn", resolve);
+      child.once("error", reject);
     });
   }
 }

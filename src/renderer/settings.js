@@ -362,6 +362,8 @@ export async function initSettings() {
       .filter(Boolean);
 
     showToast("Initializing direct launch from loadout...", "#2ec4b6", "play");
-    window.api.game.launch("", "", selectedMods);
+    window.api.game.launch("", "", selectedMods).catch((err) => {
+      showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
+    });
   });
 }

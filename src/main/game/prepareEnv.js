@@ -54,6 +54,13 @@ async function buildEnvironment(settings, compatDataPath) {
     env.PROTON_LOG = "0";
   }
 
+  if (settings.mangoHudEnabled) {
+    env.MANGOHUD = "1";
+    if (settings.mangoHudConfig) {
+      env.MANGOHUD_CONFIG = settings.mangoHudConfig;
+    }
+  }
+
   return env;
 }
 

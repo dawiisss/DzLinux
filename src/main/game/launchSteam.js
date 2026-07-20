@@ -28,8 +28,8 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) 
         console.log("Game launched successfully.");
       }
     });
-    child.once('spawn', resolve);
-    child.once('error', reject);
+    child.once("spawn", resolve);
+    child.once("error", reject);
   });
 }
 

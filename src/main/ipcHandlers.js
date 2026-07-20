@@ -8,11 +8,7 @@ const serverManager = require("./servers");
 const gameManager = require("./game");
 const { pingServer, queryServerGameDig } = require("./serverQuery");
 const modManager = require("./modManager");
-const {
-  autoUpdater,
-  checkForUpdates,
-  isSystemInstall,
-} = require("./updater");
+const { autoUpdater, checkForUpdates, isSystemInstall } = require("./updater");
 const logParser = require("./logParser");
 const steamworksManager = require("./steamworksManager");
 const steamDependencyResolver = require("./steamDependencyResolver");
@@ -71,7 +67,9 @@ function registerIpcHandlers() {
   ipcMain.handle("save-settings", (_event, settings) =>
     settingsManager.saveSettings(settings),
   );
-  ipcMain.handle("get-default-settings", () => settingsManager.getDefaultSettings());
+  ipcMain.handle("get-default-settings", () =>
+    settingsManager.getDefaultSettings(),
+  );
   ipcMain.handle("fetch-servers", async (event, generationId) => {
     return serverManager.fetchDayZServers((batch) => {
       if (!event.sender.isDestroyed()) {
@@ -80,14 +78,22 @@ function registerIpcHandlers() {
     }, generationId);
   });
   ipcMain.handle("query-mods", async (_event, ip, port, queryPort) => {
-    if (!isValidIpOrHost(ip) || !isValidPort(port) || (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))) {
+    if (
+      !isValidIpOrHost(ip) ||
+      !isValidPort(port) ||
+      (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))
+    ) {
       return [];
     }
     const result = await queryServerGameDig(ip, port, queryPort);
     return result ? result.mods || [] : [];
   });
   ipcMain.handle("refresh-mod-cache", async (_event, ip, port, queryPort) => {
-    if (!isValidIpOrHost(ip) || !isValidPort(port) || (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))) {
+    if (
+      !isValidIpOrHost(ip) ||
+      !isValidPort(port) ||
+      (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))
+    ) {
       return [];
     }
     const result = await serverManager.refreshServerModCache(
@@ -98,7 +104,11 @@ function registerIpcHandlers() {
     return result ? result.mods : [];
   });
   ipcMain.handle("ping-server", (_event, ip, port, queryPort) => {
-    if (!isValidIpOrHost(ip) || !isValidPort(port) || (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))) {
+    if (
+      !isValidIpOrHost(ip) ||
+      !isValidPort(port) ||
+      (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))
+    ) {
       return Promise.resolve(null);
     }
     return pingServer(ip, port, queryPort);
@@ -107,7 +117,9 @@ function registerIpcHandlers() {
     if (!Array.isArray(requiredMods)) {
       return { missingMods: [], hasAllMods: true };
     }
-    const validMods = requiredMods.filter(mod => mod && /^\d+$/.test(String(mod.id)));
+    const validMods = requiredMods.filter(
+      (mod) => mod && /^\d+$/.test(String(mod.id)),
+    );
     return gameManager.checkMods(validMods);
   });
   ipcMain.handle("launch-game", (_event, ip, port, mods) => {
@@ -119,10 +131,12 @@ function registerIpcHandlers() {
     if (!Array.isArray(mods)) {
       return Promise.reject(new Error("Invalid arguments"));
     }
-    const isValidMods = mods.every(mod => {
+    const isValidMods = mods.every((mod) => {
       if (!mod) return false;
       const id = typeof mod === "object" ? mod.id : mod;
-      return typeof id === "string" || typeof id === "number" ? /^\d+$/.test(String(id)) : false;
+      return typeof id === "string" || typeof id === "number"
+        ? /^\d+$/.test(String(id))
+        : false;
     });
     if (!isValidMods) {
       return Promise.reject(new Error("Invalid mod IDs"));
@@ -152,20 +166,24 @@ function registerIpcHandlers() {
   ipcMain.handle("save-watchlist", (_event, watchlist) =>
     watchlistManager.saveWatchlist(watchlist),
   );
-  ipcMain.handle("check-watchlist-thresholds", async (event, currentServers) => {
-    const triggered = await watchlistManager.processWatchlistChecks(currentServers);
-    if (triggered && triggered.length > 0) {
-      if (!event.sender.isDestroyed()) {
-        event.sender.send("watchlist-notify", triggered);
+  ipcMain.handle(
+    "check-watchlist-thresholds",
+    async (event, currentServers) => {
+      const triggered =
+        await watchlistManager.processWatchlistChecks(currentServers);
+      if (triggered && triggered.length > 0) {
+        if (!event.sender.isDestroyed()) {
+          event.sender.send("watchlist-notify", triggered);
+        }
       }
-    }
-    return triggered;
-  });
+      return triggered;
+    },
+  );
 
   ipcMain.handle("save-favorites", (_event, { favorites }) => {
-    const settings_ = settingsManager.loadSettings();
-    settings_.favorites = favorites;
-    return settingsManager.saveSettings(settings_);
+    const currentSettings = settingsManager.loadSettings();
+    currentSettings.favorites = favorites;
+    return settingsManager.saveSettings(currentSettings);
   });
 
   ipcMain.handle("check-mod-updates-detailed", (_event, mods) =>
@@ -294,7 +312,6 @@ function registerIpcHandlers() {
     const logPath = getLogFilePath();
     shell.showItemInFolder(logPath);
   });
-
 
   ipcMain.on("window-min", () => {
     const win = BrowserWindow.getFocusedWindow();

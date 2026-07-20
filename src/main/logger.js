@@ -63,10 +63,16 @@ async function pruneOldEntries() {
       }
     }
 
-    await fs.promises.writeFile(LOG_FILE, kept.join("\n") + (kept.length ? "\n" : ""), "utf-8");
+    await fs.promises.writeFile(
+      LOG_FILE,
+      kept.join("\n") + (kept.length ? "\n" : ""),
+      "utf-8",
+    );
   } catch (err) {
     // Don't let pruning failures break startup
-    process.stderr.write(`[logger] Failed to prune old log entries: ${err.message}\n`);
+    process.stderr.write(
+      `[logger] Failed to prune old log entries: ${err.message}\n`,
+    );
   }
 }
 
@@ -84,6 +90,17 @@ async function initLogger() {
   await pruneOldEntries();
 
   logStream = fs.createWriteStream(LOG_FILE, { flags: "a" });
+
+  // Prevent unhandled 'error' events from crashing the process
+  logStream.on("error", (err) => {
+    process.stderr.write(`[logger] Write stream error: ${err.message}\n`);
+  });
+
+  // Wait for the stream to open the file before accepting writes
+  await new Promise((resolve, reject) => {
+    logStream.once("open", resolve);
+    logStream.once("error", reject);
+  });
 
   const originalLog = console.log.bind(console);
   const originalWarn = console.warn.bind(console);
@@ -117,11 +134,16 @@ function getLogFilePath() {
   return LOG_FILE;
 }
 
-function closeLogger() {
-  if (logStream) {
-    logStream.end();
-    logStream = null;
-  }
+async function closeLogger() {
+  const stream = logStream;
+  logStream = null;
+  if (!stream) return;
+  stream.end();
+  await new Promise((resolve) => {
+    stream.once("finish", resolve);
+    stream.once("close", resolve);
+    stream.once("error", resolve);
+  });
 }
 
 module.exports = { initLogger, getLogFilePath, closeLogger };

@@ -26,9 +26,15 @@ if (!gotTheLock) {
   }
 
   // Optimize V8 engine memory footprint for the main process and renderers
-  app.commandLine.appendSwitch("js-flags", "--max-old-space-size=512 --optimize-for-size");
+  app.commandLine.appendSwitch(
+    "js-flags",
+    "--max-old-space-size=512 --optimize-for-size",
+  );
 
-  if (process.platform === "linux" && typeof app.setDesktopName === "function") {
+  if (
+    process.platform === "linux" &&
+    typeof app.setDesktopName === "function"
+  ) {
     app.setDesktopName("DzLinux");
   }
 
@@ -37,7 +43,9 @@ if (!gotTheLock) {
       width: 1400,
       height: 800,
       frame: false,
-      icon: nativeImage.createFromPath(path.join(__dirname, "..", "assets", "icon.png")),
+      icon: nativeImage.createFromPath(
+        path.join(__dirname, "..", "assets", "icon.png"),
+      ),
       webPreferences: {
         preload: path.join(__dirname, "preload.js"),
         nodeIntegration: false,
@@ -81,13 +89,14 @@ if (!gotTheLock) {
       steamworksManager.shutdown(),
       serverQuery.getCacheWriteQueue(),
     ])
-      .then(() => {
-        closeLogger();
+      .then(async () => {
+        await closeLogger();
         clearTimeout(shutdownTimeout);
         app.exit(0);
       })
-      .catch((err) => {
+      .catch(async (err) => {
         console.error("Failed during graceful shutdown:", err);
+        await closeLogger();
         clearTimeout(shutdownTimeout);
         app.exit(0);
       });

@@ -297,7 +297,9 @@ export async function connectToServer(ip, port) {
         "zap"
       );
     }
-    window.api.game.launch(ip, port, requiredMods);
+    window.api.game.launch(ip, port, requiredMods).catch((err) => {
+      showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
+    });
   } else {
     const modal = document.getElementById("modModal");
     const list = document.getElementById("missingModsList");
@@ -399,7 +401,9 @@ export async function connectToServer(ip, port) {
           statusText.style.color = "var(--accent)";
           await refreshLocalModsCache();
           renderServers();
-          window.api.game.launch(ip, port, requiredMods);
+          window.api.game.launch(ip, port, requiredMods).catch((err) => {
+            showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
+          });
         }, 2000);
       }
     }, 2500);
