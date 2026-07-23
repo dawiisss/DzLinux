@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { escapeHtml } from "../utils.js";
+import { escapeHtml, isValidIpOrHost, isValidPort } from "../utils.js";
 import { showToast } from "../feedback.js";
 import { triggerSteamworksSync, refreshLocalModsCache } from "../modManager.js";
 import { buildServerRow, buildDetailRow } from "../serverRow.js";
@@ -260,11 +260,21 @@ export function renderServers() {
 }
 
 export async function connectToServer(ip, port) {
-  if (typeof ip !== "string" || (!port && port !== 0)) {
-    showToast("Invalid server address", "#ef233c", "alert");
+  if (!isValidIpOrHost(ip) || !isValidPort(port)) {
+    showToast("Invalid server address or port", "#ef233c", "alert");
     return;
   }
   try {
+  state.currentModCheckGeneration++;
+  const checkGeneration = state.currentModCheckGeneration;
+  if (state.currentModCheckInterval) {
+    clearInterval(state.currentModCheckInterval);
+    state.currentModCheckInterval = null;
+  }
+  if (state.currentModLaunchTimer) {
+    clearTimeout(state.currentModLaunchTimer);
+    state.currentModLaunchTimer = null;
+  }
     console.log(`Connecting to ${ip}:${port}... verifying mods`);
     await addToHistory(ip, port);
 
@@ -283,6 +293,11 @@ export async function connectToServer(ip, port) {
       port,
       serverObj?.queryPort
     );
+  }
+
+  if (requiredMods === null) {
+    showToast("Server appears to be offline or unreachable", "#ef233c", "alert");
+    return;
   }
 
   const { missingMods, hasAllMods } =
@@ -385,36 +400,49 @@ export async function connectToServer(ip, port) {
     if (state.currentModCheckInterval) {
       clearInterval(state.currentModCheckInterval);
     }
-    state.currentModCheckInterval = setInterval(async () => {
-      const { missingMods: updatedMissing, hasAllMods: nowHasAll } =
-        await window.api.game.checkRequired(requiredMods);
-      renderModalList(updatedMissing);
+    state.currentModCheckInterval = setInterval(() => {
+      void window.api.game.checkRequired(requiredMods)
+        .then(({ missingMods: updatedMissing, hasAllMods: nowHasAll }) => {
+          if (checkGeneration !== state.currentModCheckGeneration) return;
+          renderModalList(updatedMissing);
 
-      if (nowHasAll) {
-        clearInterval(state.currentModCheckInterval);
-        state.currentModCheckInterval = null;
-        statusText.innerText =
-          ">>>> All mods verified! Dispatching game client...";
-        statusText.style.color = "var(--accent-green)";
-        setTimeout(async () => {
-          modal.style.display = "none";
-          statusText.style.color = "var(--accent)";
-          await refreshLocalModsCache();
-          renderServers();
-          window.api.game.launch(ip, port, requiredMods).catch((err) => {
-            showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
-          });
-        }, 2000);
-      }
+          if (nowHasAll) {
+            clearInterval(state.currentModCheckInterval);
+            state.currentModCheckInterval = null;
+            statusText.innerText = "All mods verified — launching the game client.";
+            statusText.style.color = "var(--accent-green)";
+            state.currentModLaunchTimer = setTimeout(async () => {
+              state.currentModLaunchTimer = null;
+              if (checkGeneration !== state.currentModCheckGeneration) return;
+              modal.style.display = "none";
+              statusText.style.color = "var(--accent)";
+              await refreshLocalModsCache();
+              renderServers();
+              window.api.game.launch(ip, port, requiredMods).catch((err) => {
+                showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
+              });
+            }, 2000);
+          }
+        })
+        .catch((err) => {
+          if (checkGeneration !== state.currentModCheckGeneration) return;
+          console.error("Mod verification failed:", err);
+          showToast(`Mod verification failed: ${err.message}`, "#ef233c", "alert");
+        });
     }, 2500);
 
     const cancelBtn = document.getElementById("modalCancelBtn");
     const newCancelBtn = cancelBtn.cloneNode(true);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
     newCancelBtn.addEventListener("click", () => {
+      state.currentModCheckGeneration++;
       if (state.currentModCheckInterval) {
         clearInterval(state.currentModCheckInterval);
         state.currentModCheckInterval = null;
+      }
+      if (state.currentModLaunchTimer) {
+        clearTimeout(state.currentModLaunchTimer);
+        state.currentModLaunchTimer = null;
       }
       modal.style.display = "none";
     });

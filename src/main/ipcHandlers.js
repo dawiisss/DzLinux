@@ -13,17 +13,18 @@ const logParser = require("./logParser");
 const steamworksManager = require("./steamworksManager");
 const steamDependencyResolver = require("./steamDependencyResolver");
 const watchlistManager = require("./watchlist");
+const systemCheck = require("./systemCheck");
 const { getLogFilePath } = require("./logger");
+const {
+  isValidIpOrHost,
+  isValidPort,
+  isValidModId,
+  validateFavorites,
+  validateWatchlist,
+  validateCurrentServers,
+} = require("./validation");
 
-function isValidIpOrHost(ip) {
-  if (typeof ip !== "string") return false;
-  return /^[a-zA-Z0-9.-]+$/.test(ip);
-}
-
-function isValidPort(port) {
-  const p = parseInt(port, 10);
-  return Number.isInteger(p) && p > 0 && p <= 65535;
-}
+const activePingRequests = new Map();
 
 let allowedPathPrefixes = null;
 function getAllowedPathPrefixes() {
@@ -51,7 +52,9 @@ async function isAllowedPath(filePath) {
   }
   const prefixes = [...getAllowedPathPrefixes()];
   try {
-    const currentSettings = settingsManager.loadSettings();
+    const loadSettings = settingsManager.loadSettingsAsync ||
+      (() => Promise.resolve(settingsManager.loadSettings()));
+    const currentSettings = await loadSettings();
     if (currentSettings && currentSettings.modDirectory) {
       prefixes.push(path.resolve(currentSettings.modDirectory));
     }
@@ -63,10 +66,17 @@ async function isAllowedPath(filePath) {
 
 function registerIpcHandlers() {
   ipcMain.handle("get-version", () => app.getVersion());
-  ipcMain.handle("load-settings", () => settingsManager.loadSettings());
-  ipcMain.handle("save-settings", (_event, settings) =>
-    settingsManager.saveSettings(settings),
-  );
+  ipcMain.handle("load-settings", () => {
+    const loadSettings = settingsManager.loadSettingsAsync ||
+      (() => Promise.resolve(settingsManager.loadSettings()));
+    return loadSettings();
+  });
+  ipcMain.handle("save-settings", (_event, settings) => {
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+      return Promise.reject(new Error("Invalid settings payload"));
+    }
+    return settingsManager.saveSettings(settings);
+  });
   ipcMain.handle("get-default-settings", () =>
     settingsManager.getDefaultSettings(),
   );
@@ -83,10 +93,10 @@ function registerIpcHandlers() {
       !isValidPort(port) ||
       (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))
     ) {
-      return [];
+      return null;
     }
     const result = await queryServerGameDig(ip, port, queryPort);
-    return result ? result.mods || [] : [];
+    return result ? result.mods || [] : null;
   });
   ipcMain.handle("refresh-mod-cache", async (_event, ip, port, queryPort) => {
     if (
@@ -103,22 +113,46 @@ function registerIpcHandlers() {
     );
     return result ? result.mods : [];
   });
-  ipcMain.handle("ping-server", (_event, ip, port, queryPort) => {
+  ipcMain.handle("ping-server", async (_event, ip, port, queryPort, requestId) => {
     if (
       !isValidIpOrHost(ip) ||
       !isValidPort(port) ||
       (queryPort !== null && queryPort !== undefined && !isValidPort(queryPort))
     ) {
-      return Promise.resolve(null);
+      return null;
     }
-    return pingServer(ip, port, queryPort);
+    const id = typeof requestId === "string" && requestId.length <= 200
+      ? requestId
+      : null;
+    if (!id) return pingServer(ip, port, queryPort);
+
+    const request = { cancelled: false };
+    activePingRequests.set(id, request);
+    try {
+      const result = await pingServer(ip, port, queryPort);
+      return request.cancelled ? null : result;
+    } finally {
+      activePingRequests.delete(id);
+    }
+  });
+  ipcMain.on("cancel-ping-generation", (_event, generationId) => {
+    if (typeof generationId !== "number" && typeof generationId !== "string") return;
+    const prefix = `${generationId}:`;
+    for (const [requestId, request] of activePingRequests) {
+      if (requestId.startsWith(prefix)) request.cancelled = true;
+    }
+  });
+  ipcMain.on("cancel-ping-request", (_event, requestId) => {
+    if (typeof requestId !== "string") return;
+    const request = activePingRequests.get(requestId);
+    if (request) request.cancelled = true;
   });
   ipcMain.handle("check-mods", (_event, requiredMods) => {
     if (!Array.isArray(requiredMods)) {
       return { missingMods: [], hasAllMods: true };
     }
     const validMods = requiredMods.filter(
-      (mod) => mod && /^\d+$/.test(String(mod.id)),
+      (mod) => mod && isValidModId(mod.id),
     );
     return gameManager.checkMods(validMods);
   });
@@ -134,9 +168,7 @@ function registerIpcHandlers() {
     const isValidMods = mods.every((mod) => {
       if (!mod) return false;
       const id = typeof mod === "object" ? mod.id : mod;
-      return typeof id === "string" || typeof id === "number"
-        ? /^\d+$/.test(String(id))
-        : false;
+      return isValidModId(id);
     });
     if (!isValidMods) {
       return Promise.reject(new Error("Invalid mod IDs"));
@@ -147,7 +179,7 @@ function registerIpcHandlers() {
     gameManager.openWorkshopPage(modId),
   );
   ipcMain.handle("subscribe-mod", (_event, modId) => {
-    if (!/^\d+$/.test(modId)) return Promise.reject(new Error("Invalid modId"));
+    if (!isValidModId(modId)) return Promise.reject(new Error("Invalid modId"));
     return shell.openExternal(
       `steam://openurl/https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`,
     );
@@ -156,19 +188,23 @@ function registerIpcHandlers() {
   ipcMain.handle("check-mod-updates", (_event, mods) =>
     modManager.checkModUpdates(
       (Array.isArray(mods) ? mods : []).filter(
-        (m) => m && modManager.validateModId(String(m.id)),
+        (m) => m && isValidModId(m.id),
       ),
     ),
   );
 
   // Watchlist Integration
   ipcMain.handle("load-watchlist", () => watchlistManager.loadWatchlist());
-  ipcMain.handle("save-watchlist", (_event, watchlist) =>
-    watchlistManager.saveWatchlist(watchlist),
-  );
+  ipcMain.handle("save-watchlist", (_event, watchlist) => {
+    if (!validateWatchlist(watchlist)) {
+      return Promise.reject(new Error("Invalid watchlist payload"));
+    }
+    return watchlistManager.saveWatchlist(watchlist);
+  });
   ipcMain.handle(
     "check-watchlist-thresholds",
     async (event, currentServers) => {
+      if (!validateCurrentServers(currentServers)) return [];
       const triggered =
         await watchlistManager.processWatchlistChecks(currentServers);
       if (triggered && triggered.length > 0) {
@@ -180,8 +216,14 @@ function registerIpcHandlers() {
     },
   );
 
-  ipcMain.handle("save-favorites", (_event, { favorites }) => {
-    const currentSettings = settingsManager.loadSettings();
+  ipcMain.handle("save-favorites", async (_event, payload) => {
+    if (!payload || !validateFavorites(payload.favorites)) {
+      throw new Error("Invalid favorites payload");
+    }
+    const loadSettings = settingsManager.loadSettingsAsync ||
+      (() => Promise.resolve(settingsManager.loadSettings()));
+    const currentSettings = await loadSettings();
+    const { favorites } = payload;
     currentSettings.favorites = favorites;
     return settingsManager.saveSettings(currentSettings);
   });
@@ -189,12 +231,15 @@ function registerIpcHandlers() {
   ipcMain.handle("check-mod-updates-detailed", (_event, mods) =>
     modManager.checkModUpdatesDetailed(
       (Array.isArray(mods) ? mods : []).filter(
-        (m) => m && modManager.validateModId(String(m.id)),
+        (m) => m && isValidModId(m.id),
       ),
     ),
   );
   ipcMain.handle("get-diagnostics", () => logParser.getRecentLogs());
   ipcMain.handle("get-session-summary", () => logParser.getSessionSummary());
+  ipcMain.handle("run-system-compatibility-check", () =>
+    systemCheck.runSystemCheck(),
+  );
   ipcMain.handle("delete-mod", (_event, modId) => modManager.deleteMod(modId));
   ipcMain.handle("open-mod-folder", (_event, modId) =>
     modManager.openModFolder(modId),
@@ -251,30 +296,35 @@ function registerIpcHandlers() {
   ipcMain.handle("steamworks-user-info", () =>
     steamworksManager.getUserProfile(),
   );
-  ipcMain.handle("steamworks-subscribe", (_event, modId) =>
-    steamworksManager.subscribeMod(modId),
-  );
-  ipcMain.handle("steamworks-unsubscribe", (_event, modId) =>
-    steamworksManager.unsubscribeMod(modId),
-  );
-  ipcMain.handle("steamworks-download-info", (_event, modId) =>
-    steamworksManager.getDownloadProgress(modId),
-  );
-  ipcMain.handle("steamworks-mod-state", (_event, modId) =>
-    steamworksManager.getModState(modId),
-  );
+  ipcMain.handle("steamworks-subscribe", (_event, modId) => {
+    if (!isValidModId(modId)) return Promise.reject(new Error("Invalid modId"));
+    return steamworksManager.subscribeMod(String(modId));
+  });
+  ipcMain.handle("steamworks-unsubscribe", (_event, modId) => {
+    if (!isValidModId(modId)) return Promise.reject(new Error("Invalid modId"));
+    return steamworksManager.unsubscribeMod(String(modId));
+  });
+  ipcMain.handle("steamworks-download-info", (_event, modId) => {
+    if (!isValidModId(modId)) return Promise.reject(new Error("Invalid modId"));
+    return steamworksManager.getDownloadProgress(String(modId));
+  });
+  ipcMain.handle("steamworks-mod-state", (_event, modId) => {
+    if (!isValidModId(modId)) return Promise.reject(new Error("Invalid modId"));
+    return steamworksManager.getModState(String(modId));
+  });
 
   // Dependency Tree Resolver
   ipcMain.handle("resolve-mod-dependencies", (_event, modId) => {
-    if (!modManager.validateModId(String(modId))) {
+    if (!isValidModId(modId)) {
       return Promise.reject(new Error("Invalid modId"));
     }
-    return steamDependencyResolver.resolveDependencies(modId);
+    return steamDependencyResolver.resolveDependencies(String(modId));
   });
   ipcMain.handle("resolve-mod-dependencies-batch", (_event, modIds) => {
     const validIds = (Array.isArray(modIds) ? modIds : [])
+      .filter(isValidModId)
       .map(String)
-      .filter((id) => modManager.validateModId(id));
+      .slice(0, 1000);
     return steamDependencyResolver.resolveBatchDependencies(validIds);
   });
 

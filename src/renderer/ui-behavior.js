@@ -7,7 +7,7 @@ import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
 import { state, saveFiltersToSettings } from "./state.js";
-import { debounce, countryToFlag, EU_COUNTRIES } from "./utils.js";
+import { debounce, countryToFlag, EU_COUNTRIES, isValidIpOrHost, isValidPort } from "./utils.js";
 import { hideContextMenu, setCurrentContextMenu } from "./contextMenu.js";
 import { showToast } from "./feedback.js";
 import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
@@ -99,6 +99,14 @@ export function toggleFilters() {
 }
 
 export function switchTab(tabId) {
+  if (state.expandedServerId !== null) {
+    state.expandedServerId = null;
+    document.querySelectorAll('[id^="detail-"]').forEach((el) => el.remove());
+    document
+      .querySelectorAll(".server-row.expanded")
+      .forEach((el) => el.classList.remove("expanded"));
+  }
+
   document
     .querySelectorAll(".tab-content")
     .forEach((el) => el.classList.remove("active"));
@@ -544,12 +552,17 @@ export function toggleFilterMenu() {
   checkbox.addEventListener("change", async () => {
     if (state.settings) {
       state.settings.autoSaveFilters = checkbox.checked;
-      if (checkbox.checked) {
-        await saveFiltersToSettings();
-        showToast("Auto-save enabled & filters saved", "#2ec4b6", "save");
-      } else {
-        await window.api.settings.save(state.settings);
-        showToast("Auto-save disabled", "#ff9f1c", "save");
+        try {
+          if (checkbox.checked) {
+            await saveFiltersToSettings();
+            showToast("Auto-save enabled and filters saved", "#2ec4b6", "save");
+          } else {
+            await window.api.settings.save(state.settings);
+            showToast("Auto-save disabled", "#ff9f1c", "save");
+          }
+        } catch (err) {
+          console.error("Failed to save auto-save preference:", err);
+          showToast("Could not save auto-save preference", "#ff5a5f", "alert");
       }
     }
   });
@@ -708,6 +721,14 @@ export function initUIBehavior() {
         showToast("Please enter both IP and port", "#ff5a5f", "alert");
         return;
       }
+      if (!isValidIpOrHost(ip)) {
+        showToast("Please enter a valid IP address or domain name", "#ff5a5f", "alert");
+        return;
+      }
+      if (!isValidPort(port)) {
+        showToast("Please enter a valid port number (1-65535)", "#ff5a5f", "alert");
+        return;
+      }
       connectToServer(ip, port);
       closeDirectConnectModal();
     });
@@ -804,7 +825,11 @@ export function initUIBehavior() {
   document.querySelectorAll(".external-link").forEach((el) => {
     el.addEventListener("click", () => {
       const url = el.getAttribute("data-url");
-      if (url) window.api.ui.openExternal(url);
+      if (url) {
+        window.api.ui.openExternal(url).catch((err) => {
+          console.error("Failed to open external link:", err);
+        });
+      }
     });
   });
 }

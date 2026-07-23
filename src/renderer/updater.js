@@ -31,18 +31,34 @@ export function initUpdater() {
 
   elements.downloadBtn.addEventListener("click", () => {
     if (downloaded) {
-      window.api.updater.install();
+      window.api.updater.install().catch((err) => {
+        console.error("Update installation failed:", err);
+        showToast("Update installation failed.", "#ff5a5f", "alert");
+      });
       return;
     }
     if (downloadInProgress) return;
     if (fallbackDownloadUrl) {
-      window.api.ui.openExternal(fallbackDownloadUrl);
+      window.api.ui.openExternal(fallbackDownloadUrl).catch((err) => {
+        console.error("Failed to open release page:", err);
+        showToast("Could not open the release page.", "#ff5a5f", "alert");
+      });
       return;
     }
     downloadInProgress = true;
     elements.downloadBtn.style.display = "none";
     elements.progressContainer.style.display = "block";
-    window.api.updater.download();
+    window.api.updater.download()
+      .then((success) => {
+        if (!success) throw new Error("The update could not be downloaded");
+      })
+      .catch((err) => {
+        console.error("Update download failed:", err);
+        downloadInProgress = false;
+        elements.progressContainer.style.display = "none";
+        elements.downloadBtn.style.display = "inline-flex";
+        showToast(`Update download failed: ${err.message}`, "#ff5a5f", "alert");
+      });
   });
 
   window.api.updater.onProgress((progress) => {
@@ -64,7 +80,7 @@ export function initUpdater() {
     downloadInProgress = false;
     elements.progressContainer.style.display = "none";
     elements.downloadBtn.style.display = "inline-flex";
-    showToast("Update download failed. Please try again.", "#ff5a5f", "⚠️");
+    showToast("Update download failed. Please try again.", "#ff5a5f", "alert");
   });
 
   const showSystemPackage = (info) => {
@@ -192,19 +208,19 @@ export function initUpdater() {
           elements.checkForUpdatesBtn.title =
             "Update Available! Click to view.";
         } else if (result && result.kind === "not-available") {
-          showToast("Your DzLinux client is up to date", "#2ec4b6", "✓");
+          showToast("Your DzLinux client is up to date", "#2ec4b6", "check");
           elements.checkForUpdatesBtn.classList.remove("update-btn-pulsate");
           elements.checkForUpdatesBtn.title = "Check for Updates";
         } else {
           showToast(
             "Update check failed. Check your internet connection.",
             "#ff5a5f",
-            "⚠️",
+            "alert",
           );
         }
       } catch (err) {
         console.error("Manual check failed:", err);
-        showToast("Update check failed.", "#ff5a5f", "⚠️");
+        showToast("Update check failed.", "#ff5a5f", "alert");
       }
     });
   }

@@ -2,6 +2,8 @@ const { Notification: ElectronNotification, BrowserWindow, app } = require("elec
 const path = require("node:path");
 const fs = require("node:fs");
 const settingsManager = require("./settings");
+const { writeJsonAtomically } = require("./fileUtils");
+const { validateCurrentServers, validateWatchlist } = require("./validation");
 
 const WATCHLIST_FILE = path.join(app.getPath("userData"), "watchlist.json");
 
@@ -29,14 +31,16 @@ async function loadWatchlist() {
       return [...cachedWatchlist];
     }
     // Migration check
-    const settings = settingsManager.loadSettings();
+    const loadSettings = settingsManager.loadSettingsAsync ||
+      (() => Promise.resolve(settingsManager.loadSettings()));
+    const settings = await loadSettings();
     if (settings.watchlist && settings.watchlist.length > 0) {
       const watchlist = settings.watchlist;
       cachedWatchlist = [...watchlist];
-      saveWatchlist(watchlist);
+      await saveWatchlist(watchlist);
       // Clean up from settings to avoid future confusion
       delete settings.watchlist;
-      settingsManager.saveSettings(settings);
+      await settingsManager.saveSettings(settings);
       return watchlist;
     }
   } catch (e) {
@@ -57,8 +61,9 @@ async function loadWatchlist() {
  */
 async function saveWatchlist(watchlist) {
   try {
+    if (!validateWatchlist(watchlist)) return false;
     cachedWatchlist = [...watchlist];
-    await fs.promises.writeFile(WATCHLIST_FILE, JSON.stringify(watchlist, null, 2), "utf8");
+    await writeJsonAtomically(WATCHLIST_FILE, watchlist);
     return true;
   } catch (e) {
     console.error("Failed to save watchlist:", e.message);
@@ -86,7 +91,10 @@ async function saveWatchlist(watchlist) {
  * @param {Array<{ip: string, port: number, status: string, players: number, name: string}>} currentServers - Array of freshly queried server status objects.
  */
 async function processWatchlistChecks(currentServers) {
-  const settings = settingsManager.loadSettings();
+  if (!validateCurrentServers(currentServers)) return [];
+  const loadSettings = settingsManager.loadSettingsAsync ||
+    (() => Promise.resolve(settingsManager.loadSettings()));
+  const settings = await loadSettings();
   const watchlist = await loadWatchlist();
   const globalThreshold =
     settings.watchlistThreshold !== undefined

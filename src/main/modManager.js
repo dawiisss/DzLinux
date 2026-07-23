@@ -9,7 +9,9 @@ const MOD_UPDATE_TOLERANCE_SECONDS = 3600; // 1 hour buffer for timezone/downloa
 
 // Scans the modDirectory, finds all workshop mod folders, parses meta.cpp for names and returns mod details
 async function getInstalledMods() {
-  const settings = settingsManager.loadSettings();
+  const loadSettings = settingsManager.loadSettingsAsync ||
+    (() => Promise.resolve(settingsManager.loadSettings()));
+  const settings = await loadSettings();
   const modDir = settings.modDirectory;
 
   if (!modDir) {
@@ -183,6 +185,9 @@ function validateModId(modId) {
 }
 
 function safeModPath(modDirectory, modId) {
+  if (typeof modDirectory !== "string" || modDirectory.trim() === "") {
+    return null;
+  }
   const baseResolved = path.resolve(modDirectory);
   const resolved = path.resolve(path.join(baseResolved, modId));
   const prefix = baseResolved.endsWith(path.sep) ? baseResolved : baseResolved + path.sep;
@@ -195,7 +200,9 @@ function safeModPath(modDirectory, modId) {
 // Open folder in system file explorer
 async function openModFolder(modId) {
   if (!validateModId(modId)) return false;
-  const settings = settingsManager.loadSettings();
+  const loadSettings = settingsManager.loadSettingsAsync ||
+    (() => Promise.resolve(settingsManager.loadSettings()));
+  const settings = await loadSettings();
   const modPath = safeModPath(settings.modDirectory, modId);
   if (!modPath) return false;
   const pathExists = await fs.promises.access(modPath).then(() => true).catch(() => false);
@@ -207,7 +214,9 @@ async function openModFolder(modId) {
 // Safely delete a mod folder recursively
 async function deleteMod(modId) {
   if (!validateModId(modId)) return false;
-  const settings = settingsManager.loadSettings();
+  const loadSettings = settingsManager.loadSettingsAsync ||
+    (() => Promise.resolve(settingsManager.loadSettings()));
+  const settings = await loadSettings();
   const modPath = safeModPath(settings.modDirectory, modId);
   if (!modPath) return false;
   const pathExists = await fs.promises.access(modPath).then(() => true).catch(() => false);
@@ -233,7 +242,12 @@ async function checkModUpdates(mods, detailed = false) {
   // For simplicity, we process them in chunks of 50.
   const chunkSize = 50;
   const outdatedMods = [];
-  const settings = settingsManager.loadSettings();
+  const loadSettings = settingsManager.loadSettingsAsync ||
+    (() => Promise.resolve(settingsManager.loadSettings()));
+  const settings = await loadSettings();
+  if (!settings.modDirectory) {
+    return detailed ? { outdatedMods: [], totalChecked: 0 } : [];
+  }
   let totalChecked = 0;
 
   for (let i = 0; i < mods.length; i += chunkSize) {

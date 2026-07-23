@@ -10,6 +10,34 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.4.7] - 2026-07-23
+
+### Added
+
+- **Safer Settings Validation:** Settings values are now checked before they are saved. Background server query concurrency is limited to **10–500**, and invalid values are automatically corrected.
+- **Reliable Background Operations:** Added cancellation support for stale server pings and mod verification checks so refreshes and cancelled launches do not leave unnecessary work running in the background.
+- **System Compatibility & Environment Diagnostics:** Added a system compatibility scanner in the Diagnostics tab that checks Steam installation status, installed Proton versions, Workshop storage space and write permissions, GameMode daemon status, MangoHud binary presence, and Vulkan GPU driver manifests.
+
+### Changed
+
+- **More Reliable Settings and Cache Storage:** Settings, watchlists, server data, and query-port information now use asynchronous, atomic file writes to reduce UI blocking and prevent partially-written JSON files.
+- **Clearer Error Feedback:** Update downloads, external links, preference saves, and background mod operations now report failures instead of leaving controls stuck or failing silently.
+- **Improved Startup Stability:** Application startup now initializes logging before loading settings and handles unrecoverable startup errors cleanly.
+- **Safer Server Queries:** Server query requests are bounded, stale requests can be cancelled, and overlapping mod download checks are prevented.
+
+### Fixed
+
+- **Direct Join IP & Port Validation:** Enforced strict IPv4, IPv6, and FQDN domain validation in Direct Join inputs and server connection handlers to prevent launching DayZ with invalid addresses.
+- **Offline Server Connection Guard:** Updated `query-mods` to return `null` on GameDig query timeouts or failures, preventing unreachable servers from being treated as vanilla servers and halting game launches with a clear toast notification.
+- **Background Query Limit:** Users can no longer enter a background query concurrency value above 500. Values pasted or typed above the limit are immediately replaced with 500 (Counts higher than 500 can cause RAM overloads and crash the app).
+- **Mod Verification Cancellation:** Cancelling the missing-mod dialog now stops its polling and prevents a delayed game launch from running afterward.
+- **Update Download Recovery:** Failed update downloads restore the download controls and display an actionable error message.
+- **Non-blocking Master List Writes:** Master-list generation no longer uses synchronous filesystem writes during its asynchronous workflow.
+
+### Security
+
+- **Security Patch for Axios:** Upgraded `axios` dependency from `^1.17.0` to `^1.18.1` to address security advisories (GHSA-f4gw-2p7v-4548, GHSA-hcpx-6fm6-wx23, GHSA-7q8q-rj6j-mhjq, GHSA-mwf2-3pr3-8698).
+
 ## [1.4.6] - 2026-07-20
 
 ### Added

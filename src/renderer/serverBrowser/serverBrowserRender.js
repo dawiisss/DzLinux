@@ -44,7 +44,7 @@ export function updateFooterTimestamp() {
     second: "2-digit",
   });
   const el = document.getElementById("footerLastRefresh");
-  if (el) el.textContent = `LAST REFRESH: ${timeStr}`;
+  if (el) el.textContent = `Last refresh: ${timeStr}`;
 }
 
 export function setFooterStatus(online) {
@@ -53,7 +53,7 @@ export function setFooterStatus(online) {
   const banner = document.getElementById("connectionBanner");
   if (dot)
     dot.style.background = online ? "var(--accent-green)" : "var(--accent-red)";
-  if (text) text.textContent = online ? "CONNECTED" : "OFFLINE";
+  if (text) text.textContent = online ? "Connected" : "Offline";
   if (banner) banner.style.display = online ? "none" : "flex";
 }
 
@@ -70,8 +70,8 @@ export function startCountdown() {
       : Boolean(state.settings.autoRefreshEnabled);
   if (!isEnabled) {
     if (badge) {
-      badge.textContent = `MANUAL`;
-      badge.title = "Auto-Refresh Disabled";
+      badge.textContent = "Manual";
+      badge.title = "Auto-refresh disabled";
     }
     return;
   }
@@ -207,15 +207,22 @@ export async function startBackgroundPinging() {
 
       server.isPinging = true;
       let statusObj = null;
+      const requestId = `${myGeneration}:${state.bgPing.nextRequestId++}`;
+      let timeoutId = null;
       try {
         statusObj = await Promise.race([
-          window.api.servers.ping(server.ip, server.port, server.queryPort),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error("TIMEOUT")), PING_TIMEOUT_MS)
-          ),
+          window.api.servers.ping(server.ip, server.port, server.queryPort, requestId),
+          new Promise((_, reject) => {
+            timeoutId = setTimeout(() => {
+              window.api.servers.cancelPingRequest?.(requestId);
+              reject(new Error("TIMEOUT"));
+            }, PING_TIMEOUT_MS);
+          }),
         ]);
       } catch {
         statusObj = null;
+      } finally {
+        if (timeoutId) clearTimeout(timeoutId);
       }
 
       if (myGeneration !== state.bgPing.generation) {
@@ -347,8 +354,12 @@ export async function startBackgroundPinging() {
 }
 
 export async function refreshServers(isBackground = false) {
+  const previousGeneration = state.bgPing.generation;
   state.bgPing.generation++;
   const myGeneration = state.bgPing.generation;
+  if (previousGeneration > 0) {
+    window.api.servers.cancelPingGeneration?.(previousGeneration);
+  }
 
   state.allServers = [];
   existingServersMap.clear();

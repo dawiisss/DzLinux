@@ -8,6 +8,24 @@ import { startWatchlistPoll } from "./watchlist.js";
 export async function initSettings() {
   const settings = state.settings;
 
+  const queryConcurrencyInput = document.getElementById("queryConcurrency");
+  const normalizeQueryConcurrency = () => {
+    const parsed = Number.parseInt(queryConcurrencyInput.value, 10);
+    if (!Number.isFinite(parsed) || parsed < 10) {
+      queryConcurrencyInput.value = "500";
+    } else if (parsed > 500) {
+      queryConcurrencyInput.value = "500";
+    }
+  };
+
+  queryConcurrencyInput.addEventListener("input", () => {
+    const parsed = Number.parseInt(queryConcurrencyInput.value, 10);
+    if (Number.isFinite(parsed) && parsed > 500) {
+      queryConcurrencyInput.value = "500";
+    }
+  });
+  queryConcurrencyInput.addEventListener("change", normalizeQueryConcurrency);
+
   document.getElementById("playerName").value = settings.playerName || "";
   const launchParamsInput = document.getElementById("launchParams");
   launchParamsInput.value = settings.launchParams || "";
@@ -22,7 +40,7 @@ export async function initSettings() {
     settings.watchlistRefreshTime || 10;
   document.getElementById("serverListPageSize").value =
     settings.serverListPageSize || 50;
-  document.getElementById("queryConcurrency").value =
+  queryConcurrencyInput.value =
     settings.queryConcurrency || 500;
   document.getElementById("serverListMode").value =
     settings.serverListMode || "compact";
@@ -169,7 +187,13 @@ export async function initSettings() {
       serverListPageSize:
         parseInt(document.getElementById("serverListPageSize").value, 10) || 50,
       queryConcurrency:
-        parseInt(document.getElementById("queryConcurrency").value, 10) || 500,
+        Math.min(
+          500,
+          Math.max(
+            10,
+            parseInt(document.getElementById("queryConcurrency").value, 10) || 500,
+          ),
+        ),
       serverListMode: document.getElementById("serverListMode").value,
       watchlistRefreshEnabled:
         document.getElementById("watchlistRefreshEnabled").value === "true",

@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",
@@ -79,7 +79,7 @@
     "lint-staged": "^17.0.8"
   },
   "dependencies": {
-    "axios": "^1.17.0",
+    "axios": "^1.18.1",
     "electron-updater": "^6.8.9",
     "gamedig": "^5.3.3",
     "steamworks.js": "^0.4.0"

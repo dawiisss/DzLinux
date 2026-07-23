@@ -2,6 +2,7 @@ const { GameDig } = require("gamedig");
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
+const { writeJsonAtomically } = require("./fileUtils");
 
 let userDataPath;
 if (process.versions && process.versions.electron) {
@@ -19,35 +20,44 @@ const QUERY_PORT_CACHE_MAX_ENTRIES = 5000;
 // The in-memory Map is the authoritative cache; reads are always against this singleton.
 // Writes use a read-merge-write pattern against the on-disk file to survive parallel
 // saves from concurrent GameDig queries (especially background batch pinging).
-const queryPortCache = loadQueryPortCache();
+const queryPortCache = new Map();
+let cacheLoadPromise = null;
+let cacheLoaded = false;
 
 // Load the GameDig query port cache from disk — returns a Map of "ip:gamePort" → queryPort
 // Entries older than QUERY_PORT_CACHE_TTL are silently evicted on load
-function loadQueryPortCache() {
-  try {
-    if (fs.existsSync(QUERY_PORT_CACHE_FILE)) {
-      const data = JSON.parse(fs.readFileSync(QUERY_PORT_CACHE_FILE, "utf8"));
+async function ensureQueryPortCacheLoaded() {
+  if (cacheLoaded) return;
+  if (cacheLoadPromise) return cacheLoadPromise;
+
+  cacheLoadPromise = fs.promises
+    .readFile(QUERY_PORT_CACHE_FILE, "utf8")
+    .then((content) => {
+      const data = JSON.parse(content);
       if (data && data.entries) {
         const now = Date.now();
-        const validEntries = new Map();
         for (const [key, entry] of Object.entries(data.entries)) {
           if (entry.timestamp && now - entry.timestamp < QUERY_PORT_CACHE_TTL) {
-            validEntries.set(key, {
+            queryPortCache.set(key, {
               port: entry.port,
               timestamp: entry.timestamp,
             });
           }
         }
-        console.log(
-          `Query port cache loaded: ${validEntries.size} valid entries`,
-        );
-        return validEntries;
+        console.log(`Query port cache loaded: ${queryPortCache.size} valid entries`);
       }
-    }
-  } catch (e) {
-    console.error("Failed to read query port cache:", e.message);
-  }
-  return new Map();
+    })
+    .catch((e) => {
+      if (e.code !== "ENOENT") {
+        console.error("Failed to read query port cache:", e.message);
+      }
+    })
+    .finally(() => {
+      cacheLoaded = true;
+      cacheLoadPromise = null;
+    });
+
+  return cacheLoadPromise;
 }
 
 let currentWritePromise = Promise.resolve();
@@ -74,11 +84,10 @@ function performWrite() {
       for (const [key, val] of queryPortCache.entries()) {
         entries[key] = { port: val.port, timestamp: val.timestamp };
       }
-      await fs.promises.writeFile(
-        QUERY_PORT_CACHE_FILE,
-        JSON.stringify({ timestamp: Date.now(), entries }),
-        "utf8",
-      );
+      await writeJsonAtomically(QUERY_PORT_CACHE_FILE, {
+        timestamp: Date.now(),
+        entries,
+      });
     } catch (e) {
       console.error("Failed to write query port cache:", e.message);
     }
@@ -121,6 +130,7 @@ module.exports = {
 // is atomically persisted; on cached-port failure the stale entry is evicted.
 // Uses a module-level singleton cache to survive parallel batch pinging.
 async function queryServerGameDig(ip, port, queryPort) {
+  await ensureQueryPortCacheLoaded();
   const p = parseInt(port, 10);
   const cacheKey = `${ip}:${p}`;
 
