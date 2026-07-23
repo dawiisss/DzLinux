@@ -32,11 +32,12 @@ All notable changes to the DzLinux launcher project will be documented in this f
 - **Background Query Limit:** Users can no longer enter a background query concurrency value above 500. Values pasted or typed above the limit are immediately replaced with 500 (Counts higher than 500 can cause RAM overloads and crash the app).
 - **Mod Verification Cancellation:** Cancelling the missing-mod dialog now stops its polling and prevents a delayed game launch from running afterward.
 - **Update Download Recovery:** Failed update downloads restore the download controls and display an actionable error message.
+- **CI Release Build Compatibility:** Fixed a build failure during `electron-builder` packaging (`brace_expansion_1.expand is not a function`) by scoping overrides in `pnpm-workspace.yaml` to prevent breaking `minimatch` module exports.
 - **Non-blocking Master List Writes:** Master-list generation no longer uses synchronous filesystem writes during its asynchronous workflow.
 
 ### Security
 
-- **Vulnerability Remediation:** Resolved 10 security advisories across transitive dependencies (`fast-uri`, `tar`, `brace-expansion`, `js-yaml`) by setting workspace overrides in `pnpm-workspace.yaml`. `pnpm audit` now reports 0 vulnerabilities.
+- **Vulnerability Remediation:** Resolved 10 security advisories across transitive dependencies (`fast-uri`, `tar`, `brace-expansion`, `js-yaml`) by setting workspace overrides in `pnpm-workspace.yaml`.
 - **Security Patch for Axios:** Upgraded `axios` dependency from `^1.17.0` to `^1.18.1` to address security advisories (GHSA-f4gw-2p7v-4548, GHSA-hcpx-6fm6-wx23, GHSA-7q8q-rj6j-mhjq, GHSA-mwf2-3pr3-8698).
 
 ## [1.4.6] - 2026-07-20
