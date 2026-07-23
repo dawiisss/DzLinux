@@ -2,6 +2,7 @@ const axios = require("axios");
 const fs = require("node:fs");
 const path = require("node:path");
 const { app } = require("electron");
+const { writeJsonAtomically } = require("./fileUtils");
 
 const CACHE_FILE = path.join(app.getPath("userData"), "server_cache.json");
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -86,11 +87,10 @@ async function saveServerCache(servers) {
 
     // Optimize: Use asynchronous write to prevent blocking the Node.js event loop
     // during potentially large JSON stringification and file I/O operations.
-    await fs.promises.writeFile(
-      CACHE_FILE,
-      JSON.stringify({ timestamp: Date.now(), servers: optimized }),
-      "utf8",
-    );
+    await writeJsonAtomically(CACHE_FILE, {
+      timestamp: Date.now(),
+      servers: optimized,
+    });
   } catch (e) {
     console.error("Failed to write server cache", e.message);
   }
@@ -117,14 +117,10 @@ async function loadMonetizationCache() {
 
 async function saveMonetizationCache(monetizedSet) {
   try {
-    await fs.promises.writeFile(
-      MONETIZATION_CACHE_FILE,
-      JSON.stringify({
-        timestamp: Date.now(),
-        ips: [...monetizedSet],
-      }),
-      "utf8",
-    );
+    await writeJsonAtomically(MONETIZATION_CACHE_FILE, {
+      timestamp: Date.now(),
+      ips: [...monetizedSet],
+    });
   } catch (e) {
     console.error("Failed to write monetization cache", e.message);
   }
@@ -168,14 +164,10 @@ async function saveModsMetadataCache(entriesMap) {
     for (const [key, value] of entriesMap) {
       entries[key] = value;
     }
-    await fs.promises.writeFile(
-      MODS_METADATA_CACHE_FILE,
-      JSON.stringify({
-        timestamp: Date.now(),
-        entries,
-      }),
-      "utf8",
-    );
+    await writeJsonAtomically(MODS_METADATA_CACHE_FILE, {
+      timestamp: Date.now(),
+      entries,
+    });
     console.log(
       `Saved mods metadata cache with ${Object.keys(entries).length} entries`,
     );
@@ -482,7 +474,9 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
     }
 
     const settingsManager = require("./settings");
-    const settings = settingsManager.loadSettings();
+    const loadSettings = settingsManager.loadSettingsAsync ||
+      (() => Promise.resolve(settingsManager.loadSettings()));
+    const settings = await loadSettings();
     const modsMetadataCache = await loadModsMetadataCache();
 
     console.log(

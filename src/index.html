@@ -1209,6 +1209,33 @@
         class="tab-content"
         style="padding: 20px; overflow-y: auto"
       >
+        <!-- System Compatibility Checklist Card -->
+        <div
+          class="card"
+          style="margin-bottom: 20px; border: 1px solid var(--border); background: var(--bg-card); border-radius: 6px; padding: 16px;"
+        >
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0; display: flex; align-items: center; gap: 8px; font-size: 1.1rem; color: var(--text-bright);">
+              <app-icon name="wrench"></app-icon> System Compatibility & Environment Check
+            </h3>
+            <button
+              id="btnRunSystemCheck"
+              class="btn btn-outline"
+              aria-label="Run System Check"
+            >
+              <app-icon name="rotate-ccw"></app-icon> Run System Check
+            </button>
+          </div>
+          <div
+            id="systemCheckContainer"
+            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; min-width: 0;"
+          >
+            <div style="color: var(--text-dim); font-size: 0.9rem; padding: 10px;">
+              Click "Run System Check" to scan Linux gaming prerequisites.
+            </div>
+          </div>
+        </div>
+
         <!-- Session Telemetry Summary Bar -->
         <div
           class="stats-bar"
@@ -1671,7 +1698,7 @@
                 id="queryConcurrency"
                 class="form-input"
                 min="10"
-                max="1000"
+                max="500"
                 placeholder="500"
               />
             </div>

@@ -4,6 +4,8 @@ const vm = require("vm");
 
 describe("renderer utils - countryToFlag", () => {
   let countryToFlag;
+  let isValidIpOrHost;
+  let isValidPort;
 
   beforeAll(() => {
     const utilsPath = path.resolve(__dirname, "../../src/renderer/utils.js");
@@ -24,6 +26,8 @@ describe("renderer utils - countryToFlag", () => {
     vm.runInContext(cleanCode, context);
 
     countryToFlag = context.countryToFlag;
+    isValidIpOrHost = context.isValidIpOrHost;
+    isValidPort = context.isValidPort;
   });
 
   test("returns flag emoji for valid uppercase 2-letter country codes", () => {
@@ -65,6 +69,47 @@ describe("renderer utils - countryToFlag", () => {
     expect(countryToFlag(true)).toBe("");
     expect(countryToFlag({})).toBe("");
   });
+
+  describe("isValidIpOrHost", () => {
+    test("validates valid IPv4 addresses", () => {
+      expect(isValidIpOrHost("1.2.3.4")).toBe(true);
+      expect(isValidIpOrHost("192.168.1.1")).toBe(true);
+      expect(isValidIpOrHost("127.0.0.1")).toBe(true);
+    });
+
+    test("validates valid domain names and localhost", () => {
+      expect(isValidIpOrHost("localhost")).toBe(true);
+      expect(isValidIpOrHost("dayz.example.com")).toBe(true);
+      expect(isValidIpOrHost("server-1.myhost.org")).toBe(true);
+    });
+
+    test("rejects invalid IP addresses and hostnames without TLDs", () => {
+      expect(isValidIpOrHost("test2")).toBe(false);
+      expect(isValidIpOrHost("invalid_host")).toBe(false);
+      expect(isValidIpOrHost("256.1.1.1")).toBe(false);
+      expect(isValidIpOrHost("12345")).toBe(false);
+      expect(isValidIpOrHost("")).toBe(false);
+      expect(isValidIpOrHost(null)).toBe(false);
+    });
+  });
+
+  describe("isValidPort", () => {
+    test("validates valid port numbers", () => {
+      expect(isValidPort(2302)).toBe(true);
+      expect(isValidPort("2302")).toBe(true);
+      expect(isValidPort(1)).toBe(true);
+      expect(isValidPort(65535)).toBe(true);
+    });
+
+    test("rejects invalid ports", () => {
+      expect(isValidPort(0)).toBe(false);
+      expect(isValidPort(65536)).toBe(false);
+      expect(isValidPort(-1)).toBe(false);
+      expect(isValidPort("abc")).toBe(false);
+      expect(isValidPort(null)).toBe(false);
+    });
+  });
 });
+
 
 

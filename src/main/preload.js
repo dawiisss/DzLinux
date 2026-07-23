@@ -19,8 +19,14 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.invoke("query-mods", ip, port, queryPort),
     refreshModCache: (ip, port, queryPort) =>
       ipcRenderer.invoke("refresh-mod-cache", ip, port, queryPort),
-    ping: (ip, port, queryPort) =>
-      ipcRenderer.invoke("ping-server", ip, port, queryPort),
+    ping: (ip, port, queryPort, requestId) =>
+      requestId === undefined
+        ? ipcRenderer.invoke("ping-server", ip, port, queryPort)
+        : ipcRenderer.invoke("ping-server", ip, port, queryPort, requestId),
+    cancelPingGeneration: (generationId) =>
+      ipcRenderer.send("cancel-ping-generation", generationId),
+    cancelPingRequest: (requestId) =>
+      ipcRenderer.send("cancel-ping-request", requestId),
     onBatch: (callback) => {
       const handler = (_event, batch, generationId) =>
         callback(batch, generationId);
@@ -87,6 +93,8 @@ contextBridge.exposeInMainWorld("api", {
   diagnostics: {
     getRecentLogs: () => ipcRenderer.invoke("get-diagnostics"),
     getSessionSummary: () => ipcRenderer.invoke("get-session-summary"),
+    runSystemCheck: () =>
+      ipcRenderer.invoke("run-system-compatibility-check"),
     onGameCrashed: (callback) => {
       const handler = (_event, diagnostic) => callback(diagnostic);
       ipcRenderer.on("game-crashed", handler);

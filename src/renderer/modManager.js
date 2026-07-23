@@ -341,7 +341,11 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
     }
 
     const MAX_POLL_RETRIES = 300;
-    entry.pollInterval = setInterval(async () => {
+    entry.pollInProgress = false;
+    entry.pollInterval = setInterval(() => {
+      if (entry.pollInProgress) return;
+      entry.pollInProgress = true;
+      void (async () => {
       try {
         const currentEntry = state.activeDownloads.get(modId);
         if (!currentEntry) return; // already cleaned up
@@ -421,7 +425,10 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
           state.activeDownloads.delete(modId);
           console.error("Steam sync polling error:", err);
         }
+      } finally {
+        entry.pollInProgress = false;
       }
+      })();
     }, 1000);
   } catch (err) {
     console.error(err);

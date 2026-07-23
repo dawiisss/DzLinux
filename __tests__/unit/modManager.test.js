@@ -47,6 +47,11 @@ describe("modManager", () => {
   });
 
   describe("safeModPath", () => {
+    test("returns null when the mod directory is missing", () => {
+      expect(safeModPath(undefined, "12345")).toBeNull();
+      expect(safeModPath("", "12345")).toBeNull();
+    });
+
     test("returns resolved path for valid mod ID", () => {
       const result = safeModPath("/workshop/content/221100", "12345");
       expect(result).toBe(path.resolve("/workshop/content/221100/12345"));
@@ -230,6 +235,15 @@ describe("modManager", () => {
       expect(await modManager.deleteMod("abc")).toBe(false);
       expect(await modManager.deleteMod("")).toBe(false);
       expect(await modManager.deleteMod(null)).toBe(false);
+    });
+
+    test("returns false when no mod directory is configured", async () => {
+      jest.doMock("../../src/main/settings", () => ({
+        loadSettings: jest.fn(() => ({})),
+      }));
+
+      const modManager = require("../../src/main/modManager");
+      expect(await modManager.deleteMod("12345")).toBe(false);
     });
   });
 });

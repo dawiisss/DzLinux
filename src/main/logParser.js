@@ -14,7 +14,9 @@ const steamPaths = require("./steamPaths");
  * @returns {string|null} The absolute path to the log directory, or null if it cannot be found.
  */
 async function getLogsDirectory() {
-  const settings = settingsManager.loadSettings();
+  const loadSettings = settingsManager.loadSettingsAsync ||
+    (() => Promise.resolve(settingsManager.loadSettings()));
+  const settings = await loadSettings();
   if (!settings.modDirectory) {
     return null;
   }

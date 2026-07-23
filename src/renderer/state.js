@@ -47,6 +47,7 @@ export const state = {
   bgPing: {
     isRunning: false,
     generation: 0,
+    nextRequestId: 0,
   },
   totalPingedCount: 0,
 
@@ -75,6 +76,8 @@ export const state = {
   },
   cachedSortOrder: null,
   currentModCheckInterval: null,
+  currentModLaunchTimer: null,
+  currentModCheckGeneration: 0,
 };
 
 export async function addFavorite(ip, port, queryPort, name) {

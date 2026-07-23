@@ -51,7 +51,10 @@ export function initContextMenu() {
       item.appendChild(iconSpan);
       item.appendChild(document.createTextNode(` ${label}`));
       item.addEventListener("click", () => {
-        onClick();
+        Promise.resolve(onClick()).catch((err) => {
+          console.error(`Context menu action failed: ${label}`, err);
+          showToast("Action failed", "#ff5a5f", "alert");
+        });
         hideContextMenu();
       });
       menu.appendChild(item);

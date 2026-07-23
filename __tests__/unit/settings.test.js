@@ -44,9 +44,9 @@ describe("settings", () => {
     jest.restoreAllMocks();
   });
 
-  test("loadSettings returns defaults when no file exists", () => {
-    const { loadSettings } = require("../../src/main/settings");
-    const settings = loadSettings();
+  test("loadSettings returns defaults when no file exists", async () => {
+    const { loadSettingsAsync } = require("../../src/main/settings");
+    const settings = await loadSettingsAsync();
     expect(settings.launchParams).toBe("");
     expect(settings.theme).toBe("tactical-dark");
     expect(settings.audioFeedback).toBe(true);
@@ -55,7 +55,7 @@ describe("settings", () => {
   });
 
   test("saveSettings then loadSettings round-trips correctly", async () => {
-    const { loadSettings, saveSettings } = require("../../src/main/settings");
+    const { loadSettingsAsync, saveSettings } = require("../../src/main/settings");
     const toSave = {
       launchParams: "-nosplash",
       theme: "toxic",
@@ -68,7 +68,7 @@ describe("settings", () => {
     expect(success).toBe(true);
     expect(fs.existsSync(settingsPath)).toBe(true);
 
-    const loaded = loadSettings();
+    const loaded = await loadSettingsAsync();
     expect(loaded.launchParams).toBe("-nosplash");
     expect(loaded.theme).toBe("toxic");
     expect(loaded.audioFeedback).toBe(false);
@@ -79,7 +79,7 @@ describe("settings", () => {
     ]);
   });
 
-  test("loadSettings ignores unknown keys (prototype pollution guard)", () => {
+  test("loadSettings ignores unknown keys (prototype pollution guard)", async () => {
     const malicious = {
       __proto__: { polluted: true },
       constructor: { prototype: { polluted: true } },
@@ -87,8 +87,8 @@ describe("settings", () => {
     };
     fs.writeFileSync(settingsPath, JSON.stringify(malicious), "utf8");
 
-    const { loadSettings } = require("../../src/main/settings");
-    const settings = loadSettings();
+    const { loadSettingsAsync } = require("../../src/main/settings");
+    const settings = await loadSettingsAsync();
     expect(settings.theme).toBe("toxic");
     expect(settings.polluted).toBeUndefined();
   });
@@ -106,14 +106,14 @@ describe("settings", () => {
     expect(raw.theme).toBe("toxic");
   });
 
-  test("loadSettings merges defaults for missing fields", () => {
+  test("loadSettings merges defaults for missing fields", async () => {
     fs.writeFileSync(
       settingsPath,
       JSON.stringify({ theme: "vampire" }),
       "utf8",
     );
-    const { loadSettings } = require("../../src/main/settings");
-    const settings = loadSettings();
+    const { loadSettingsAsync } = require("../../src/main/settings");
+    const settings = await loadSettingsAsync();
     expect(settings.theme).toBe("vampire");
     expect(settings.audioFeedback).toBe(true);
     expect(settings.launchParams).toBe("");
@@ -124,6 +124,15 @@ describe("settings", () => {
     const result = await saveSettings({ theme: "toxic" });
     expect(typeof result).toBe("boolean");
     expect(result).toBe(true);
+  });
+
+  test("enforces the maximum background query concurrency", async () => {
+    const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
+
+    expect(await saveSettings({ queryConcurrency: 501 })).toBe(true);
+
+    const settings = await loadSettingsAsync();
+    expect(settings.queryConcurrency).toBe(500);
   });
 
   test("saveSettings returns false when fs.promises.writeFile throws", async () => {
@@ -170,7 +179,7 @@ describe("settings", () => {
       jest.resetModules();
     });
 
-    test("finds default workshop folder on linux", () => {
+    test("finds default workshop folder on linux", async () => {
       Object.defineProperty(process, "platform", {
         value: "linux",
       });
@@ -178,8 +187,8 @@ describe("settings", () => {
       const os = require("os");
       jest.spyOn(os, "homedir").mockReturnValue(tmpDir);
 
-      const { loadSettings } = require("../../src/main/settings");
-      const settings = loadSettings();
+      const { loadSettingsAsync } = require("../../src/main/settings");
+      const settings = await loadSettingsAsync();
 
       // Because we mock os.homedir() to tmpDir, it should look in tmpDir/.local/share/Steam/steamapps/workshop/content/221100
       expect(settings.modDirectory).toBe(
@@ -196,7 +205,7 @@ describe("settings", () => {
       );
     });
 
-    test("finds secondary workshop folder on linux", () => {
+    test("finds secondary workshop folder on linux", async () => {
       Object.defineProperty(process, "platform", {
         value: "linux",
       });
@@ -204,29 +213,17 @@ describe("settings", () => {
       const os = require("os");
       jest.spyOn(os, "homedir").mockReturnValue(tmpDir);
 
-      const realExistsSync = jest.requireActual("fs").existsSync;
-      jest.spyOn(fs, "existsSync").mockImplementation((p) => {
-        if (p === path.join(tmpDir, ".local", "share", "Steam")) return false;
-        if (p === path.join(tmpDir, ".steam", "steam")) return true;
-        if (
-          p ===
-          path.join(
-            tmpDir,
-            ".steam",
-            "steam",
-            "steamapps",
-            "workshop",
-            "content",
-            "221100",
-          )
-        )
-          return true;
-
-        return realExistsSync(p);
+      jest.spyOn(fs.promises, "access").mockImplementation(async (p) => {
+        if (p === path.join(tmpDir, ".local", "share", "Steam")) {
+          throw new Error("ENOENT");
+        }
+        if (p === path.join(tmpDir, ".steam", "steam")) return;
+        if (p === path.join(tmpDir, ".steam", "steam", "steamapps", "workshop", "content", "221100")) return;
+        throw new Error("ENOENT");
       });
 
-      const { loadSettings } = require("../../src/main/settings");
-      const settings = loadSettings();
+      const { loadSettingsAsync } = require("../../src/main/settings");
+      const settings = await loadSettingsAsync();
 
       expect(settings.modDirectory).toBe(
         path.join(
@@ -241,7 +238,7 @@ describe("settings", () => {
       );
     });
 
-    test("finds flatpak workshop folder on linux", () => {
+    test("finds flatpak workshop folder on linux", async () => {
       Object.defineProperty(process, "platform", {
         value: "linux",
       });
@@ -249,46 +246,17 @@ describe("settings", () => {
       const os = require("os");
       jest.spyOn(os, "homedir").mockReturnValue(tmpDir);
 
-      const realExistsSync = jest.requireActual("fs").existsSync;
-      jest.spyOn(fs, "existsSync").mockImplementation((p) => {
-        if (p === path.join(tmpDir, ".local", "share", "Steam")) return false;
-        if (p === path.join(tmpDir, ".steam", "steam")) return false;
-        if (
-          p ===
-          path.join(
-            tmpDir,
-            ".var",
-            "app",
-            "com.valvesoftware.Steam",
-            ".local",
-            "share",
-            "Steam",
-          )
-        )
-          return true;
-        if (
-          p ===
-          path.join(
-            tmpDir,
-            ".var",
-            "app",
-            "com.valvesoftware.Steam",
-            ".local",
-            "share",
-            "Steam",
-            "steamapps",
-            "workshop",
-            "content",
-            "221100",
-          )
-        )
-          return true;
-
-        return realExistsSync(p);
+      jest.spyOn(fs.promises, "access").mockImplementation(async (p) => {
+        if (p === path.join(tmpDir, ".local", "share", "Steam") || p === path.join(tmpDir, ".steam", "steam")) {
+          throw new Error("ENOENT");
+        }
+        if (p === path.join(tmpDir, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam")) return;
+        if (p === path.join(tmpDir, ".var", "app", "com.valvesoftware.Steam", ".local", "share", "Steam", "steamapps", "workshop", "content", "221100")) return;
+        throw new Error("ENOENT");
       });
 
-      const { loadSettings } = require("../../src/main/settings");
-      const settings = loadSettings();
+      const { loadSettingsAsync } = require("../../src/main/settings");
+      const settings = await loadSettingsAsync();
 
       expect(settings.modDirectory).toBe(
         path.join(
@@ -307,7 +275,7 @@ describe("settings", () => {
       );
     });
 
-    test("parses libraryfolders.vdf correctly", () => {
+    test("parses libraryfolders.vdf correctly", async () => {
       Object.defineProperty(process, "platform", {
         value: "linux",
       });
@@ -358,8 +326,8 @@ describe("settings", () => {
         return realExistsSync(p);
       });
 
-      const { loadSettings } = require("../../src/main/settings");
-      const settings = loadSettings();
+      const { loadSettingsAsync } = require("../../src/main/settings");
+      const settings = await loadSettingsAsync();
 
       expect(settings.modDirectory).toBe(
         path.join(fakeLibPath, "steamapps", "workshop", "content", "221100"),

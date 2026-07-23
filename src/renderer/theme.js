@@ -60,7 +60,11 @@ export function initTheme(settings) {
       sidebar.classList.toggle("pinned");
       settings.sidebarPinned = sidebar.classList.contains("pinned");
       if (window.api && window.api.settings && window.api.settings.save) {
-        await window.api.settings.save(settings);
+        try {
+          await window.api.settings.save(settings);
+        } catch (err) {
+          console.error("Failed to save sidebar preference:", err);
+        }
       }
     });
   }

@@ -5,6 +5,7 @@ const _os = require("os");
 describe("servers", () => {
   beforeEach(() => {
     jest.resetModules();
+    _fs.rmSync("/tmp/dzlinux-test-data", { recursive: true, force: true });
 
     jest.doMock(
       "electron",

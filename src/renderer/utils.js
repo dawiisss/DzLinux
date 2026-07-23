@@ -173,3 +173,29 @@ export function applyPingResult(server, statusObj) {
     return false;
   }
 }
+
+export function isValidIpOrHost(value) {
+  if (typeof value !== "string" || value.length === 0 || value.length > 253) {
+    return false;
+  }
+  const ipv4Regex = /^(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  if (ipv4Regex.test(value)) {
+    return true;
+  }
+  const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$/;
+  if (ipv6Regex.test(value)) {
+    return true;
+  }
+  if (value.toLowerCase() === "localhost") {
+    return true;
+  }
+  const hostnameRegex = /^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
+  return hostnameRegex.test(value);
+}
+
+export function isValidPort(value) {
+  if (typeof value === "string" && !/^\d+$/.test(value)) return false;
+  const port = Number(value);
+  return Number.isInteger(port) && port > 0 && port <= 65535;
+}
+

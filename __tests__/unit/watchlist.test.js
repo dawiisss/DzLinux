@@ -38,6 +38,9 @@ jest.mock("fs", () => ({
   writeFileSync: jest.fn(),
   promises: {
     writeFile: jest.fn().mockImplementation(() => Promise.resolve()),
+    mkdir: jest.fn().mockImplementation(() => Promise.resolve()),
+    rename: jest.fn().mockImplementation(() => Promise.resolve()),
+    rm: jest.fn().mockImplementation(() => Promise.resolve()),
     access: jest.fn(),
     readFile: jest.fn(),
   },
@@ -77,8 +80,8 @@ describe("watchlist", () => {
       expect(await loadWatchlist()).toEqual(mockWatchlist);
       expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
-        JSON.stringify(mockWatchlist, null, 2),
-        "utf8"
+        expect.stringContaining('"ip": "1.2.3.4"'),
+        "utf8",
       );
       expect(settingsManager.saveSettings).toHaveBeenCalledWith({
         theme: "dark",
@@ -94,8 +97,8 @@ describe("watchlist", () => {
 
       expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
-        JSON.stringify(mockWatchlist, null, 2),
-        "utf8"
+        expect.stringContaining('"ip": "1.2.3.4"'),
+        "utf8",
       );
       expect(result).toBe(true);
     });

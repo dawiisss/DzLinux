@@ -19,12 +19,6 @@ if (!gotTheLock) {
   const steamworksManager = require("./steamworksManager");
   const { registerIpcHandlers } = require("./ipcHandlers");
 
-  const settings = settingsManager.loadSettings();
-  if (settings.nativeWayland && process.env.XDG_SESSION_TYPE === "wayland") {
-    app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
-    app.commandLine.appendSwitch("ozone-platform", "wayland");
-  }
-
   // Optimize V8 engine memory footprint for the main process and renderers
   app.commandLine.appendSwitch(
     "js-flags",
@@ -59,6 +53,11 @@ if (!gotTheLock) {
 
   app.whenReady().then(async () => {
     await initLogger();
+    const settings = await settingsManager.loadSettingsAsync();
+    if (settings.nativeWayland && process.env.XDG_SESSION_TYPE === "wayland") {
+      app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
+      app.commandLine.appendSwitch("ozone-platform", "wayland");
+    }
     registerIpcHandlers();
 
     const mainWindow = createWindow();
@@ -67,6 +66,9 @@ if (!gotTheLock) {
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
     });
+  }).catch((err) => {
+    process.stderr.write(`Application startup failed: ${err.message}\n`);
+    app.exit(1);
   });
 
   app.on("window-all-closed", () => {

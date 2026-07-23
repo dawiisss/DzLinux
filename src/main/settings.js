@@ -2,6 +2,14 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { app } = require("electron");
 const steamPaths = require("./steamPaths");
+const { writeJsonAtomically } = require("./fileUtils");
+const {
+  isBoundedString,
+  validateFavorites,
+  validateWatchlist,
+  MIN_QUERY_CONCURRENCY,
+  MAX_QUERY_CONCURRENCY,
+} = require("./validation");
 
 const settingsPath = path.join(app.getPath("userData"), "settings.json");
 
@@ -56,10 +64,6 @@ const defaultSettings = {
   flagHideLocked: false,
 };
 
-function findDayzWorkshopFolder() {
-  return steamPaths.findDayzWorkshopFolder();
-}
-
 const SETTINGS_KEYS = new Set(Object.keys(defaultSettings));
 
 function parseFavKeyInline(favKey) {
@@ -83,34 +87,48 @@ function parseFavKeyInline(favKey) {
 }
 
 let cachedSettings = null;
+let settingsLoadPromise = null;
 
-function loadSettings() {
+async function loadSettingsAsync() {
   if (cachedSettings !== null) {
     return { ...cachedSettings };
   }
+
+  if (settingsLoadPromise) return settingsLoadPromise;
+
+  settingsLoadPromise = loadSettingsFromDisk();
+  try {
+    return await settingsLoadPromise;
+  } finally {
+    settingsLoadPromise = null;
+  }
+}
+
+async function loadSettingsFromDisk() {
 
   const settings = { ...defaultSettings };
   let legacyNames = {};
   let legacyPorts = {};
   try {
-    if (fs.existsSync(settingsPath)) {
-      const data = fs.readFileSync(settingsPath, "utf8");
-      const parsed = JSON.parse(data);
-      legacyNames = parsed.favoriteNames || {};
-      legacyPorts = parsed.favoritePorts || {};
-      // Only merge known setting keys to prevent prototype pollution
-      for (const key of Object.keys(parsed)) {
-        if (SETTINGS_KEYS.has(key)) {
-          settings[key] = parsed[key];
-        }
+    const data = await fs.promises.readFile(settingsPath, "utf8");
+    const parsed = JSON.parse(data);
+    legacyNames = parsed.favoriteNames || {};
+    legacyPorts = parsed.favoritePorts || {};
+    // Only merge known setting keys to prevent prototype pollution
+    for (const key of Object.keys(parsed)) {
+      if (SETTINGS_KEYS.has(key)) {
+        settings[key] = parsed[key];
       }
     }
   } catch (e) {
-    console.error("Failed to load settings", e);
+    if (e.code !== "ENOENT") {
+      console.error("Failed to load settings", e);
+    }
   }
 
   // Migrate old string-format favorites + parallel maps to unified object array
   if (
+    Array.isArray(settings.favorites) &&
     settings.favorites.length > 0 &&
     typeof settings.favorites[0] === "string"
   ) {
@@ -131,22 +149,81 @@ function loadSettings() {
     delete settings.favoriteNames;
     delete settings.favoritePorts;
     cachedSettings = { ...settings };
-    saveSettings(settings);
+    await saveSettings(settings);
   }
 
   // Auto-discover if empty
   if (!settings.modDirectory) {
-    settings.modDirectory = findDayzWorkshopFolder();
+    settings.modDirectory = await steamPaths.findDayzWorkshopFolderAsync();
   }
 
-  cachedSettings = { ...settings };
-  return settings;
+  cachedSettings = sanitizeSettings(settings);
+  return { ...cachedSettings };
+}
+
+function loadSettings() {
+  return loadSettingsAsync();
+}
+
+function sanitizeSettings(settings) {
+  const safeSettings = { ...defaultSettings };
+  if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+    return safeSettings;
+  }
+
+  for (const key of SETTINGS_KEYS) {
+    if (settings[key] !== undefined) safeSettings[key] = settings[key];
+  }
+
+  const booleanKeys = [
+    "audioFeedback",
+    "dxvkAsyncEnabled",
+    "disableProtonLogs",
+    "enableGameMode",
+    "nativeWayland",
+    "mallocSystem",
+    "mallocTrim",
+    "noEsync",
+    "mangoHudEnabled",
+    "autoRefreshEnabled",
+    "watchlistRefreshEnabled",
+    "showWatchlistTab",
+    "showDiagnosticsTab",
+    "sidebarPinned",
+    "autoSaveFilters",
+    "flagFavoritesOnly",
+    "flagHideFavorites",
+    "flagHideEmpty",
+    "flagHideFull",
+    "flagHistoryOnly",
+    "flagHideLocked",
+  ];
+  for (const key of booleanKeys) {
+    if (typeof safeSettings[key] !== "boolean") safeSettings[key] = defaultSettings[key];
+  }
+
+  if (!isBoundedString(safeSettings.playerName, 100)) safeSettings.playerName = "";
+  if (!isBoundedString(safeSettings.launchParams)) safeSettings.launchParams = "";
+  if (!isBoundedString(safeSettings.steamUsername, 100)) safeSettings.steamUsername = "";
+  if (!isBoundedString(safeSettings.modDirectory)) safeSettings.modDirectory = "";
+  if (!isBoundedString(safeSettings.protonPath)) safeSettings.protonPath = "default";
+  if (!isBoundedString(safeSettings.mangoHudConfig, 1000)) safeSettings.mangoHudConfig = defaultSettings.mangoHudConfig;
+  if (!isBoundedString(safeSettings.dxvkConfig, 10000)) safeSettings.dxvkConfig = "";
+  if (!validateFavorites(safeSettings.favorites)) safeSettings.favorites = [];
+  if (!validateWatchlist(safeSettings.watchlist)) safeSettings.watchlist = [];
+  if (!Number.isInteger(safeSettings.serverListPageSize) || safeSettings.serverListPageSize < 10 || safeSettings.serverListPageSize > 500) safeSettings.serverListPageSize = defaultSettings.serverListPageSize;
+  if (!Number.isInteger(safeSettings.queryConcurrency) || safeSettings.queryConcurrency < MIN_QUERY_CONCURRENCY || safeSettings.queryConcurrency > MAX_QUERY_CONCURRENCY) safeSettings.queryConcurrency = defaultSettings.queryConcurrency;
+  if (!Number.isInteger(safeSettings.autoRefreshTime) || safeSettings.autoRefreshTime < 30 || safeSettings.autoRefreshTime > 3600) safeSettings.autoRefreshTime = defaultSettings.autoRefreshTime;
+  if (!Number.isInteger(safeSettings.watchlistRefreshTime) || safeSettings.watchlistRefreshTime < 5 || safeSettings.watchlistRefreshTime > 600) safeSettings.watchlistRefreshTime = defaultSettings.watchlistRefreshTime;
+  if (!Number.isInteger(safeSettings.watchlistThreshold) || safeSettings.watchlistThreshold < 0 || safeSettings.watchlistThreshold > 10000) safeSettings.watchlistThreshold = defaultSettings.watchlistThreshold;
+
+  return safeSettings;
 }
 
 async function saveSettings(settings) {
   try {
     // Prevent storing password if it inadvertently gets passed
-    const safeSettings = { ...settings };
+    const safeSettings = sanitizeSettings(settings);
     delete safeSettings.steamPassword;
 
     // Auto-discover if empty
@@ -159,7 +236,7 @@ async function saveSettings(settings) {
     cachedSettings = { ...safeSettings };
 
     // Write to disk and await
-    await fs.promises.writeFile(settingsPath, JSON.stringify(safeSettings, null, 2), "utf8");
+    await writeJsonAtomically(settingsPath, safeSettings);
     return true;
   } catch (e) {
     console.error("Failed to save settings", e);
@@ -169,9 +246,11 @@ async function saveSettings(settings) {
 
 module.exports = {
   loadSettings,
+  loadSettingsAsync,
   saveSettings,
   getDefaultSettings: () => ({ ...defaultSettings }),
   _clearCache: () => {
     cachedSettings = null;
+    settingsLoadPromise = null;
   },
 };
