@@ -42,8 +42,6 @@ This command can also be used to update the version if you are using .deb / .rpm
 - Displays real-time player counts, ping latency, time-of-day, active mods, maps, and password protection status.
 - **Advanced Filters**: Filter servers dynamically by Country, Map, Perspective (1pp/3pp), Category (Vanilla/Modded), and connection status.
 - **Favorites Filter and Hide Favorites**: Pin favourite servers for quick access, or hide them from the main list to browse new servers more easily.
-- **Watchlist**: Track specific servers for player count thresholds and slot availability, with native desktop notifications when your rules match.
-- Automatically hides unreachable/offline servers to keep the list clean.
 - **Virtual Scroll and Paging**: Switch between classic pagination and endless scrolling for large server lists.
 
 ### Native Mod Manager
@@ -56,6 +54,12 @@ This command can also be used to update the version if you are using .deb / .rpm
 ### Proton and Wine Auto-Detection
 - Automatically scans your Steam directories to detect installed Proton versions (Proton GE, Experimental, etc.).
 - Launch DayZ with the best compatibility layer in one click.
+
+### Watchlist and Auto-Join System
+- **Real-Time Threshold Monitoring**: Continuously evaluates target servers against user-defined player capacity thresholds (queue slot availability or minimum population targets).
+- **Automated Join**: Automatically initiates the server connection sequence upon threshold fulfillment, displaying a 5-second cancelable countdown modal before execution.
+- **Interactive Alerts**: Integrates native OS desktop notifications and in-app toasts, allowing direct 1-click connection popup regardless of active tab or window focus state.
+- **Stateful Monitoring Controls**: Provides instant 1-click status reset directly from the table status indicator to transition fulfilled notifications back to active monitoring state.
 
 ### Performance Tuning and Game Optimization
 - Inject optimal launch arguments with simple toggles: `-nosplash`, `-noPause`, `-limitFPS`, etc.
