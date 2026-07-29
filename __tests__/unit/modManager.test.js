@@ -105,7 +105,7 @@ describe("modManager", () => {
 
     test("returns empty array when modDirectory does not exist", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: "/nonexistent/path" })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: "/nonexistent/path" })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -115,7 +115,7 @@ describe("modManager", () => {
 
     test("returns empty array when modDirectory is empty string", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: "" })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: "" })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -130,7 +130,7 @@ describe("modManager", () => {
       fs.writeFileSync(path.join(modDir, "meta.cpp"), 'name = "Test Mod";');
 
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -146,7 +146,7 @@ describe("modManager", () => {
       fs.writeFileSync(path.join(tmpDir, "12345", "meta.cpp"), 'name = "Mod";');
 
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -168,7 +168,7 @@ describe("modManager", () => {
       );
 
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -207,7 +207,7 @@ describe("modManager", () => {
       fs.writeFileSync(path.join(modDir, "test.txt"), "content");
 
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -218,7 +218,7 @@ describe("modManager", () => {
 
     test("returns false for non-existent mod", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -228,7 +228,7 @@ describe("modManager", () => {
 
     test("returns false for invalid mod ID", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const modManager = require("../../src/main/modManager");
@@ -239,7 +239,7 @@ describe("modManager", () => {
 
     test("returns false when no mod directory is configured", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({})),
+        loadSettingsAsync: jest.fn(() => ({})),
       }));
 
       const modManager = require("../../src/main/modManager");

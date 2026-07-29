@@ -75,8 +75,7 @@ async function checkProtonStatus() {
 }
 
 async function checkDiskSpaceAndPermissions() {
-  const loadSettings = settingsManager.loadSettingsAsync || (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   const modDir = settings.modDirectory;
 
   if (!modDir) {

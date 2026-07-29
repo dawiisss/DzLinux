@@ -42,7 +42,7 @@ describe("logParser", () => {
 
     // Use doMock so we can reference tmpDir-derived paths at runtime
     jest.doMock("../../src/main/settings", () => ({
-      loadSettings: jest.fn(() => ({
+      loadSettingsAsync: jest.fn(() => ({
         modDirectory: path.join(
           tmpDir,
           "steamapps",
@@ -79,7 +79,7 @@ describe("logParser", () => {
     test("returns empty array when modDirectory is empty string", async () => {
       jest.resetModules();
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: "" })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: "" })),
       }));
       const logParser = require("../../src/main/logParser");
       const logs = await logParser.getRecentLogs();
@@ -89,7 +89,7 @@ describe("logParser", () => {
     test("returns empty array when modDirectory does not exist", async () => {
       jest.resetModules();
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: "/non/existent/path" })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: "/non/existent/path" })),
       }));
       const logParser = require("../../src/main/logParser");
       const logs = await logParser.getRecentLogs();

@@ -24,6 +24,10 @@ if (!gotTheLock) {
     "js-flags",
     "--max-old-space-size=512 --optimize-for-size",
   );
+  app.commandLine.appendSwitch(
+    "autoplay-policy",
+    "no-user-gesture-required",
+  );
 
   if (
     process.platform === "linux" &&

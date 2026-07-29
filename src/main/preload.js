@@ -88,6 +88,12 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.on("open-watchlist", handler);
       return () => ipcRenderer.removeListener("open-watchlist", handler);
     },
+    onAutoJoin: (callback) => {
+      const handler = (_event, server) => callback(server);
+      ipcRenderer.on("open-watchlist-autojoin", handler);
+      return () =>
+        ipcRenderer.removeListener("open-watchlist-autojoin", handler);
+    },
   },
 
   diagnostics: {

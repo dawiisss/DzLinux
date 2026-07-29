@@ -9,9 +9,7 @@ const MOD_UPDATE_TOLERANCE_SECONDS = 3600; // 1 hour buffer for timezone/downloa
 
 // Scans the modDirectory, finds all workshop mod folders, parses meta.cpp for names and returns mod details
 async function getInstalledMods() {
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   const modDir = settings.modDirectory;
 
   if (!modDir) {
@@ -200,9 +198,7 @@ function safeModPath(modDirectory, modId) {
 // Open folder in system file explorer
 async function openModFolder(modId) {
   if (!validateModId(modId)) return false;
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   const modPath = safeModPath(settings.modDirectory, modId);
   if (!modPath) return false;
   const pathExists = await fs.promises.access(modPath).then(() => true).catch(() => false);
@@ -214,9 +210,7 @@ async function openModFolder(modId) {
 // Safely delete a mod folder recursively
 async function deleteMod(modId) {
   if (!validateModId(modId)) return false;
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   const modPath = safeModPath(settings.modDirectory, modId);
   if (!modPath) return false;
   const pathExists = await fs.promises.access(modPath).then(() => true).catch(() => false);
@@ -242,9 +236,7 @@ async function checkModUpdates(mods, detailed = false) {
   // For simplicity, we process them in chunks of 50.
   const chunkSize = 50;
   const outdatedMods = [];
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   if (!settings.modDirectory) {
     return detailed ? { outdatedMods: [], totalChecked: 0 } : [];
   }

@@ -1186,7 +1186,8 @@
             <table class="server-table">
               <thead>
                 <tr>
-                  <th style="width: 60px; text-align: center">ACT</th>
+                  <th style="width: 70px; text-align: center">Active</th>
+                  <th style="width: 80px; text-align: center">Auto-Join</th>
                   <th>Server Name</th>
                   <th style="width: 100px">Players</th>
                   <th style="width: 280px">Threshold / Mode</th>
@@ -2123,6 +2124,61 @@
             CANCEL
           </button>
           <button id="directConnectBtn" class="btn">Connect Now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Watchlist Auto-Join Countdown -->
+    <div id="autoJoinModal" class="modal-overlay" style="display: none">
+      <div
+        class="modal-box"
+        style="border-color: var(--accent); max-width: 480px; text-align: center;"
+      >
+        <div class="modal-header" style="background: rgba(var(--accent-rgb), 0.1); justify-content: center;">
+          <h2
+            style="
+              color: var(--accent);
+              display: inline-flex;
+              align-items: center;
+              gap: 8px;
+            "
+          >
+            <app-icon
+              name="bell"
+              style="width: 1.2rem; height: 1.2rem"
+              stroke-width="2"
+              fill="none"
+              stroke="currentColor"
+            ></app-icon>
+            Server Slot Available
+          </h2>
+        </div>
+        <div class="modal-body" style="padding: 20px 15px;">
+          <p id="autoJoinServerName" class="modal-description" style="font-weight: bold; font-size: 1.05rem; color: var(--text-bright); margin-bottom: 5px;">
+            Target Server Name
+          </p>
+          <p id="autoJoinServerIp" style="font-family: 'Share Tech Mono', monospace; color: var(--accent); font-size: 0.9rem; margin-bottom: 20px;">
+            127.0.0.1:2302
+          </p>
+          <div style="margin: 15px 0; display: flex; flex-direction: column; align-items: center;">
+            <div id="autoJoinCountdownCircle" style="font-size: 2.5rem; font-family: 'Share Tech Mono', monospace; font-weight: 700; color: var(--accent); text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);">
+              5
+            </div>
+            <span id="autoJoinSubtitle" style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">
+              Auto-connecting in seconds...
+            </span>
+          </div>
+        </div>
+        <div
+          class="modal-actions"
+          style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;"
+        >
+          <button id="btnAutoJoinCancel" class="btn btn-outline" style="border-color: var(--accent-red); color: var(--accent-red);">
+            Cancel Auto-Join
+          </button>
+          <button id="btnAutoJoinNow" class="btn">
+            Join Now
+          </button>
         </div>
       </div>
     </div>

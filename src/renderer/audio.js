@@ -12,8 +12,9 @@ export function playAudioFeedback(type) {
       sharedAudioCtx = new AudioContext();
     }
     const ctx = sharedAudioCtx;
+    if (ctx.state === "closed") return;
     if (ctx.state === "suspended") {
-      ctx.resume();
+      ctx.resume().catch(() => {});
     }
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();

@@ -174,17 +174,58 @@ export function applyPingResult(server, statusObj) {
   }
 }
 
+// Keep behaviourally in sync with src/main/validation.js (isValidIpOrHost /
+// isValidPort) — the renderer cannot use node:net, so net.isIP() is mirrored
+// with the regexes below. Parity is enforced by
+// __tests__/unit/validationParity.test.js.
+
+// IPv4 octet without leading zeros, matching net.isIP() (e.g. "01.2.3.4" is rejected).
+const IPV4_OCTET = "(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])";
+const ipv4Regex = new RegExp(`^${IPV4_OCTET}(?:\\.${IPV4_OCTET}){3}$`);
+
+// Pure-hex RFC 4291 IPv6 forms: full and all compressed (::) shapes.
+const IPV6_SEG = "[0-9a-fA-F]{1,4}";
+const ipv6Regex = new RegExp(
+  "^(?:" +
+    `(?:${IPV6_SEG}:){7}${IPV6_SEG}|` +
+    `(?:${IPV6_SEG}:){1,7}:|` +
+    `(?:${IPV6_SEG}:){1,6}:${IPV6_SEG}|` +
+    `(?:${IPV6_SEG}:){1,5}(?::${IPV6_SEG}){1,2}|` +
+    `(?:${IPV6_SEG}:){1,4}(?::${IPV6_SEG}){1,3}|` +
+    `(?:${IPV6_SEG}:){1,3}(?::${IPV6_SEG}){1,4}|` +
+    `(?:${IPV6_SEG}:){1,2}(?::${IPV6_SEG}){1,5}|` +
+    `${IPV6_SEG}:(?::${IPV6_SEG}){1,6}|` +
+    `:(?:(?::${IPV6_SEG}){1,7}|:)` +
+    ")$",
+);
+
+// Mirrors net.isIP() == 6 semantics, including IPv4-embedded forms such as
+// "::ffff:1.2.3.4": the dotted tail must be a valid IPv4 address and counts
+// as two hex groups when validating the head.
+function isValidIpv6(value) {
+  if (!value.includes(".")) {
+    return ipv6Regex.test(value);
+  }
+  const lastColon = value.lastIndexOf(":");
+  if (lastColon === -1) return false;
+  const embeddedV4 = value.slice(lastColon + 1);
+  const hexHead = value.slice(0, lastColon + 1);
+  return ipv4Regex.test(embeddedV4) && ipv6Regex.test(`${hexHead}0:0`);
+}
+
 export function isValidIpOrHost(value) {
   if (typeof value !== "string" || value.length === 0 || value.length > 253) {
     return false;
   }
-  const ipv4Regex = /^(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (ipv4Regex.test(value)) {
     return true;
   }
-  const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$|^::1$/;
-  if (ipv6Regex.test(value)) {
-    return true;
+  // net.isIP() accepts an optional non-empty "%zone" suffix on IPv6 addresses
+  const zoneMatch = value.match(/^([^%]+)%([^\s%]+)$/);
+  if (!value.includes("%") || zoneMatch) {
+    if (isValidIpv6(zoneMatch ? zoneMatch[1] : value)) {
+      return true;
+    }
   }
   if (value.toLowerCase() === "localhost") {
     return true;

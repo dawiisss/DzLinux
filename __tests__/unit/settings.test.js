@@ -44,7 +44,7 @@ describe("settings", () => {
     jest.restoreAllMocks();
   });
 
-  test("loadSettings returns defaults when no file exists", async () => {
+  test("loadSettingsAsync returns defaults when no file exists", async () => {
     const { loadSettingsAsync } = require("../../src/main/settings");
     const settings = await loadSettingsAsync();
     expect(settings.launchParams).toBe("");
@@ -54,7 +54,7 @@ describe("settings", () => {
     expect(settings.showDiagnosticsTab).toBe(true);
   });
 
-  test("saveSettings then loadSettings round-trips correctly", async () => {
+  test("saveSettings then loadSettingsAsync round-trips correctly", async () => {
     const { loadSettingsAsync, saveSettings } = require("../../src/main/settings");
     const toSave = {
       launchParams: "-nosplash",
@@ -79,7 +79,7 @@ describe("settings", () => {
     ]);
   });
 
-  test("loadSettings ignores unknown keys (prototype pollution guard)", async () => {
+  test("loadSettingsAsync ignores unknown keys (prototype pollution guard)", async () => {
     const malicious = {
       __proto__: { polluted: true },
       constructor: { prototype: { polluted: true } },
@@ -106,7 +106,7 @@ describe("settings", () => {
     expect(raw.theme).toBe("toxic");
   });
 
-  test("loadSettings merges defaults for missing fields", async () => {
+  test("loadSettingsAsync merges defaults for missing fields", async () => {
     fs.writeFileSync(
       settingsPath,
       JSON.stringify({ theme: "vampire" }),

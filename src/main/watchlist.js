@@ -6,6 +6,7 @@ const { writeJsonAtomically } = require("./fileUtils");
 const { validateCurrentServers, validateWatchlist } = require("./validation");
 
 const WATCHLIST_FILE = path.join(app.getPath("userData"), "watchlist.json");
+const activeNotifications = new Set();
 
 /**
  * Loads the watchlist from persistent settings.
@@ -31,9 +32,7 @@ async function loadWatchlist() {
       return [...cachedWatchlist];
     }
     // Migration check
-    const loadSettings = settingsManager.loadSettingsAsync ||
-      (() => Promise.resolve(settingsManager.loadSettings()));
-    const settings = await loadSettings();
+    const settings = await settingsManager.loadSettingsAsync();
     if (settings.watchlist && settings.watchlist.length > 0) {
       const watchlist = settings.watchlist;
       cachedWatchlist = [...watchlist];
@@ -92,9 +91,7 @@ async function saveWatchlist(watchlist) {
  */
 async function processWatchlistChecks(currentServers) {
   if (!validateCurrentServers(currentServers)) return [];
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   const watchlist = await loadWatchlist();
   const globalThreshold =
     settings.watchlistThreshold !== undefined
@@ -112,7 +109,16 @@ async function processWatchlistChecks(currentServers) {
   const serverMap = new Map(currentServers.map((s) => [`${s.ip}:${s.port}`, s]));
 
   watchlist.forEach((item) => {
-    if (!item.active) return;
+    if (!item.active) {
+      if (item.lastStatus === "notified") {
+        console.log(
+          `[Watchlist] RESET: ${item.name || item.ip} — item deactivated, resetting status to idle`,
+        );
+        item.lastStatus = "idle";
+        changed = true;
+      }
+      return;
+    }
     activeCount++;
 
     const server = serverMap.get(`${item.ip}:${item.port}`);
@@ -138,18 +144,41 @@ async function processWatchlistChecks(currentServers) {
       console.log(`[Watchlist] NOTIFY: ${title} — ${body}`);
 
       let nativeShown = false;
+      const targetServerPayload = {
+        ip: item.ip,
+        port: item.port,
+        queryPort: server.queryPort || item.queryPort || null,
+        name: server.name || item.name || "Unknown Server",
+        autoJoin: !!item.autoJoin,
+      };
+
       if (ElectronNotification.isSupported()) {
         try {
           const n = new ElectronNotification({ title, body, icon: iconPath });
-          n.show();
+          activeNotifications.add(n);
+
+          const cleanup = () => {
+            activeNotifications.delete(n);
+          };
+
           n.on("click", () => {
+            cleanup();
             BrowserWindow.getAllWindows().forEach((win) => {
               if (win.isMinimized()) win.restore();
               win.show();
               win.focus();
               win.webContents.send("open-watchlist");
+              win.webContents.send(
+                "open-watchlist-autojoin",
+                targetServerPayload,
+              );
             });
           });
+
+          n.on("close", cleanup);
+          n.on("failed", cleanup);
+
+          n.show();
           nativeShown = true;
           console.log("[Watchlist] Native notification shown");
         } catch (e) {
@@ -159,7 +188,13 @@ async function processWatchlistChecks(currentServers) {
         console.log("[Watchlist] Notification.isSupported() returned false");
       }
 
-      triggeredNotifications.push({ title, body, nativeShown });
+      triggeredNotifications.push({
+        title,
+        body,
+        nativeShown,
+        autoJoin: !!item.autoJoin,
+        server: targetServerPayload,
+      });
       triggeredCount++;
 
       item.lastStatus = "notified";

@@ -59,9 +59,7 @@ async function checkMods(requiredMods) {
       .then(() => true)
       .catch(() => false);
 
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
   const hasModDir = settings.modDirectory
     ? await existsAsync(settings.modDirectory)
     : false;
@@ -124,9 +122,7 @@ async function checkMods(requiredMods) {
 }
 
 async function launchDayZ(ip, port, mods) {
-  const loadSettings = settingsManager.loadSettingsAsync ||
-    (() => Promise.resolve(settingsManager.loadSettings()));
-  const settings = await loadSettings();
+  const settings = await settingsManager.loadSettingsAsync();
 
   if (settings.enableGameMode) {
     const gamemodeAvailable = await checkGameMode();

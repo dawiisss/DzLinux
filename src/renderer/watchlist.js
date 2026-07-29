@@ -101,7 +101,7 @@ export async function renderWatchlist() {
   tbody.replaceChildren();
   const loadingTr = document.createElement("tr");
   const loadingTd = document.createElement("td");
-  loadingTd.colSpan = 7;
+  loadingTd.colSpan = 8;
   loadingTd.className = "empty-state-msg";
   loadingTd.textContent = "Loading watchlist...";
   loadingTr.appendChild(loadingTd);
@@ -114,7 +114,7 @@ export async function renderWatchlist() {
     if (watchlist.length === 0) {
       const emptyTr = document.createElement("tr");
       const emptyTd = document.createElement("td");
-      emptyTd.colSpan = 7;
+      emptyTd.colSpan = 8;
       emptyTd.className = "empty-state-msg";
       emptyTd.textContent =
         "Your watchlist is empty. Right-click a server to start watching.";
@@ -145,7 +145,9 @@ export async function renderWatchlist() {
       input.title = "Toggle Watchlist Status";
       input.addEventListener("change", async () => {
         item.active = input.checked;
+        item.lastStatus = "idle";
         await window.api.watchlist.save(watchlist);
+        await renderWatchlist();
         showToast(
           `Watchlist: ${item.name} ${item.active ? "activated" : "deactivated"}`,
           item.active ? "var(--accent-green)" : "var(--text-dim)",
@@ -157,6 +159,34 @@ export async function renderWatchlist() {
       label.appendChild(input);
       label.appendChild(span);
       tdActive.appendChild(label);
+
+      // Auto-Join toggle
+      const tdAutoJoin = document.createElement("td");
+      tdAutoJoin.style.textAlign = "center";
+      const autoJoinLabel = document.createElement("label");
+      autoJoinLabel.className = "switch";
+      const autoJoinInput = document.createElement("input");
+      autoJoinInput.type = "checkbox";
+      autoJoinInput.checked = !!item.autoJoin;
+      autoJoinInput.setAttribute(
+        "aria-label",
+        `Toggle Auto-Join on Notify for ${item.name || "Unknown Server"}`,
+      );
+      autoJoinInput.title = "Auto-Join on Notify";
+      autoJoinInput.addEventListener("change", async () => {
+        item.autoJoin = autoJoinInput.checked;
+        await window.api.watchlist.save(watchlist);
+        showToast(
+          `Auto-Join ${item.autoJoin ? "enabled" : "disabled"} for ${item.name || "Server"}`,
+          item.autoJoin ? "var(--accent-green)" : "var(--text-dim)",
+          "bell",
+        );
+      });
+      const autoJoinSpan = document.createElement("span");
+      autoJoinSpan.className = "slider";
+      autoJoinLabel.appendChild(autoJoinInput);
+      autoJoinLabel.appendChild(autoJoinSpan);
+      tdAutoJoin.appendChild(autoJoinLabel);
 
       // Name
       const tdName = document.createElement("td");
@@ -263,6 +293,15 @@ export async function renderWatchlist() {
       const statusBadge = document.createElement("span");
       statusBadge.className = "hud-badge";
       statusBadge.style.fontSize = "0.7rem";
+      statusBadge.style.cursor = "pointer";
+      statusBadge.title = "Click to reset status to Monitoring";
+      statusBadge.setAttribute("role", "button");
+      statusBadge.setAttribute("tabindex", "0");
+      statusBadge.setAttribute(
+        "aria-label",
+        `Current status: ${item.lastStatus === "notified" ? "Notified" : "Monitoring"}. Click to reset to Monitoring.`,
+      );
+
       if (item.lastStatus === "notified") {
         statusBadge.textContent = "🔔 Notified";
         statusBadge.className += " badge-approved";
@@ -270,6 +309,28 @@ export async function renderWatchlist() {
         statusBadge.textContent = "🛰️ Monitoring";
         statusBadge.className += " badge-time";
       }
+
+      const resetStatus = async () => {
+        if (item.lastStatus === "notified") {
+          item.lastStatus = "idle";
+          await window.api.watchlist.save(watchlist);
+          await renderWatchlist();
+          showToast(
+            `Status reset to Monitoring for ${item.name || "Server"}`,
+            "var(--accent)",
+            "rotate-ccw",
+          );
+        }
+      };
+
+      statusBadge.addEventListener("click", resetStatus);
+      statusBadge.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          resetStatus();
+        }
+      });
+
       tdStatus.appendChild(statusBadge);
 
       // IP
@@ -312,6 +373,7 @@ export async function renderWatchlist() {
       tdAction.appendChild(delBtn);
 
       tr.appendChild(tdActive);
+      tr.appendChild(tdAutoJoin);
       tr.appendChild(tdName);
       tr.appendChild(tdPlayers);
       tr.appendChild(tdThreshold);
@@ -324,12 +386,100 @@ export async function renderWatchlist() {
     console.error("Watchlist render fail", e);
     const errorTr = document.createElement("tr");
     const errorTd = document.createElement("td");
-    errorTd.colSpan = 7;
+    errorTd.colSpan = 8;
     errorTd.className = "empty-state-msg text-red";
     errorTd.textContent = "Failed to load watchlist.";
     errorTr.appendChild(errorTd);
     tbody.appendChild(errorTr);
   }
+}
+
+let autoJoinTimer = null;
+
+export function showAutoJoinModal(server, options = {}) {
+  if (!server || !server.ip || !server.port) return;
+  const modal = document.getElementById("autoJoinModal");
+  if (!modal) return;
+
+  const serverNameEl = document.getElementById("autoJoinServerName");
+  const serverIpEl = document.getElementById("autoJoinServerIp");
+  const circleEl = document.getElementById("autoJoinCountdownCircle");
+  const subtitleEl = document.getElementById("autoJoinSubtitle");
+
+  if (serverNameEl) serverNameEl.textContent = server.name || "Unknown Server";
+  if (serverIpEl) serverIpEl.textContent = `${server.ip}:${server.port}`;
+
+  if (autoJoinTimer) {
+    clearInterval(autoJoinTimer);
+    autoJoinTimer = null;
+  }
+
+  const useTimer = options.timer !== false;
+
+  const closeModal = () => {
+    if (autoJoinTimer) {
+      clearInterval(autoJoinTimer);
+      autoJoinTimer = null;
+    }
+    modal.style.display = "none";
+  };
+
+  const executeJoin = () => {
+    closeModal();
+    document.dispatchEvent(
+      new CustomEvent("dzlinux:connect-server", { detail: { server } }),
+    );
+  };
+
+  const handleCancel = () => {
+    closeModal();
+    showToast("Connection cancelled", "var(--text-dim)", "x-circle");
+  };
+
+  const cancelBtn = document.getElementById("btnAutoJoinCancel");
+  const nowBtn = document.getElementById("btnAutoJoinNow");
+
+  cancelBtn?.replaceWith(cancelBtn.cloneNode(true));
+  nowBtn?.replaceWith(nowBtn.cloneNode(true));
+
+  const freshCancelBtn = document.getElementById("btnAutoJoinCancel");
+  const freshNowBtn = document.getElementById("btnAutoJoinNow");
+
+  freshCancelBtn?.addEventListener("click", handleCancel);
+  freshNowBtn?.addEventListener("click", executeJoin);
+
+  if (useTimer) {
+    let countdown = 5;
+    if (circleEl) {
+      circleEl.style.display = "block";
+      circleEl.textContent = String(countdown);
+    }
+    if (subtitleEl) {
+      subtitleEl.textContent = "Auto-connecting in seconds...";
+    }
+    if (freshCancelBtn) {
+      freshCancelBtn.textContent = "Cancel Auto-Join";
+    }
+    autoJoinTimer = setInterval(() => {
+      countdown -= 1;
+      if (circleEl) circleEl.textContent = String(countdown);
+      if (countdown <= 0) {
+        executeJoin();
+      }
+    }, 1000);
+  } else {
+    if (circleEl) {
+      circleEl.style.display = "none";
+    }
+    if (subtitleEl) {
+      subtitleEl.textContent = "Would you like to connect to this server now?";
+    }
+    if (freshCancelBtn) {
+      freshCancelBtn.textContent = "Cancel";
+    }
+  }
+
+  modal.style.display = "flex";
 }
 
 export function initWatchlist() {
@@ -350,11 +500,24 @@ export function initWatchlist() {
 
   window.api.watchlist.onNotify((notifications) => {
     notifications.forEach((n) => {
-      showToast(n.title, "var(--accent-green)", "bell");
+      const useTimer = !!n.autoJoin;
+      showToast(n.title, "var(--accent)", "bell", () => {
+        if (n.server) showAutoJoinModal(n.server, { timer: useTimer });
+      });
+      if (useTimer && n.server) {
+        showAutoJoinModal(n.server, { timer: true });
+      }
     });
   });
 
   window.api.watchlist.onOpen(() => {
     document.dispatchEvent(new CustomEvent("dzlinux:switch-tab", { detail: { tab: "watchlist" } }));
+  });
+
+  window.api.watchlist.onAutoJoin?.((server) => {
+    if (server && server.ip && server.port) {
+      const useTimer = !!server.autoJoin;
+      showAutoJoinModal(server, { timer: useTimer });
+    }
   });
 }

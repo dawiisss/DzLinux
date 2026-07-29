@@ -82,29 +82,51 @@ export const state = {
 
 export async function addFavorite(ip, port, queryPort, name) {
   const key = `${ip}:${port}`;
-  if (!state.favoritesSet.has(key)) {
-    state.favorites.push({
+  if (state.favoritesSet.has(key)) return;
+
+  const nextFavorites = [
+    ...state.favorites,
+    {
       ip,
       port: parseInt(port, 10),
       queryPort: queryPort || null,
       name: name || "",
-    });
-    state.favoritesSet.add(key);
-    if (state.settings) {
-      state.settings.favorites = state.favorites;
-    }
-    await window.api.settings.saveFavorites({ favorites: state.favorites });
+    },
+  ];
+
+  // Persist first — only commit to local state after the main process
+  // confirms the save, so a rejected or failed save never leaves a
+  // phantom favorite in the renderer.
+  const saved = await window.api.settings.saveFavorites({
+    favorites: nextFavorites,
+  });
+  if (saved === false) throw new Error("Failed to persist favorites");
+
+  state.favorites = nextFavorites;
+  state.favoritesSet.add(key);
+  if (state.settings) {
+    state.settings.favorites = state.favorites;
   }
 }
 
 export async function removeFavorite(ip, port) {
   const key = `${ip}:${port}`;
-  state.favorites = state.favorites.filter((f) => `${f.ip}:${f.port}` !== key);
+  const nextFavorites = state.favorites.filter(
+    (f) => `${f.ip}:${f.port}` !== key,
+  );
+  if (nextFavorites.length === state.favorites.length) return;
+
+  // Persist first — see addFavorite for rationale.
+  const saved = await window.api.settings.saveFavorites({
+    favorites: nextFavorites,
+  });
+  if (saved === false) throw new Error("Failed to persist favorites");
+
+  state.favorites = nextFavorites;
   state.favoritesSet.delete(key);
   if (state.settings) {
     state.settings.favorites = state.favorites;
   }
-  await window.api.settings.saveFavorites({ favorites: state.favorites });
 }
 
 export function setFavoritesFromSettings(settings) {

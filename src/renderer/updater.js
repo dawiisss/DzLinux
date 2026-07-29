@@ -187,7 +187,7 @@ export function initUpdater() {
         return;
       }
 
-      showToast("Checking for updates...", "#2ec4b6", "🔄");
+      showToast("Checking for updates...", "#2ec4b6", "rotate-ccw");
       try {
         const result = await window.api.updater.check();
         latestResult = result;

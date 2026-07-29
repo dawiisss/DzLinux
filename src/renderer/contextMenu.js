@@ -121,7 +121,7 @@ export function initContextMenu() {
         lastStatus: "idle",
       });
       await window.api.watchlist.save(watchlist);
-      showToast(`Watching: ${server.name}`, "var(--accent-green)", EYE_SVG);
+      showToast(`Watching: ${server.name}`, "var(--accent)", EYE_SVG);
     });
 
     addMenuItem("Copy Address", COPY_SVG, () =>

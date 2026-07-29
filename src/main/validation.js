@@ -1,5 +1,10 @@
 const net = require("node:net");
 
+// NOTE: isValidIpOrHost and isValidPort are deliberately duplicated in
+// src/renderer/utils.js — the renderer cannot use node:net, so it mirrors
+// net.isIP() with regexes. Keep both implementations behaviourally in sync;
+// parity is enforced by __tests__/unit/validationParity.test.js.
+
 const MAX_NAME_LENGTH = 200;
 const MAX_TEXT_LENGTH = 4096;
 const MIN_QUERY_CONCURRENCY = 10;
@@ -66,7 +71,8 @@ function validateWatchlistItem(value) {
         value.threshold <= 10000)) &&
     VALID_MODES.has(value.mode || "below") &&
     VALID_STATUSES.has(value.lastStatus || "idle") &&
-    isBoundedString(value.name || "", MAX_NAME_LENGTH)
+    isBoundedString(value.name || "", MAX_NAME_LENGTH) &&
+    (value.autoJoin === undefined || typeof value.autoJoin === "boolean")
   );
 }
 

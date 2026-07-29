@@ -161,10 +161,6 @@ async function loadSettingsFromDisk() {
   return { ...cachedSettings };
 }
 
-function loadSettings() {
-  return loadSettingsAsync();
-}
-
 function sanitizeSettings(settings) {
   const safeSettings = { ...defaultSettings };
   if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
@@ -245,7 +241,6 @@ async function saveSettings(settings) {
 }
 
 module.exports = {
-  loadSettings,
   loadSettingsAsync,
   saveSettings,
   getDefaultSettings: () => ({ ...defaultSettings }),

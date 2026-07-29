@@ -86,7 +86,7 @@ describe("IPC handler registration", () => {
     );
 
     jest.doMock("../../src/main/settings", () => ({
-      loadSettings: jest.fn(() => ({
+      loadSettingsAsync: jest.fn(() => ({
         nativeWayland: false,
         modDirectory: "",
         favorites: [],

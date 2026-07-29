@@ -53,7 +53,7 @@ describe("game", () => {
 
     test("returns hasAllMods true for empty mod list", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const game = require("../../src/main/game");
@@ -64,7 +64,7 @@ describe("game", () => {
 
     test("returns hasAllMods true for null mod list", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const game = require("../../src/main/game");
@@ -75,7 +75,7 @@ describe("game", () => {
 
     test("returns all mods missing when modDirectory does not exist", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: "/nonexistent" })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: "/nonexistent" })),
       }));
 
       const game = require("../../src/main/game");
@@ -89,7 +89,7 @@ describe("game", () => {
       fs.mkdirSync(path.join(modDir, "addons"), { recursive: true });
 
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const game = require("../../src/main/game");
@@ -100,7 +100,7 @@ describe("game", () => {
 
     test("detects missing mod (no directory)", async () => {
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({ modDirectory: tmpDir })),
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
       }));
 
       const game = require("../../src/main/game");
@@ -189,7 +189,7 @@ describe("game", () => {
       );
 
       jest.doMock("../../src/main/settings", () => ({
-        loadSettings: jest.fn(() => ({
+        loadSettingsAsync: jest.fn(() => ({
           modDirectory: "/tmp",
           enableGameMode: false,
           protonPath: "default",

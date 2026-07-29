@@ -10,6 +10,31 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.5.0] - 2026-07-29
+
+### Added
+
+- **Watchlist Auto-Join & Interactive Status Controls:** Renamed the Watchlist active column header to "Active" and added an "Auto-Join" toggle switch to each item in the Watchlist table along with an interactive server connection modal (`#autoJoinModal`). When an active watched server threshold triggers with Auto-Join enabled, DzLinux displays a 5-second cancelable countdown modal. When Auto-Join is disabled, clicking the notification or toast opens a regular connection prompt without a countdown timer. Clicking the "Last Status" badge or toggling a watched server's active switch immediately resets its status back to monitoring, and active desktop notification instances are retained in main-process memory to prevent garbage collection from breaking click listeners across tabs.
+- **Expanded Automated Test Coverage:** Added 198 automated tests (242 → 440 total, overall statement coverage ~65% → ~77%). New suites cover the DXVK configuration writer (now 100%), the custom Proton launch pipeline (~94% — argument building, `%command%` expansion, GameMode/MangoHud wrappers, exit handling), server query port selection (~95% — CDN port → cached port → +1/+2/+3/27016 offset scanning, stale cache eviction, 30-day TTL, 5,000-entry cap, debounced cache writes), and all 46 IPC channels (~95% — input validation, payload filtering, and ping cancellation at the main-process boundary).
+
+### Changed
+
+- **Internal IPC Architecture:** Split the ~380-line IPC registration module into focused domain modules under `src/main/ipc/` (settings, servers, game, mods, watchlist, steamworks, system, plus a shared path-traversal guard). This is a pure refactor: all 46 IPC channels behave identically, verified by the full test suite without modification.
+- **Simplified Settings Loading:** Removed a legacy sync/async settings-loading fallback from 14 call sites across the main process and deleted the redundant `loadSettings` alias. Settings now load through a single asynchronous path everywhere.
+- **Dependency Updates:** Updated `eslint` (10.8.0), `electron` (43.2.0), `globals` (17.8.0), `lint-staged` (17.2.0), and `minimatch` (10.2.6 — the first release to declare the patched `brace-expansion ^5.0.8` floor).
+
+### Fixed
+
+- **Address Validation Consistency:** Aligned the renderer's Direct Join address validation with the main process's `net.isIP()` checks. Leading-zero IPv4 addresses (e.g. `01.2.3.4`) are now rejected, and all IPv6 forms (compressed addresses, zone IDs, IPv4-embedded suffixes) behave identically on both sides. A new parity test suite (103 cases) prevents the two validators from drifting apart again.
+- **Test Isolation for Server Query Cache:** Fixed the server query test suite so cache tests run against a temporary directory instead of the real user cache at `~/.config/dzlinux/query_port_cache.json`.
+- **Favorite Server Validation:** Manually adding a favorite now validates the IP/hostname and port in the renderer before saving (matching the main-process checks), and favorites are only committed to local state after a successful save — a rejected or failed save no longer leaves a phantom entry or an unhandled promise rejection.
+- **Unbounded Favorites Pinging:** Refreshing favorite pings now runs through a bounded worker pool (at most 50 concurrent queries) instead of firing one GameDig query per favorite simultaneously, preventing UDP socket exhaustion on large favorite lists.
+- **Toast Icon Identifier:** Replaced the last emoji-as-icon toast call site ("Checking for updates...") with the registered `rotate-ccw` icon per project icon conventions.
+
+### Security
+
+- **Vulnerability Remediation:** Resolved a high-severity denial-of-service advisory in transitive dependency `brace-expansion` (CVE-2026-14257 / GHSA-mh99-v99m-4gvg) by forcing `brace-expansion` to `^5.0.8` via workspace overrides in `pnpm-workspace.yaml`. Also upgraded `@electron/asar` to `^4.2.1` so release packaging stays on the compatible `minimatch` 10.x chain, avoiding the `brace_expansion_1.expand is not a function` packaging failure class addressed in 1.4.7. `pnpm audit` now reports zero known vulnerabilities.
+
 ## [1.4.7] - 2026-07-23
 
 ### Added

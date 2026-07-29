@@ -1,12 +1,20 @@
 // No utils needed here
 
-export function showToast(message, borderHex = "#2ec4b6", icon = "clipboard") {
+export function showToast(message, borderHex = "var(--accent)", icon = "clipboard", onClick = null) {
   const existing = document.querySelector(".toast");
   if (existing) existing.remove();
 
   const toast = document.createElement("div");
   toast.className = "toast";
   toast.style.borderLeftColor = borderHex;
+
+  if (typeof onClick === "function") {
+    toast.style.cursor = "pointer";
+    toast.addEventListener("click", () => {
+      onClick();
+      toast.remove();
+    });
+  }
 
   let iconHtml = icon;
   if (typeof icon === "string" && !icon.trim().startsWith("<")) {

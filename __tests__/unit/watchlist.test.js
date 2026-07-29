@@ -9,7 +9,7 @@ const { Notification: ElectronNotification, BrowserWindow } = require("electron"
 const fs = require("fs");
 
 jest.mock("../../src/main/settings", () => ({
-  loadSettings: jest.fn(),
+  loadSettingsAsync: jest.fn(),
   saveSettings: jest.fn(),
 }));
 
@@ -56,7 +56,7 @@ describe("watchlist", () => {
   describe("loadWatchlist", () => {
     test("returns empty array when no watchlist file exists and settings is empty", async () => {
       fs.promises.access.mockRejectedValue(new Error("ENOENT"));
-      settingsManager.loadSettings.mockReturnValue({});
+      settingsManager.loadSettingsAsync.mockReturnValue({});
       expect(await loadWatchlist()).toEqual([]);
     });
 
@@ -72,7 +72,7 @@ describe("watchlist", () => {
     test("migrates watchlist from settings if no standalone file exists", async () => {
       const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
       fs.promises.access.mockRejectedValue(new Error("ENOENT"));
-      settingsManager.loadSettings.mockReturnValue({
+      settingsManager.loadSettingsAsync.mockReturnValue({
         watchlist: mockWatchlist,
         theme: "dark",
       });
@@ -146,7 +146,7 @@ describe("watchlist", () => {
       // Mock loadWatchlist to return our mockWatchlist
       fs.promises.access.mockResolvedValue();
       fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-      settingsManager.loadSettings.mockReturnValue({
+      settingsManager.loadSettingsAsync.mockReturnValue({
         watchlistThreshold: 50,
       });
     });
@@ -213,7 +213,7 @@ describe("watchlist", () => {
     test("uses global threshold if local threshold is missing", async () => {
       delete mockWatchlist[0].threshold;
       fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-      settingsManager.loadSettings.mockReturnValue({
+      settingsManager.loadSettingsAsync.mockReturnValue({
         watchlistThreshold: 45,
       });
 
@@ -223,8 +223,9 @@ describe("watchlist", () => {
       expect(ElectronNotification).toHaveBeenCalled();
     });
 
-    test("skips inactive watchlist items", async () => {
+    test("skips inactive watchlist items and resets lastStatus to idle if notified", async () => {
       mockWatchlist[0].active = false;
+      mockWatchlist[0].lastStatus = "notified";
       fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
 
       await processWatchlistChecks(mockServers);
@@ -232,6 +233,9 @@ describe("watchlist", () => {
       expect(ElectronNotification).not.toHaveBeenCalledWith(
         expect.objectContaining({ title: "🟢 Server Slot Available" }),
       );
+      expect(fs.promises.writeFile).toHaveBeenCalled();
+      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
+      expect(writtenData[0].lastStatus).toBe("idle");
     });
 
     test("does nothing if ElectronNotification is not supported", async () => {
@@ -306,6 +310,28 @@ describe("watchlist", () => {
       expect(mockWindow.show).toHaveBeenCalled();
       expect(mockWindow.focus).toHaveBeenCalled();
       expect(mockWebContents.send).toHaveBeenCalledWith("open-watchlist");
+      expect(mockWebContents.send).toHaveBeenCalledWith(
+        "open-watchlist-autojoin",
+        expect.objectContaining({ ip: "1.2.3.4", port: 2302 }),
+      );
+    });
+
+    test("includes autoJoin flag and server payload in triggered notifications", async () => {
+      mockWatchlist[0].autoJoin = true;
+      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
+
+      const triggered = await processWatchlistChecks(mockServers);
+
+      expect(triggered[0]).toEqual(
+        expect.objectContaining({
+          autoJoin: true,
+          server: expect.objectContaining({
+            ip: "1.2.3.4",
+            port: 2302,
+            name: "Server 1",
+          }),
+        }),
+      );
     });
   });
 });
