@@ -454,16 +454,73 @@ export async function connectToServer(ip, port) {
 }
 
 async function addToHistory(ip, port) {
+  // Respect user setting: skip recording connection history if tracking or history tab is disabled
+  if (state.settings && (state.settings.enableHistory === false || state.settings.showHistoryTab === false)) {
+    return;
+  }
+
+  const portStr = String(port);
+  const portNum = parseInt(port, 10);
   const serverObj = state.allServers.find(
-    (s) => s.ip === ip && s.port === port
+    (s) => s.ip === ip && String(s.port) === portStr
   );
-  const name = serverObj ? serverObj.name : `${ip}:${port}`;
+
+  let realPingVal = 0;
+  if (serverObj) {
+    if (typeof serverObj.realPing === "number" && serverObj.realPing > 0) {
+      realPingVal = serverObj.realPing;
+    } else if (typeof serverObj.ping === "number" && serverObj.ping > 0) {
+      realPingVal = serverObj.ping;
+    }
+  }
+
+  const name = serverObj && serverObj.name ? serverObj.name : `${ip}:${portStr}`;
+  const map = serverObj && serverObj.map ? serverObj.map : "Chernarus";
+  const players = serverObj && typeof serverObj.players === "number" ? serverObj.players : 0;
+  const maxPlayers = serverObj && typeof serverObj.maxPlayers === "number" ? serverObj.maxPlayers : 60;
+
+  const payload = {
+    ip,
+    port: portNum,
+    name,
+    map,
+    ping: realPingVal,
+    players,
+    maxPlayers,
+  };
+
+  if (window.api && window.api.history) {
+    try {
+      await window.api.history.record(payload);
+    } catch (e) {
+      console.error("Failed to record server history payload:", e);
+    }
+  }
+
+  // If initial ping value was zero, ping server in background and update history record once response returns
+  if (realPingVal === 0 && window.api && window.api.servers && window.api.servers.ping) {
+    window.api.servers.ping(ip, portNum, serverObj?.queryPort).then((statusObj) => {
+      if (statusObj && typeof statusObj.ping === "number" && statusObj.ping > 0 && window.api.history) {
+        window.api.history.record({
+          ip,
+          port: portNum,
+          name: statusObj.name || name,
+          map: statusObj.map || map,
+          ping: statusObj.ping,
+          players: typeof statusObj.players === "number" ? statusObj.players : players,
+          maxPlayers: typeof statusObj.maxPlayers === "number" ? statusObj.maxPlayers : maxPlayers,
+        }).then(() => {
+          window.dispatchEvent(new CustomEvent("history-note-updated"));
+        }).catch(() => {});
+      }
+    }).catch(() => {});
+  }
 
   state.history = state.history.filter(
-    (h) => !(h.ip === ip && h.port === port)
+    (h) => !(h.ip === ip && String(h.port) === portStr)
   );
-  state.history.unshift({ ip, port, name, timestamp: Date.now() });
-  if (state.history.length > 50) state.history = state.history.slice(0, 50);
+  state.history.unshift({ ip, port: portNum, name, map, ping: realPingVal, players, maxPlayers, timestamp: Date.now() });
+  if (state.history.length > 500) state.history = state.history.slice(0, 500);
 
   state.historySet = new Set(state.history.map((h) => `${h.ip}:${h.port}`));
 

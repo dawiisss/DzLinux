@@ -10,6 +10,19 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.6.0] - 2026-08-06
+
+### Added
+
+- **Server Connection History & Analytics:** Added a dedicated Connection History & Analytics tab that records server joins, displaying server name, map, last connected time, session count, last ping, and custom server notes. History data is persisted in a standalone `history.json` file with automatic 30-day retention pruning and a 500-record cap. Legacy history entries from `settings.json` are automatically migrated on first load.
+- **Server Connection Analytics Modal:** Built an interactive analytics modal powered by Chart.js for each history entry. Displays player count and ping recorded during your connection sessions over selectable 24h, 7d, and 30d timeframes, aggregate stats (total sessions, average ping, peak players), keyboard shortcuts (Escape key dismissal), and an inline custom server note editor.
+- **Toggle Settings for History and Watchlist:** Added "Enable Connection History & History Tab" and "Enable Watchlist & Watchlist Tab" checkboxes in Settings. Disabling either feature hides its tab and sidebar entry, suppresses all background recording and polling, and hides the "Recently Played" filter pill. Re-enabling Watchlist immediately restarts background polling without requiring an app restart.
+
+### Changed
+
+- **Open Source Acknowledgments:** Updated the About modal and `acknowledgments.txt` to acknowledge `chart.js` (MIT) open-source usage.
+- **Dependency & Security Updates:** Updated `axios` (1.19.0), `electron` (43.3.0), `globals` (17.9.0), and `lint-staged` (17.3.0) via `pnpm update`. Resolved all Dependabot/pnpm security advisories (`fast-uri`, `brace-expansion`) with 0 vulnerabilities remaining.
+
 ## [1.5.0] - 2026-07-29
 
 ### Added

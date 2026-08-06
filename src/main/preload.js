@@ -96,6 +96,17 @@ contextBridge.exposeInMainWorld("api", {
     },
   },
 
+  history: {
+    get: () => ipcRenderer.invoke("history:get"),
+    record: (server) => ipcRenderer.invoke("history:record", server),
+    delete: (id) => ipcRenderer.invoke("history:delete", id),
+    clear: () => ipcRenderer.invoke("history:clear"),
+    saveNote: (serverId, note) =>
+      ipcRenderer.invoke("history:save-note", { serverId, note }),
+    getAnalytics: (serverId) =>
+      ipcRenderer.invoke("history:get-analytics", serverId),
+  },
+
   diagnostics: {
     getRecentLogs: () => ipcRenderer.invoke("get-diagnostics"),
     getSessionSummary: () => ipcRenderer.invoke("get-session-summary"),

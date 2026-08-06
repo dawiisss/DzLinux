@@ -5,10 +5,10 @@ const os = require("node:os");
 const { writeJsonAtomically } = require("./fileUtils");
 
 let userDataPath;
-if (process.versions && process.versions.electron) {
+try {
   const { app } = require("electron");
   userDataPath = app.getPath("userData");
-} else {
+} catch {
   userDataPath = path.join(os.homedir(), ".config", "dzlinux");
 }
 

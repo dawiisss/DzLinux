@@ -92,6 +92,10 @@ async function saveWatchlist(watchlist) {
 async function processWatchlistChecks(currentServers) {
   if (!validateCurrentServers(currentServers)) return [];
   const settings = await settingsManager.loadSettingsAsync();
+  // Respect user setting: skip background watchlist checks and notifications if watchlist is disabled
+  if (settings && (settings.enableWatchlist === false || settings.showWatchlistTab === false)) {
+    return [];
+  }
   const watchlist = await loadWatchlist();
   const globalThreshold =
     settings.watchlistThreshold !== undefined

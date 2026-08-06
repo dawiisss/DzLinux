@@ -8,6 +8,7 @@ const { registerModHandlers } = require("./ipc/modHandlers");
 const { registerWatchlistHandlers } = require("./ipc/watchlistHandlers");
 const { registerSteamworksHandlers } = require("./ipc/steamworksHandlers");
 const { registerSystemHandlers } = require("./ipc/systemHandlers");
+const { registerHistoryHandlers } = require("./ipc/historyHandlers");
 
 function registerIpcHandlers() {
   registerSettingsHandlers();
@@ -17,6 +18,7 @@ function registerIpcHandlers() {
   registerWatchlistHandlers();
   registerSteamworksHandlers();
   registerSystemHandlers();
+  registerHistoryHandlers();
 }
 
 module.exports = {

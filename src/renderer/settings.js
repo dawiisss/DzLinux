@@ -54,10 +54,18 @@ export async function initSettings() {
     settings.listMode || "paging";
   document.getElementById("audioFeedback").value =
     settings.audioFeedback !== false ? "true" : "false";
-  document.getElementById("showWatchlistTab").checked =
-    settings.showWatchlistTab !== false;
+  const watchlistCheckbox = document.getElementById("enableWatchlist");
+  if (watchlistCheckbox) {
+    watchlistCheckbox.checked =
+      settings.enableWatchlist !== false && settings.showWatchlistTab !== false;
+  }
   document.getElementById("showDiagnosticsTab").checked =
     settings.showDiagnosticsTab !== false;
+  const historyCheckbox = document.getElementById("enableHistory");
+  if (historyCheckbox) {
+    historyCheckbox.checked =
+      settings.enableHistory !== false && settings.showHistoryTab !== false;
+  }
   document.getElementById("flagMangoHud").checked =
     settings.mangoHudEnabled === true;
 
@@ -156,6 +164,10 @@ export async function initSettings() {
   // Settings persistence
   const saveSettingsSilently = async (silent) => {
     const prev = state.settings || {};
+    const watchlistEl = document.getElementById("enableWatchlist");
+    const watchlistEnabled = watchlistEl ? watchlistEl.checked : true;
+    const historyEl = document.getElementById("enableHistory");
+    const historyEnabled = historyEl ? historyEl.checked : true;
     const newSettings = {
       ...state.settings,
       playerName: document.getElementById("playerName").value,
@@ -169,8 +181,11 @@ export async function initSettings() {
       layoutMode: document.getElementById("layoutModeSelect").value,
       listMode: document.getElementById("listModeSelect").value,
       audioFeedback: document.getElementById("audioFeedback").value === "true",
-      showWatchlistTab: document.getElementById("showWatchlistTab").checked,
+      showWatchlistTab: watchlistEnabled,
+      enableWatchlist: watchlistEnabled,
       showDiagnosticsTab: document.getElementById("showDiagnosticsTab").checked,
+      showHistoryTab: historyEnabled,
+      enableHistory: historyEnabled,
       protonPath: document.getElementById("protonPath").value,
       mangoHudEnabled: document.getElementById("flagMangoHud").checked,
       dxvkAsyncEnabled: document.getElementById("dxvkAsyncEnabled").checked,
@@ -222,7 +237,9 @@ export async function initSettings() {
 
       const watchlistPollKeysChanged =
         newSettings.watchlistRefreshEnabled !== prev.watchlistRefreshEnabled ||
-        newSettings.watchlistRefreshTime !== prev.watchlistRefreshTime;
+        newSettings.watchlistRefreshTime !== prev.watchlistRefreshTime ||
+        newSettings.enableWatchlist !== prev.enableWatchlist ||
+        newSettings.showWatchlistTab !== prev.showWatchlistTab;
       if (watchlistPollKeysChanged) {
         startWatchlistPoll();
       }

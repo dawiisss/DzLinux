@@ -26,6 +26,11 @@ Source: https://github.com/gamedig/node-gamedig
 License: MIT
 Source: https://github.com/ceifa/steamworks.js
 
+### chart.js
+License: MIT
+Source: https://github.com/chartjs/Chart.js
+
+
 ---
 
 ### MIT License

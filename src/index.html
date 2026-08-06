@@ -143,6 +143,15 @@
           ></app-icon>
           <span>Watchlist</span>
         </button>
+        <button id="sidebar-tab-history" aria-label="History Tab">
+          <app-icon
+            name="history"
+            stroke-width="2"
+            fill="none"
+            stroke="currentColor"
+          ></app-icon>
+          <span>History</span>
+        </button>
         <button id="sidebar-tab-diagnostics" aria-label="Diagnostics Tab">
           <app-icon
             name="wrench"
@@ -216,6 +225,7 @@
         <button id="tab-mods" aria-label="Mod Manager Tab">Mod Manager</button>
         <button id="tab-favorites" aria-label="Favorites Tab">Favorites</button>
         <button id="tab-watchlist" aria-label="Watchlist Tab">Watchlist</button>
+        <button id="tab-history" aria-label="History Tab">History</button>
         <button id="tab-diagnostics" aria-label="Diagnostics Tab">
           Diagnostics
         </button>
@@ -1204,6 +1214,68 @@
         </div>
       </div>
 
+      <!-- HISTORY TAB -->
+      <div
+        id="history"
+        class="tab-content"
+        style="padding: 20px; overflow-y: auto"
+      >
+        <!-- History Toolbar Card -->
+        <div
+          class="card"
+          style="margin-bottom: 20px; border: 1px solid var(--border); background: var(--bg-card); border-radius: 6px; padding: 16px;"
+        >
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h2 style="margin: 0 0 4px 0; font-size: 1.2rem; color: var(--text-bright); display: flex; align-items: center; gap: 8px;">
+                <app-icon name="history"></app-icon> Connection History & Analytics
+              </h2>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="search-box" style="position: relative; width: 220px;">
+                <input
+                  type="text"
+                  id="historySearchInput"
+                  class="form-input"
+                  placeholder="Search history..."
+                  aria-label="Search server connection history"
+                />
+              </div>
+              <button
+                id="btnClearHistory"
+                class="btn btn-outline"
+                style="color: var(--accent-red); border-color: rgba(255, 90, 95, 0.3);"
+                title="Clear all server connection history"
+              >
+                <app-icon name="trash"></app-icon> Clear History
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Table -->
+        <div class="table-card">
+          <div class="table-scroll">
+            <table class="server-table">
+              <thead>
+                <tr>
+                  <th style="width: 90px;">Last Ping</th>
+                  <th>Server Name</th>
+                  <th style="width: 120px;">Map</th>
+                  <th style="width: 160px;">Last Connected</th>
+                  <th style="width: 90px; text-align: center;">Sessions</th>
+                  <th style="width: 220px;">Custom Note</th>
+                  <th style="width: 200px; text-align: right;">Action</th>
+                </tr>
+              </thead>
+              <tbody id="historyListBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- DIAGNOSTICS TAB -->
       <div
         id="diagnostics"
@@ -1571,12 +1643,14 @@
               "
             >
               <label style="display: flex; align-items: center; gap: 10px"
-                ><input type="checkbox" id="showWatchlistTab" /> Show Watchlist
-                Tab</label
+                ><input type="checkbox" id="enableWatchlist" /> Enable Watchlist & Watchlist Tab</label
               >
               <label style="display: flex; align-items: center; gap: 10px"
                 ><input type="checkbox" id="showDiagnosticsTab" /> Show
                 Diagnostics Tab</label
+              >
+              <label style="display: flex; align-items: center; gap: 10px"
+                ><input type="checkbox" id="enableHistory" /> Enable Connection History & History Tab</label
               >
             </div>
           </div>
@@ -2433,6 +2507,17 @@
               "
               >Source</span
             ><br />
+            <strong>chart.js</strong> (MIT) -
+            <span
+              class="external-link"
+              data-url="https://github.com/chartjs/Chart.js"
+              style="
+                color: var(--accent);
+                cursor: pointer;
+                text-decoration: underline;
+              "
+              >Source</span
+            ><br />
           </div>
 
           <div
@@ -2522,6 +2607,107 @@
       </div>
     </div>
 
+    <!-- HISTORY ANALYTICS & NOTES MODAL -->
+    <div id="historyAnalyticsModal" class="modal-overlay" style="display: none">
+      <div
+        class="modal-content"
+        style="
+          max-width: 820px;
+          width: 90%;
+          background: var(--bg-card);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 24px;
+        "
+      >
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+          "
+        >
+          <div>
+            <h3
+              id="analyticsModalTitle"
+              style="
+                margin: 0 0 4px 0;
+                color: var(--text-bright);
+                font-size: 1.3rem;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <app-icon name="chart-line"></app-icon> Server Analytics
+            </h3>
+            <span
+              id="analyticsModalSubtitle"
+              style="font-size: 0.85rem; color: var(--text-muted)"
+            ></span>
+          </div>
+          <button
+            id="analyticsModalCloseBtn"
+            class="btn btn-outline"
+            style="padding: 4px 8px"
+            aria-label="Close Analytics Modal"
+          >
+            <app-icon name="x"></app-icon>
+          </button>
+        </div>
+
+        <div
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            gap: 12px;
+            flex-wrap: wrap;
+          "
+        >
+          <div style="display: flex; gap: 8px" id="analyticsTimeframeBtns">
+            <button class="btn btn-outline active" data-timeframe="24h">24 Hours</button>
+            <button class="btn btn-outline" data-timeframe="7d">7 Days</button>
+            <button class="btn btn-outline" data-timeframe="30d">30 Days</button>
+          </div>
+
+          <div style="display: flex; gap: 16px; font-size: 0.85rem">
+            <div><strong style="color: var(--text-muted)">Sessions:</strong> <span id="analyticsTotalSessions" style="color: var(--text-bright)">-</span></div>
+            <div><strong style="color: var(--text-muted)">Avg Ping:</strong> <span id="analyticsAvgPing" style="color: var(--text-bright)">-</span></div>
+            <div><strong style="color: var(--text-muted)">Peak Population:</strong> <span id="analyticsPeakPlayers" style="color: var(--text-bright)">-</span></div>
+          </div>
+        </div>
+
+        <!-- Chart Container -->
+        <div style="position: relative; width: 100%; height: 320px; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
+          <canvas id="historyChartCanvas"></canvas>
+        </div>
+
+        <!-- Custom Note Editor -->
+        <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-bright); display: block; margin-bottom: 6px;">
+            <app-icon name="sticky-note"></app-icon> Custom Server Note
+          </label>
+          <div style="display: flex; gap: 8px;">
+            <input
+              type="text"
+              id="analyticsCustomNoteInput"
+              class="form-input"
+              placeholder="Add notes about server rules, favorite locations, or admins..."
+              maxlength="500"
+            />
+            <button id="analyticsSaveNoteBtn" class="btn btn-primary" style="white-space: nowrap;">
+              <app-icon name="save"></app-icon> Save Note
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart.js UMD Library -->
+    <script src="../node_modules/chart.js/dist/chart.umd.js"></script>
     <!-- Renderer Entry Module -->
     <script type="module" src="./renderer/index.js"></script>
   </body>

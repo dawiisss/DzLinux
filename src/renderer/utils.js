@@ -143,6 +143,7 @@ export function getPlayerBadgeClass(players, maxPlayers) {
 export function applyPingResult(server, statusObj) {
   if (statusObj !== null && statusObj !== undefined) {
     server.realPing = statusObj.ping;
+    server.ping = statusObj.ping;
     if (statusObj.status) server.status = statusObj.status;
     if (statusObj.players !== null && statusObj.players !== undefined) {
       server.players = statusObj.players;

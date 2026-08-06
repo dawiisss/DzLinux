@@ -6,6 +6,7 @@ import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
+import { loadAndRenderHistory } from "./history.js";
 import { state, saveFiltersToSettings } from "./state.js";
 import { debounce, countryToFlag, EU_COUNTRIES, isValidIpOrHost, isValidPort } from "./utils.js";
 import { hideContextMenu, setCurrentContextMenu } from "./contextMenu.js";
@@ -131,6 +132,7 @@ export function switchTab(tabId) {
   if (tabId === "mods") loadInstalledMods();
   if (tabId === "favorites") renderFavoritesManager();
   if (tabId === "watchlist") renderWatchlist();
+  if (tabId === "history") loadAndRenderHistory();
   if (tabId === "diagnostics") loadDiagnostics();
 }
 
@@ -837,7 +839,7 @@ export function initUIBehavior() {
 export function applyTabVisibility(settings) {
   const watchlistTab = document.getElementById("tab-watchlist");
   const watchlistSidebarTab = document.getElementById("sidebar-tab-watchlist");
-  const showWatchlist = settings.showWatchlistTab !== false ? "" : "none";
+  const showWatchlist = (settings.showWatchlistTab !== false && settings.enableWatchlist !== false) ? "" : "none";
   if (watchlistTab) watchlistTab.style.display = showWatchlist;
   if (watchlistSidebarTab) watchlistSidebarTab.style.display = showWatchlist;
 
@@ -849,6 +851,16 @@ export function applyTabVisibility(settings) {
   if (diagnosticsTab) diagnosticsTab.style.display = showDiagnostics;
   if (diagnosticsSidebarTab)
     diagnosticsSidebarTab.style.display = showDiagnostics;
+
+  const historyTab = document.getElementById("tab-history");
+  const historySidebarTab = document.getElementById("sidebar-tab-history");
+  const showHistory = settings.showHistoryTab !== false && settings.enableHistory !== false ? "" : "none";
+  if (historyTab) historyTab.style.display = showHistory;
+  if (historySidebarTab) historySidebarTab.style.display = showHistory;
+
+  const filterHistoryPill = document.getElementById("filter-history");
+  const showHistoryPill = settings.enableHistory !== false ? "inline-flex" : "none";
+  if (filterHistoryPill) filterHistoryPill.style.display = showHistoryPill;
 }
 
 // Listen for custom events to avoid circular dependencies

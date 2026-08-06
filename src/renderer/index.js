@@ -12,6 +12,8 @@ import { initUpdater } from "./updater.js";
 import { initCrashDiagnostic } from "./crashDiagnostic.js";
 import { initSteamProfile } from "./steamProfile.js";
 import { initUIBehavior, applyTabVisibility } from "./ui-behavior.js";
+import { initHistoryManager, loadAndRenderHistory } from "./history.js";
+import { initHistoryChartModal } from "./historyChartModal.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Version
@@ -44,6 +46,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await safeInit("ModManager", initModManager);
   await safeInit("Favorites", initFavorites);
   await safeInit("Watchlist", initWatchlist);
+  await safeInit("History", initHistoryManager);
+  await safeInit("HistoryChartModal", initHistoryChartModal);
   await safeInit("ContextMenu", initContextMenu);
   await safeInit("ServerBrowser", initServerBrowser);
   await safeInit("Updater", initUpdater);
@@ -53,6 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Initial data loads
   await safeInit("LocalModsCache", refreshLocalModsCache);
+  await safeInit("HistoryLoad", loadAndRenderHistory);
   try {
     refreshServers();
   } catch (e) {

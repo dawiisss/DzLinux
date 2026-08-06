@@ -61,6 +61,12 @@ This command can also be used to update the version if you are using .deb / .rpm
 - **Interactive Alerts**: Integrates native OS desktop notifications and in-app toasts, allowing direct 1-click connection popup regardless of active tab or window focus state.
 - **Stateful Monitoring Controls**: Provides instant 1-click status reset directly from the table status indicator to transition fulfilled notifications back to active monitoring state.
 
+### Connection History and Analytics
+- **Connection Session Tracking**: Automatically logs server joins, accumulated session counts, last known latency, and map information.
+- **Connection and Latency Charts**: Interactive modal powered by Chart.js displaying player count and latency recorded during your connection sessions across 24-hour, 7-day, and 30-day timeframes.
+- **Custom Server Notes**: Save personal notes per server (base locations, admin contacts, rules) that persist across sessions.
+- **Automated Retention**: Persisted locally to `history.json` with an automated 30-day retention pruning policy and a 500-record cap.
+
 ### Performance Tuning and Game Optimization
 - Inject optimal launch arguments with simple toggles: `-nosplash`, `-noPause`, `-limitFPS`, etc.
 - Native **MangoHud** integration for real-time FPS and hardware monitoring.
@@ -88,18 +94,18 @@ This command can also be used to update the version if you are using .deb / .rpm
 If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
 ### AppImage (Portable)
-1. Download `DzLinux-1.5.0.AppImage`.
+1. Download `DzLinux-1.6.0.AppImage`.
 2. Make it executable:
    ```bash
-   chmod +x DzLinux-1.5.0.AppImage
+   chmod +x DzLinux-1.6.0.AppImage
    ```
 3. Run or double-click to launch.
 
 ### Portable Archive (tar.gz)
-1. Download `dzlinux-1.5.0.tar.gz`.
+1. Download `dzlinux-1.6.0.tar.gz`.
 2. Extract to your games directory:
    ```bash
-   tar -xzf dzlinux-1.5.0.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.6.0.tar.gz -C ~/Games/
    ```
 3. Run the binary:
    ```bash
@@ -108,18 +114,18 @@ If you prefer not to use the automated install script, you can manually download
    ```
 
 ### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
-1. Download `dzlinux_1.5.0_amd64.deb`.
+1. Download `dzlinux_1.6.0_amd64.deb`.
 2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.5.0_amd64.deb
+   sudo dpkg -i dzlinux_1.6.0_amd64.deb
    sudo apt install -f
    ```
 
 ### RPM Package (rpm) - Fedora, RHEL, openSUSE
-1. Download `dzlinux-1.5.0.x86_64.rpm`.
+1. Download `dzlinux-1.6.0.x86_64.rpm`.
 2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-1.5.0.x86_64.rpm
+   sudo rpm -i dzlinux-1.6.0.x86_64.rpm
    ```
 
 ---
@@ -166,6 +172,7 @@ DzLinux stores all user data locally at:
 |---|---|
 | `settings.json` | All user settings |
 | `watchlist.json` | Watchlist items |
+| `history.json` | Server connection history, session counts, custom notes, and population snapshots |
 | `server_cache.json` | Cached server list (5-minute TTL) |
 | `custom_servers.json` | Manually added custom servers |
 | `query_port_cache.json` | Cached A2S query ports (30-day TTL) |

@@ -6,7 +6,14 @@ export function startWatchlistPoll() {
   if (state.watchlist.pollInterval) clearInterval(state.watchlist.pollInterval);
   state.watchlist.pollInterval = null;
 
-  if (state.settings.watchlistRefreshEnabled === false) return;
+  // Respect user setting: skip starting background poll if watchlist or polling is disabled
+  if (
+    state.settings.watchlistRefreshEnabled === false ||
+    state.settings.showWatchlistTab === false ||
+    state.settings.enableWatchlist === false
+  ) {
+    return;
+  }
 
   const pollSeconds = parseInt(state.settings.watchlistRefreshTime, 10) || 10;
 
