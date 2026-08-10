@@ -51,6 +51,9 @@ export const state = {
   },
   totalPingedCount: 0,
 
+  // Favorites pinging
+  favPingGeneration: 0,
+
   // Auto-refresh
   autoRefresh: {
     interval: null,

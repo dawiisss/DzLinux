@@ -123,11 +123,13 @@ export function initFavorites() {
 
       // Bounded worker pool: at most FAVORITES_PING_CONCURRENCY queries in
       // flight at once, regardless of how many favorites exist.
+      const myGeneration = ++state.favPingGeneration;
       const favoritesToPing = [...state.favorites];
       let nextPingIndex = 0;
 
       const pingWorker = async () => {
         while (nextPingIndex < favoritesToPing.length) {
+          if (myGeneration !== state.favPingGeneration) return;
           const fav = favoritesToPing[nextPingIndex++];
           const ip = fav.ip;
           const port =

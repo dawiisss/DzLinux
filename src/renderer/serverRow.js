@@ -60,7 +60,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
         showToast(
           `Mods refreshed: ${freshMods.length} mods found`,
           "#2ec4b6",
-          `<app-icon name="cube" style="width: 1.1rem; height: 1.1rem; color: #2ec4b6;"></app-icon>`,
+          "cube",
         );
       } else {
         server.mods = [];

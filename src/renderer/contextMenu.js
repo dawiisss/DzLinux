@@ -7,7 +7,6 @@ import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "./utils.js";
 const PLUG_SVG = `<app-icon name="plug" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
 const EYE_SVG = `<app-icon name="eye" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent-green);"></app-icon>`;
 const COPY_SVG = `<app-icon name="copy" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
-const INFO_SVG = `<app-icon name="info" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--accent);"></app-icon>`;
 
 let currentContextMenu = null;
 
@@ -107,7 +106,7 @@ export function initContextMenu() {
           (item) => item.ip === server.ip && item.port === server.port,
         )
       ) {
-        showToast("Already on watchlist", "var(--accent)", INFO_SVG);
+        showToast("Already on watchlist", "var(--accent)", "info");
         return;
       }
       watchlist.push({
@@ -121,7 +120,7 @@ export function initContextMenu() {
         lastStatus: "idle",
       });
       await window.api.watchlist.save(watchlist);
-      showToast(`Watching: ${server.name}`, "var(--accent)", EYE_SVG);
+      showToast(`Watching: ${server.name}`, "var(--accent)", "eye");
     });
 
     addMenuItem("Copy Address", COPY_SVG, () =>

@@ -40,7 +40,11 @@ async function isAllowedPath(filePath) {
   } catch {
     // Fallback if settings fail to load
   }
-  return prefixes.some((prefix) => resolved.startsWith(prefix));
+  return prefixes.some((prefix) => {
+    if (resolved === prefix) return true;
+    const boundaryPrefix = prefix.endsWith(path.sep) ? prefix : prefix + path.sep;
+    return resolved.startsWith(boundaryPrefix);
+  });
 }
 
 module.exports = {

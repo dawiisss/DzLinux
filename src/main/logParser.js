@@ -263,7 +263,7 @@ async function analyzeLog(log) {
         description:
           "Script Compilation Error: Almost always caused by an outdated mod conflicting with the current DayZ version.",
         suggestedFix:
-          'Check the Mod Manager for outdated mods (look for amber "MISMATCH" warnings). Update all outdated mods via the "UPDATE ALL" button.',
+          'Check the Mod Manager for outdated mods (look for amber "Mismatch" warnings). Update all outdated mods via the "Update All" button.',
       },
       {
         pattern: /failed to initialize/i,

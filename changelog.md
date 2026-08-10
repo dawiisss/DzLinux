@@ -6,9 +6,21 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Added
 
+- **Path Guard Security Tests:** Added a comprehensive 16-test unit test suite for `pathGuard.js`, covering allowed path validation, path traversal attack rejection, non-string input handling, dynamic mod directory inclusion from settings, and graceful fallback when settings fail to load.
+
 ### Changed
 
+- **Watchlist Performance:** Optimized server lookups in background polling and UI rendering from $O(N)$ nested `.find()` iterations to $O(1)$ Map lookups, ensuring stable UI performance regardless of the master server list size.
+- **Toast Icon Identifier Cleanup:** Replaced raw `<app-icon>` HTML strings and SVG constants passed to `showToast()` with direct icon name identifiers (`"trash"`, `"cube"`, `"info"`, `"eye"`) across `watchlist.js`, `serverRow.js`, and `contextMenu.js`. The `showToast()` function already auto-wraps icon names natively.
+- **UI Casing Compliance:** Converted hardcoded uppercase filter labels (`PERSPECTIVE:`, `CATEGORY:`, `MAP:`, `COUNTRY:`, `SHORTLISTS:`, `CONNECTION:`) in `index.html` to sentence case. The CSS class `.filter-label` already applies `text-transform: uppercase` for visual rendering. Also changed uppercase UI copy (`"MISMATCH"`, `"UPDATE ALL"`) in `logParser.js` suggested fix text to title case (`"Mismatch"`, `"Update All"`).
+
 ### Fixed
+
+- **Favorites Ping Worker Abort:** Added a generation-based cancellation mechanism to the favorites ping worker pool. Rapidly clicking the refresh button now aborts any stale worker loops from a previous run, preventing background query accumulation and potential memory growth.
+
+### Security
+
+- **Path Guard Prefix Boundary Vulnerability:** Fixed a directory traversal vulnerability where the IPC path guard's `startsWith()` check lacked a path-separator boundary check. This previously allowed paths sharing a string prefix (like `/optional-evil/payload` bypassing an `/opt` check) to be incorrectly allowed. The check now strictly enforces boundary separation or exact matching.
 
 ## [1.6.0] - 2026-08-06
 

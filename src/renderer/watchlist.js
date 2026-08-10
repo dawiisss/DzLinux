@@ -32,11 +32,14 @@ export function startWatchlistPoll() {
 
       const dirtyItems = [];
 
+      const serverMap = new Map();
+      for (const s of state.allServers) {
+        serverMap.set(`${s.ip}:${s.port}`, s);
+      }
+
       const results = await Promise.allSettled(
         activeItems.map((item) => {
-          const allServersMatch = state.allServers.find(
-            (s) => s.ip === item.ip && String(s.port) === String(item.port),
-          );
+          const allServersMatch = serverMap.get(`${item.ip}:${item.port}`);
           const masterQueryPort = allServersMatch?.queryPort;
           if (masterQueryPort && masterQueryPort !== item.queryPort) {
             item.queryPort = masterQueryPort;
@@ -130,10 +133,13 @@ export async function renderWatchlist() {
       return;
     }
 
+    const serverMap = new Map();
+    for (const s of state.allServers) {
+      serverMap.set(`${s.ip}:${s.port}`, s);
+    }
+
     watchlist.forEach((item, index) => {
-      const server = state.allServers.find(
-        (s) => s.ip === item.ip && s.port === item.port,
-      );
+      const server = serverMap.get(`${item.ip}:${item.port}`);
       const tr = document.createElement("tr");
       tr.className = "server-row";
 
@@ -375,7 +381,7 @@ export async function renderWatchlist() {
         watchlist.splice(index, 1);
         await window.api.watchlist.save(watchlist);
         renderWatchlist();
-        showToast("Removed from watchlist", "var(--accent-red)", `<app-icon name="trash" stroke-width="2.2" style="width: 1.1rem; height: 1.1rem; color: var(--accent-red);"></app-icon>`);
+        showToast("Removed from watchlist", "var(--accent-red)", "trash");
       });
       tdAction.appendChild(delBtn);
 
