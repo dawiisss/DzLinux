@@ -31,6 +31,8 @@ All notable changes to the DzLinux launcher project will be documented in this f
 - **Server UI Data Streaming:** Fixed a race condition where the backend process streamed the initial server batch to the UI *before* background async checks (Monetization & Verified IPs) finished processing. This caused hit-or-miss tag rendering on the first launch. The pipeline now waits until the servers are fully enriched before streaming to the frontend.
 - **DOM Recycler Stale Data:** Fixed an issue in the server list DOM recycler where `tdSecurity` cells (Trust Score shields) and `tdMonetization` were completely ignored during row recycling. The renderer now dynamically evaluates state changes on the fly and updates shields dynamically without needing an app restart.
 - **Favorites Ping Worker Abort:** Added a generation-based cancellation mechanism to the favorites ping worker pool. Rapidly clicking the refresh button now aborts any stale worker loops from a previous run, preventing background query accumulation and potential memory growth.
+- **Bohemia Monetization Fetching:** Fixed an issue where the Bohemia monetization scraper broke due to layout changes on the official website. The app now fetches an open-source JSON list (`monetized_ips.json`) directly from the DzLinux GitHub repository, falling back gracefully to the legacy archived Bohemia page (`old.bohemia.net`) if the CDN is unreachable.
+- **Cache Tag Persistence:** Fixed a bug in the disk serializer (`server_cache.json`) where it failed to save the `verifiedCommunity` attribute. This caused Verified Server shields to disappear on app re-launches occurring inside the 5-minute cache window.
 
 ### Security
 

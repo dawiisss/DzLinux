@@ -51,6 +51,7 @@ async function loadServerCache() {
         map: s.map || "",
         password: s.password === true,
         monetized: s.monetized,
+        verifiedCommunity: s.verifiedCommunity,
         realPing: s.realPing,
         failedPing: s.failedPing,
       }));
@@ -85,6 +86,7 @@ async function saveServerCache(servers) {
       if (s.map) opt.map = s.map;
       if (s.password === true) opt.password = true;
       if (s.monetized) opt.monetized = s.monetized;
+      if (s.verifiedCommunity) opt.verifiedCommunity = s.verifiedCommunity;
       if (s.realPing !== undefined) opt.realPing = s.realPing;
       if (s.failedPing) opt.failedPing = s.failedPing;
       return opt;
@@ -435,17 +437,31 @@ async function fetchAndApplyMonetization(servers) {
         `Using cached monetization list (${monetizedSet.size} servers).`,
       );
     } else {
-      console.log("Fetching Bohemia Monetization Approved List...");
-      const bohemiaRes = await axios.get(
-        "https://www.bohemia.net/monetization/approved/dayz",
-        { timeout: 5000 },
-      );
-      const html = bohemiaRes.data;
-      monetizedSet = new Set();
-      const regex = /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*:\s*(\d+)/g;
-      let match;
-      while ((match = regex.exec(html)) !== null) {
-        monetizedSet.add(`${match[1]}:${match[2]}`);
+      console.log("Fetching Monetization List from GitHub...");
+      try {
+        const ghRes = await axios.get(
+          "https://raw.githubusercontent.com/dawiisss/DzLinux/main/monetized_ips.json",
+          { timeout: 5000 }
+        );
+        let ips = ghRes.data;
+        if (typeof ips === 'string') {
+          try { ips = JSON.parse(ips); } catch(e) {}
+        }
+        if (!Array.isArray(ips)) throw new Error("Invalid format from GitHub");
+        monetizedSet = new Set(ips);
+      } catch (err) {
+        console.warn("GitHub fetch failed, falling back to old.bohemia.net:", err.message);
+        const bohemiaRes = await axios.get(
+          "https://old.bohemia.net/monetization/approved/dayz",
+          { timeout: 5000 },
+        );
+        const html = bohemiaRes.data;
+        monetizedSet = new Set();
+        const regex = /(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s*:\s*(\d+)/g;
+        let match;
+        while ((match = regex.exec(html)) !== null) {
+          monetizedSet.add(`${match[1]}:${match[2]}`);
+        }
       }
       await saveMonetizationCache(monetizedSet);
       console.log(
