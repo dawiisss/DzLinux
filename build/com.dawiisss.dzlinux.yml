@@ -24,7 +24,7 @@ modules:
       - cp -r * /app/bin/
     sources:
       - type: archive
-        url: https://github.com/dawiisss/DzLinux/releases/download/v1.6.0/DzLinux-1.6.0-linux-x64.tar.gz
+        url: https://github.com/dawiisss/DzLinux/releases/download/v1.7.0/DzLinux-1.7.0-linux-x64.tar.gz
         sha256: SKIP
       - type: script
         dest-filename: dzlinux.sh

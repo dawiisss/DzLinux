@@ -44,6 +44,11 @@ This command can also be used to update the version if you are using .deb / .rpm
 - **Favorites Filter and Hide Favorites**: Pin favourite servers for quick access, or hide them from the main list to browse new servers more easily.
 - **Virtual Scroll and Paging**: Switch between classic pagination and endless scrolling for large server lists.
 
+### Server Trust Score & Security
+- **Strict IP Verification**: Background engine automatically cross-references servers against an open-source JSON list of known, verified DayZ community IP addresses to prevent malicious servers from spoofing popular community names.
+- **Heuristic Scoring**: Servers are dynamically assigned a Trust Score tier (Green, Yellow, or Gray shield) based on verified IPs, password protection, active moderation tools (CFTools/VPPAdmin), and high population heuristics.
+- **Settings Toggle**: The Trust Score engine and background IP verifications can be globally disabled in the Settings menu to hide UI elements and save bandwidth.
+
 ### Native Mod Manager
 - **Workshop Validation**: Automatically checks server-required mods against your local Steam Workshop directory, highlighting missing or outdated mods *before* you connect.
 - **One-click Subscribe All**: Queue all missing mods for a server in a single click.
@@ -94,18 +99,18 @@ This command can also be used to update the version if you are using .deb / .rpm
 If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
 ### AppImage (Portable)
-1. Download `DzLinux-1.6.0.AppImage`.
+1. Download `DzLinux-1.7.0.AppImage`.
 2. Make it executable:
    ```bash
-   chmod +x DzLinux-1.6.0.AppImage
+   chmod +x DzLinux-1.7.0.AppImage
    ```
 3. Run or double-click to launch.
 
 ### Portable Archive (tar.gz)
-1. Download `dzlinux-1.6.0.tar.gz`.
+1. Download `dzlinux-1.7.0.tar.gz`.
 2. Extract to your games directory:
    ```bash
-   tar -xzf dzlinux-1.6.0.tar.gz -C ~/Games/
+   tar -xzf dzlinux-1.7.0.tar.gz -C ~/Games/
    ```
 3. Run the binary:
    ```bash
@@ -114,18 +119,18 @@ If you prefer not to use the automated install script, you can manually download
    ```
 
 ### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
-1. Download `dzlinux_1.6.0_amd64.deb`.
+1. Download `dzlinux_1.7.0_amd64.deb`.
 2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.6.0_amd64.deb
+   sudo dpkg -i dzlinux_1.7.0_amd64.deb
    sudo apt install -f
    ```
 
 ### RPM Package (rpm) - Fedora, RHEL, openSUSE
-1. Download `dzlinux-1.6.0.x86_64.rpm`.
+1. Download `dzlinux-1.7.0.x86_64.rpm`.
 2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-1.6.0.x86_64.rpm
+   sudo rpm -i dzlinux-1.7.0.x86_64.rpm
    ```
 
 ---
@@ -177,6 +182,7 @@ DzLinux stores all user data locally at:
 | `custom_servers.json` | Manually added custom servers |
 | `query_port_cache.json` | Cached A2S query ports (30-day TTL) |
 | `monetization_cache.json` | Bohemia monetization approved list (24-hour TTL) |
+| `verified_ips_cache.json` | Verified community IPs list (24-hour TTL) |
 | `mods_metadata_cache.json` | Per-server mod lists from A2S queries (24-hour TTL) |
 | `logs/dzlinux.log` | Application log file (7-day rolling retention) |
 

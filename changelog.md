@@ -6,6 +6,14 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [1.7.0] - 2026-08-11
+
+### Added
+
 - **Server Trust Score System:** Implemented a new heuristic-based trust scoring engine (`trustScore.js`) that analyzes DayZ servers to calculate a security rating. Verified communities, active moderation tools, high population counts, and password protection all contribute to the final tier calculation.
 - **Strict IP Verification:** Built a background fetching system that downloads, parses, and caches (`24h` TTL) an open-source JSON list (`verified_ips.json`) of known, verified DayZ community server IPs and ports from GitHub. Servers matching this strict criteria receive an immense Trust Score boost and custom tooltip recognition, preventing malicious servers from spoofing popular names.
 - **Trust Score UI Integration:** Added a new Security/Trust column to both the Server Browser and Favorites tables. Servers display dynamically colored shields (Green for High Trust, Yellow for Modded/Moderated, Gray for Unverified) based on their evaluated score.
