@@ -202,69 +202,69 @@
     },        
     {
       "ip": "172.111.51.158",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": " Rearmed US2 | Solo Duo Trio "
     },
     {
       "ip": "172.111.51.156",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": " Rearmed US4 | Solo/Duo/Trio "
     },
     {
       "ip": "172.111.51.154",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed US Main"
     },
     {
       "ip": "172.111.51.155",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": " Rearmed US3 | 5 Man Max "
     },
     
     {
       "ip": "193.25.252.80",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed EU2 | Solo Duo Trio "
     },
     {
       "ip": "193.25.252.22",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed EU4 | Solo Duo Trio "
     },
     {
       "ip": "193.25.252.9",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed EU3 | 5 Man Max "
     },
     {
       "ip": "193.25.252.35",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed EU Main "
     },
     
     {
       "ip": "103.152.197.191",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed AU Main | 5 Man Max "
     },
        {
       "ip": "172.84.94.23",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed BR Main "
     },
     {
       "ip": "82.21.8.7",
-      "port": 2303,
+      "port": 2302,
       "community": "Rearmed",
       "name": "Rearmed BR2 | Solo Duo Trio "
     },  

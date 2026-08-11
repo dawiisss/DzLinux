@@ -6,6 +6,7 @@ import { buildServerRow, buildDetailRow } from "../serverRow.js";
 import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "../utils.js";
 import { getCombinedAndFilteredServers } from "./serverBrowserCore.js";
 import { updateStatsBar, refreshServers } from "./serverBrowserRender.js";
+import { calculateTrustScore } from "../trustScore.js";
 
 export function renderServers() {
   const tbody = document.getElementById("serverListBody");
@@ -215,6 +216,15 @@ export function renderServers() {
       if (nameCell && nameCell.textContent !== server.name) {
         nameCell.textContent = server.name;
         nameCell.title = server.name;
+      }
+      const securityCell = tr.querySelector(".col-security");
+      if (securityCell && state.settings && state.settings.enableTrustScore !== false) {
+        const { level, reasons } = calculateTrustScore(server);
+        const shieldIcon = securityCell.querySelector("app-icon");
+        if (shieldIcon && shieldIcon.className !== `shield-${level}`) {
+          shieldIcon.className = `shield-${level}`;
+          securityCell.title = reasons.join(", ");
+        }
       }
     } else {
       tr = buildServerRow(server);

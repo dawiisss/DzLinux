@@ -572,12 +572,7 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
     // 4. Inject unlisted favorites
     injectFavoritesPlaceholders(servers, settings.favorites, serversMap);
 
-    // 5. Stream initial batch to front-end
-    if (servers.length > 0) {
-      onBatchReceived(servers, generationId);
-    }
 
-    if (isAborted()) return servers;
 
     // 6. Monetization check & Tagging
     await fetchAndApplyMonetization(servers);
@@ -587,7 +582,14 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
       await fetchAndApplyVerifiedIps(servers);
     }
 
-    // 7. Save to cache asynchronously
+    // 7. Stream enriched batch to front-end
+    if (servers.length > 0) {
+      onBatchReceived(servers, generationId);
+    }
+
+    if (isAborted()) return servers;
+
+    // 8. Save to cache asynchronously
     await saveServerCache(servers);
 
     return servers;

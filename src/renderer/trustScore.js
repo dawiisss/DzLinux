@@ -33,7 +33,7 @@ export function calculateTrustScore(server) {
   }
 
   if (hasAdminTools) {
-    score += 40;
+    score += 20;
     reasons.push("Active Moderation Tools Detected");
   }
 
