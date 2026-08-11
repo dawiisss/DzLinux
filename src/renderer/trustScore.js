@@ -57,11 +57,15 @@ export function calculateTrustScore(server) {
     reasons.push("Active Moderation Tools Detected");
   }
 
-  // 3. Verified Popular Community Name
+  // 3. Verified Community IP or Name Match
   const serverNameLower = (server.name || "").toLowerCase();
-  if (KNOWN_COMMUNITIES.some((community) => serverNameLower.includes(community))) {
+  
+  if (server.verifiedCommunity) {
+    score += 40;
+    reasons.push(`Verified Community Server: ${server.verifiedCommunity}`);
+  } else if (KNOWN_COMMUNITIES.some((community) => serverNameLower.includes(community))) {
     score += 30;
-    reasons.push("Verified Community Server");
+    reasons.push("Claimed Community Server");
   }
 
   // 4. High Population Heuristic (e.g. > 40 players on a 60+ cap server)

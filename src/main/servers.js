@@ -11,6 +11,11 @@ const MONETIZATION_CACHE_FILE = path.join(
   "monetization_cache.json",
 );
 const MONETIZATION_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+const VERIFIED_IPS_CACHE_FILE = path.join(
+  app.getPath("userData"),
+  "verified_ips_cache.json",
+);
+const VERIFIED_IPS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
 const MODS_METADATA_CACHE_FILE = path.join(
   app.getPath("userData"),
   "mods_metadata_cache.json",
@@ -458,6 +463,75 @@ async function fetchAndApplyMonetization(servers) {
   }
 }
 
+async function loadVerifiedIpsCache() {
+  try {
+    const content = await fs.promises.readFile(VERIFIED_IPS_CACHE_FILE, "utf8");
+    const data = JSON.parse(content);
+    if (
+      data.timestamp &&
+      Date.now() - data.timestamp < VERIFIED_IPS_CACHE_TTL &&
+      Array.isArray(data.servers)
+    ) {
+      return data.servers;
+    }
+  } catch (e) {
+    if (e.code !== "ENOENT") {
+      console.error("Failed to load verified IPs cache:", e.message);
+    }
+  }
+  return null;
+}
+
+async function saveVerifiedIpsCache(verifiedServers) {
+  try {
+    await writeJsonAtomically(VERIFIED_IPS_CACHE_FILE, {
+      timestamp: Date.now(),
+      servers: verifiedServers,
+    });
+  } catch (e) {
+    console.error("Failed to write verified IPs cache", e.message);
+  }
+}
+
+async function fetchAndApplyVerifiedIps(servers) {
+  try {
+    let verifiedServers = await loadVerifiedIpsCache();
+    if (verifiedServers) {
+      console.log(
+        `Using cached verified IPs list (${verifiedServers.length} servers).`,
+      );
+    } else {
+      console.log("Fetching Verified IPs List...");
+      const res = await axios.get(
+        "https://raw.githubusercontent.com/dawiisss/DzLinux/main/verified_ips.json",
+        { timeout: 5000 },
+      );
+      verifiedServers = res.data.verified_servers;
+      if (Array.isArray(verifiedServers)) {
+        await saveVerifiedIpsCache(verifiedServers);
+        console.log(
+          `Successfully fetched ${verifiedServers.length} verified servers.`,
+        );
+      }
+    }
+
+    if (Array.isArray(verifiedServers)) {
+      const verifiedMap = new Map();
+      verifiedServers.forEach(v => {
+        verifiedMap.set(`${v.ip}:${v.port}`, v.community);
+      });
+      servers.forEach((s) => {
+        const community = verifiedMap.get(`${s.ip}:${s.port}`);
+        if (community) {
+          s.verifiedCommunity = community;
+        }
+      });
+    }
+  } catch (e) {
+    console.error("Failed to fetch verified IPs list:", e.message);
+  }
+}
+
 let currentGenerationId = null;
 
 async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
@@ -507,6 +581,9 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
 
     // 6. Monetization check & Tagging
     await fetchAndApplyMonetization(servers);
+
+    // 6.5 Verified IPs
+    await fetchAndApplyVerifiedIps(servers);
 
     // 7. Save to cache asynchronously
     await saveServerCache(servers);
