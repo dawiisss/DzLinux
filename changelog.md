@@ -14,8 +14,6 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Changed
 
-- **Moderation Tool Trust Weighting:** Lowered the raw score granted by the presence of active moderation tools (like CFTools or VPPAdminTools). A server with admin tools now only reaches a "Medium" (Yellow) trust tier by default, and must combine with other heuristics like high population or strict IP verification to reach the "High" (Green) tier.
-
 - **Watchlist Performance:** Optimized server lookups in background polling and UI rendering from $O(N)$ nested `.find()` iterations to $O(1)$ Map lookups, ensuring stable UI performance regardless of the master server list size.
 - **Toast Icon Identifier Cleanup:** Replaced raw `<app-icon>` HTML strings and SVG constants passed to `showToast()` with direct icon name identifiers (`"trash"`, `"cube"`, `"info"`, `"eye"`) across `watchlist.js`, `serverRow.js`, and `contextMenu.js`. The `showToast()` function already auto-wraps icon names natively.
 - **UI Casing Compliance:** Converted hardcoded uppercase filter labels (`PERSPECTIVE:`, `CATEGORY:`, `MAP:`, `COUNTRY:`, `SHORTLISTS:`, `CONNECTION:`) in `index.html` to sentence case. The CSS class `.filter-label` already applies `text-transform: uppercase` for visual rendering. Also changed uppercase UI copy (`"MISMATCH"`, `"UPDATE ALL"`) in `logParser.js` suggested fix text to title case (`"Mismatch"`, `"Update All"`).
