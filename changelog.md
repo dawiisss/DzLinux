@@ -6,9 +6,15 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Added
 
+- **Server Trust Score System:** Implemented a new heuristic-based trust scoring engine (`trustScore.js`) that analyzes DayZ servers to calculate a security rating. Verified communities, active moderation tools, high population counts, and password protection all contribute to the final tier calculation.
+- **Strict IP Verification:** Built a background fetching system that downloads, parses, and caches (`24h` TTL) an open-source JSON list (`verified_ips.json`) of known, verified DayZ community server IPs and ports from GitHub. Servers matching this strict criteria receive an immense Trust Score boost and custom tooltip recognition, preventing malicious servers from spoofing popular names.
+- **Trust Score UI Integration:** Added a new Security/Trust column to both the Server Browser and Favorites tables. Servers display dynamically colored shields (Green for High Trust, Yellow for Modded/Moderated, Gray for Unverified) based on their evaluated score.
+- **Settings Toggle:** Added an *"Enable Trust Score Indicators"* toggle in the Appearance & Audio settings. Disabling this toggle instantly removes the security columns globally and suppresses the background network polling for the verified IPs list to save bandwidth.
 - **Path Guard Security Tests:** Added a comprehensive 16-test unit test suite for `pathGuard.js`, covering allowed path validation, path traversal attack rejection, non-string input handling, dynamic mod directory inclusion from settings, and graceful fallback when settings fail to load.
 
 ### Changed
+
+- **Moderation Tool Trust Weighting:** Lowered the raw score granted by the presence of active moderation tools (like CFTools or VPPAdminTools). A server with admin tools now only reaches a "Medium" (Yellow) trust tier by default, and must combine with other heuristics like high population or strict IP verification to reach the "High" (Green) tier.
 
 - **Watchlist Performance:** Optimized server lookups in background polling and UI rendering from $O(N)$ nested `.find()` iterations to $O(1)$ Map lookups, ensuring stable UI performance regardless of the master server list size.
 - **Toast Icon Identifier Cleanup:** Replaced raw `<app-icon>` HTML strings and SVG constants passed to `showToast()` with direct icon name identifiers (`"trash"`, `"cube"`, `"info"`, `"eye"`) across `watchlist.js`, `serverRow.js`, and `contextMenu.js`. The `showToast()` function already auto-wraps icon names natively.
@@ -16,6 +22,8 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+- **Server UI Data Streaming:** Fixed a race condition where the backend process streamed the initial server batch to the UI *before* background async checks (Monetization & Verified IPs) finished processing. This caused hit-or-miss tag rendering on the first launch. The pipeline now waits until the servers are fully enriched before streaming to the frontend.
+- **DOM Recycler Stale Data:** Fixed an issue in the server list DOM recycler where `tdSecurity` cells (Trust Score shields) and `tdMonetization` were completely ignored during row recycling. The renderer now dynamically evaluates state changes on the fly and updates shields dynamically without needing an app restart.
 - **Favorites Ping Worker Abort:** Added a generation-based cancellation mechanism to the favorites ping worker pool. Rapidly clicking the refresh button now aborts any stale worker loops from a previous run, preventing background query accumulation and potential memory growth.
 
 ### Security
