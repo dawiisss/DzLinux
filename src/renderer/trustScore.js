@@ -5,26 +5,6 @@ const ADMIN_MODS = [
   "zomberry admin tools",
 ];
 
-const KNOWN_COMMUNITIES = [
-  "dayone",
-  "karmakrew",
-  "zero",
-  "spaggie",
-  "rearmed",
-  "titan",
-  "aftermath",
-  "savior",
-  "northmen",
-  "sunnyvale",
-  "the lab",
-  "endzone",
-  "blackout",
-  "basically vanilla",
-  "downbad",
-  "struggle bus",
-  "ground zero"
-];
-
 /**
  * Calculates a Trust Score for a DayZ server.
  * @param {Object} server The server object returned by A2S/serverQuery.
@@ -57,15 +37,10 @@ export function calculateTrustScore(server) {
     reasons.push("Active Moderation Tools Detected");
   }
 
-  // 3. Verified Community IP or Name Match
-  const serverNameLower = (server.name || "").toLowerCase();
-  
+  // 3. Verified Community IP
   if (server.verifiedCommunity) {
     score += 40;
     reasons.push(`Verified Community Server: ${server.verifiedCommunity}`);
-  } else if (KNOWN_COMMUNITIES.some((community) => serverNameLower.includes(community))) {
-    score += 30;
-    reasons.push("Claimed Community Server");
   }
 
   // 4. High Population Heuristic (e.g. > 40 players on a 60+ cap server)

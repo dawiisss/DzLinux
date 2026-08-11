@@ -861,6 +861,12 @@ export function applyTabVisibility(settings) {
   const filterHistoryPill = document.getElementById("filter-history");
   const showHistoryPill = settings.enableHistory !== false ? "inline-flex" : "none";
   if (filterHistoryPill) filterHistoryPill.style.display = showHistoryPill;
+
+  if (settings.enableTrustScore === false) {
+    document.body.classList.add("trust-score-disabled");
+  } else {
+    document.body.classList.remove("trust-score-disabled");
+  }
 }
 
 // Listen for custom events to avoid circular dependencies

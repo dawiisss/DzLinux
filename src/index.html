@@ -600,7 +600,7 @@
                       stroke="currentColor"
                     ></app-icon>
                   </th>
-                  <th style="width: 40px; text-align: center" title="Server Security & Trust Score">
+                  <th class="col-security" style="width: 40px; text-align: center" title="Server Security & Trust Score">
                     <app-icon name="shield" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--text-muted);"></app-icon>
                   </th>
                   <th class="sortable" id="th-name">
@@ -1482,7 +1482,7 @@
                     stroke="currentColor"
                   ></app-icon>
                 </th>
-                <th style="width: 40px; text-align: center" title="Server Security & Trust Score">
+                <th class="col-security" style="width: 40px; text-align: center" title="Server Security & Trust Score">
                   <app-icon name="shield" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--text-muted);"></app-icon>
                 </th>
                 <th>Server Name</th>
@@ -1657,6 +1657,9 @@
               >
               <label style="display: flex; align-items: center; gap: 10px"
                 ><input type="checkbox" id="enableHistory" /> Enable Connection History & History Tab</label
+              >
+              <label style="display: flex; align-items: center; gap: 10px"
+                ><input type="checkbox" id="enableTrustScore" /> Enable Trust Score Indicators</label
               >
             </div>
           </div>

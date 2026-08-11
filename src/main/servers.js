@@ -583,7 +583,9 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
     await fetchAndApplyMonetization(servers);
 
     // 6.5 Verified IPs
-    await fetchAndApplyVerifiedIps(servers);
+    if (settings.enableTrustScore !== false) {
+      await fetchAndApplyVerifiedIps(servers);
+    }
 
     // 7. Save to cache asynchronously
     await saveServerCache(servers);

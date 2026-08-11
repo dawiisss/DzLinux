@@ -66,6 +66,10 @@ export async function initSettings() {
     historyCheckbox.checked =
       settings.enableHistory !== false && settings.showHistoryTab !== false;
   }
+  const trustScoreCheckbox = document.getElementById("enableTrustScore");
+  if (trustScoreCheckbox) {
+    trustScoreCheckbox.checked = settings.enableTrustScore !== false;
+  }
   document.getElementById("flagMangoHud").checked =
     settings.mangoHudEnabled === true;
 
@@ -186,6 +190,7 @@ export async function initSettings() {
       showDiagnosticsTab: document.getElementById("showDiagnosticsTab").checked,
       showHistoryTab: historyEnabled,
       enableHistory: historyEnabled,
+      enableTrustScore: document.getElementById("enableTrustScore") ? document.getElementById("enableTrustScore").checked : true,
       protonPath: document.getElementById("protonPath").value,
       mangoHudEnabled: document.getElementById("flagMangoHud").checked,
       dxvkAsyncEnabled: document.getElementById("dxvkAsyncEnabled").checked,

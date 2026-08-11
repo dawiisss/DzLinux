@@ -2497,6 +2497,9 @@ body.layout-modern #sidebar.pinned .sidebar-toggle {
 }
 
 /* Trust Score / Security Shield */
+.trust-score-disabled .col-security {
+  display: none !important;
+}
 .shield-high {
   color: var(--success-color, #4ade80);
 }

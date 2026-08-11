@@ -21,7 +21,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
     : `detail-${server.id}`;
 
   const tdColspan = document.createElement("td");
-  tdColspan.colSpan = 9;
+  tdColspan.colSpan = (state.settings && state.settings.enableTrustScore !== false) ? 9 : 8;
 
   const detailDiv = document.createElement("div");
   detailDiv.className = "detail-container";
@@ -533,6 +533,7 @@ export function buildServerRow(server, isFavoritesView = false) {
 
   // Security / Trust Score
   const tdSecurity = document.createElement("td");
+  tdSecurity.className = "col-security";
   tdSecurity.style.textAlign = "center";
   const { level, reasons } = calculateTrustScore(server);
   const shieldIcon = document.createElement("app-icon");
