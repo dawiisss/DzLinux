@@ -445,7 +445,7 @@ async function fetchAndApplyMonetization(servers) {
         );
         let ips = ghRes.data;
         if (typeof ips === 'string') {
-          try { ips = JSON.parse(ips); } catch(e) {}
+          try { ips = JSON.parse(ips); } catch {}
         }
         if (!Array.isArray(ips)) throw new Error("Invalid format from GitHub");
         monetizedSet = new Set(ips);

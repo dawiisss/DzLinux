@@ -65,6 +65,7 @@ const defaultSettings = {
   flagHideFull: false,
   flagHistoryOnly: false,
   flagHideLocked: false,
+  enableTrustScore: true,
 };
 
 const SETTINGS_KEYS = new Set(Object.keys(defaultSettings));
@@ -196,6 +197,7 @@ function sanitizeSettings(settings) {
     "flagHideFull",
     "flagHistoryOnly",
     "flagHideLocked",
+    "enableTrustScore",
   ];
   for (const key of booleanKeys) {
     if (typeof safeSettings[key] !== "boolean") safeSettings[key] = defaultSettings[key];

@@ -16,6 +16,13 @@ jest.mock(
   { virtual: true },
 );
 
+jest.mock("../../src/main/settings", () => ({
+  loadSettingsAsync: jest.fn().mockResolvedValue({
+    enableHistory: true,
+    showHistoryTab: true
+  }),
+}));
+
 const historyManager = require("../../src/main/history");
 
 describe("History Manager (Unit Tests)", () => {
