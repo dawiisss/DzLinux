@@ -2495,3 +2495,14 @@ body.layout-modern #sidebar.pinned .sidebar-toggle {
   width: 100% !important;
   height: 100% !important;
 }
+
+/* Trust Score / Security Shield */
+.shield-high {
+  color: var(--success-color, #4ade80);
+}
+.shield-med {
+  color: var(--warning-color, #fbbf24);
+}
+.shield-low {
+  color: var(--text-dim, #9ca3af);
+}

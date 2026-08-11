@@ -10,6 +10,7 @@ import {
   getPlayerBadgeClass,
 } from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
+import { calculateTrustScore } from "./trustScore.js";
 
 // Helper to resolve callbacks to avoid circular dependencies
 export function buildDetailRow(server, isFavoritesView = false) {
@@ -20,7 +21,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
     : `detail-${server.id}`;
 
   const tdColspan = document.createElement("td");
-  tdColspan.colSpan = 8;
+  tdColspan.colSpan = 9;
 
   const detailDiv = document.createElement("div");
   detailDiv.className = "detail-container";
@@ -530,6 +531,19 @@ export function buildServerRow(server, isFavoritesView = false) {
   // Star
   const tdStar = buildStarCell(server, serverKey, isFav);
 
+  // Security / Trust Score
+  const tdSecurity = document.createElement("td");
+  tdSecurity.style.textAlign = "center";
+  const { level, reasons } = calculateTrustScore(server);
+  const shieldIcon = document.createElement("app-icon");
+  shieldIcon.setAttribute("name", "shield");
+  shieldIcon.className = `shield-${level}`;
+  shieldIcon.style.width = "1.2rem";
+  shieldIcon.style.height = "1.2rem";
+  shieldIcon.style.verticalAlign = "middle";
+  tdSecurity.appendChild(shieldIcon);
+  tdSecurity.title = reasons.join(", ");
+
   // Name
   const tdName = document.createElement("td");
   tdName.className = "server-name-cell";
@@ -589,6 +603,7 @@ export function buildServerRow(server, isFavoritesView = false) {
   const tdAction = buildActionCell(server, pingCellId, metaCellId);
 
   tr.appendChild(tdStar);
+  tr.appendChild(tdSecurity);
   tr.appendChild(tdName);
   tr.appendChild(tdPlayers);
   tr.appendChild(tdMods);
