@@ -144,9 +144,12 @@ describe("prepareEnv", () => {
 
     test("inherits process.env values", async () => {
       process.env.TEST_VAR = "testvalue";
-      const env = await buildEnvironment({}, "");
-      expect(env.TEST_VAR).toBe("testvalue");
-      delete process.env.TEST_VAR;
+      try {
+        const env = await buildEnvironment({}, "");
+        expect(env.TEST_VAR).toBe("testvalue");
+      } finally {
+        delete process.env.TEST_VAR;
+      }
     });
   });
 

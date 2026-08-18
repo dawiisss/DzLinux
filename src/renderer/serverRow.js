@@ -325,14 +325,14 @@ function buildStarCell(server, serverKey, isFav) {
         starBtn.className = "star-btn";
         starBtn.title = "Add to Favorites";
         starBtn.setAttribute("aria-label", "Add to Favorites");
-        showToast("Removed from favorites", "#ff5a5f", STAR_UNFAV_SVG);
+        showToast("Removed from favorites", "#ff5a5f", "star");
       } else {
         await addFavorite(server.ip, server.port, server.queryPort, server.name);
         starBtn.innerHTML = STAR_FAV_SVG;
         starBtn.className = "star-btn active";
         starBtn.title = "Remove from Favorites";
         starBtn.setAttribute("aria-label", "Remove from Favorites");
-        showToast("Added to favorites", "#ffd700", STAR_FAV_SVG);
+        showToast("Added to favorites", "#ffd700", "star");
       }
     } catch (err) {
       console.error("Failed to update favorite:", err);

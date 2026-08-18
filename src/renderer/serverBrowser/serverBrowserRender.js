@@ -369,9 +369,9 @@ export async function refreshServers(isBackground = false) {
 
   if (!isBackground) {
     document.getElementById("serverListBody").innerHTML = `
-      <tr class="skeleton-row"><td colspan="8"><div class="skeleton-bar" style="width: 60%"></div></td></tr>
-      <tr class="skeleton-row"><td colspan="8"><div class="skeleton-bar" style="width: 45%"></div></td></tr>
-      <tr class="skeleton-row"><td colspan="8"><div class="skeleton-bar" style="width: 70%"></div></td></tr>
+      <tr class="skeleton-row"><td colspan="9"><div class="skeleton-bar" style="width: 60%"></div></td></tr>
+      <tr class="skeleton-row"><td colspan="9"><div class="skeleton-bar" style="width: 45%"></div></td></tr>
+      <tr class="skeleton-row"><td colspan="9"><div class="skeleton-bar" style="width: 70%"></div></td></tr>
     `;
   }
 

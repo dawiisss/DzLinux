@@ -1,7 +1,8 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
-const { execFile } = require("node:child_process");
+const { spawn } = require("node:child_process");
+const { existsAsync } = require("../fileUtils");
 const steamworksManager = require("../steamworksManager");
 const { configureDxvk } = require("./configDxvk");
 const { buildEnvironment } = require("./prepareEnv");
@@ -39,6 +40,7 @@ async function scanProtonVersions() {
       "steamapps",
       "common",
     ),
+    "/usr/share/steam/compatibilitytools.d",
   ];
 
   for (const sp of searchPaths) {
@@ -95,11 +97,6 @@ async function launchViaProton(args, settings, handleGameExit) {
 
   console.log(`Launching DayZ via custom Proton: ${settings.protonPath}`);
 
-  const existsAsync = async (p) =>
-    fs.promises
-      .access(p)
-      .then(() => true)
-      .catch(() => false);
 
   if (!(await existsAsync(settings.protonPath))) {
     throw new Error(`Proton executable not found at: ${settings.protonPath}`);
@@ -136,16 +133,15 @@ async function launchViaProton(args, settings, handleGameExit) {
   }
 
   const env = await buildEnvironment(settings, compatDataPath);
-
   await configureDxvk(settings, compatDataPath, env);
 
   const protonArgs = ["waitforexitandrun", dayzExe, ...args];
   const launchArgs = [settings.protonPath, ...protonArgs];
 
   if (settings.launchParams && settings.launchParams.includes("%command%")) {
-    const parsedParams = (
-      settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || []
-    ).map((p) => {
+    // Parse custom launch parameters with %command% replacement
+    const rawTokens = settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+    const parsedParams = rawTokens.map((p) => {
       if (p.startsWith('"') && p.endsWith('"')) {
         return p.slice(1, -1);
       }
@@ -174,7 +170,7 @@ async function launchViaProton(args, settings, handleGameExit) {
       }
     }
 
-    console.log("Executing via execFile with %command% expansion");
+    console.log("Executing via spawn with %command% expansion");
 
     await steamworksManager.lockAndDelayForLaunch();
 
@@ -182,24 +178,17 @@ async function launchViaProton(args, settings, handleGameExit) {
     const argsList = execArgs.slice(1);
 
     return new Promise((resolve, reject) => {
-      const child = execFile(
-        cmd,
-        argsList,
-        { env },
-        (error, _stdout, stderr) => {
-          if (error) {
-            console.log(
-              `Proton process exited with non-zero code (${error.code || error.message})`
-            );
-            if (stderr) console.log(`stderr output on exit: ${stderr}`);
-            handleGameExit(error);
-          } else {
-            console.log("Proton process exited cleanly.");
-          }
-        },
-      );
+      const child = spawn(cmd, argsList, { env, stdio: "ignore" });
       child.once("spawn", resolve);
       child.once("error", reject);
+      child.once("exit", (code) => {
+        if (code !== 0 && code !== null) {
+          console.log(`Proton process exited with non-zero code (${code})`);
+          handleGameExit(new Error(`Process exited with code ${code}`));
+        } else {
+          console.log("Proton process exited cleanly.");
+        }
+      });
     });
   } else {
     const prefix = [];
@@ -213,24 +202,20 @@ async function launchViaProton(args, settings, handleGameExit) {
     await steamworksManager.lockAndDelayForLaunch();
 
     return new Promise((resolve, reject) => {
-      const child = execFile(
-        wrappedArgs[0],
-        wrappedArgs.slice(1),
-        { env },
-        (error, _stdout, stderr) => {
-          if (error) {
-            console.log(
-              `Proton process exited with non-zero code (${error.code || error.message})`
-            );
-            if (stderr) console.log(`stderr output on exit: ${stderr}`);
-            handleGameExit(error);
-          } else {
-            console.log("Proton process exited cleanly.");
-          }
-        },
-      );
+      const child = spawn(wrappedArgs[0], wrappedArgs.slice(1), {
+        env,
+        stdio: "ignore",
+      });
       child.once("spawn", resolve);
       child.once("error", reject);
+      child.once("exit", (code) => {
+        if (code !== 0 && code !== null) {
+          console.log(`Proton process exited with non-zero code (${code})`);
+          handleGameExit(new Error(`Process exited with code ${code}`));
+        } else {
+          console.log("Proton process exited cleanly.");
+        }
+      });
     });
   }
 }

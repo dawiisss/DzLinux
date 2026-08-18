@@ -1,6 +1,6 @@
-const fs = require("node:fs");
 const path = require("node:path");
-const { execFile } = require("node:child_process");
+const { shell } = require("electron");
+const { existsAsync } = require("./fileUtils");
 const settingsManager = require("./settings");
 const steamworksManager = require("./steamworksManager");
 const logParser = require("./logParser");
@@ -53,11 +53,6 @@ async function checkMods(requiredMods) {
     return { missingMods: [], hasAllMods: true };
   }
 
-  const existsAsync = async (p) =>
-    fs.promises
-      .access(p)
-      .then(() => true)
-      .catch(() => false);
 
   const settings = await settingsManager.loadSettingsAsync();
   const hasModDir = settings.modDirectory
@@ -136,12 +131,13 @@ async function launchDayZ(ip, port, mods) {
   const modString = buildModString(settings, mods);
   const extraParams = buildExtraParams(settings);
 
+  const portStr = port !== undefined && port !== null ? String(port) : "2302";
   const args = ip
     ? [
         "-connect",
         sanitizeArg(ip),
         "-port",
-        sanitizeArg(port.toString()),
+        sanitizeArg(portStr),
         "-noLauncher",
       ]
     : ["-noLauncher"];
@@ -166,10 +162,8 @@ function openWorkshopPage(modId) {
     return;
   }
   const url = `steam://url/CommunityFilePage/${cleanedId}`;
-  execFile("xdg-open", [url], (err) => {
-    if (err) {
-      console.error("Failed to open Workshop URL", err);
-    }
+  return shell.openExternal(url).catch((err) => {
+    console.error("Failed to open Workshop URL", err);
   });
 }
 

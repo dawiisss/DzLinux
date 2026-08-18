@@ -245,7 +245,37 @@ async function saveSettings(settings) {
   }
 }
 
+/**
+ * Synchronous settings loader for pre-ready startup only.
+ * This MUST NOT be called after app.whenReady() — use loadSettingsAsync() instead.
+ * Required because Chromium command-line switches (e.g. Wayland/Ozone flags)
+ * must be set before the event loop starts.
+ */
+function loadSettings() {
+  if (cachedSettings !== null) {
+    return { ...cachedSettings };
+  }
+  const settings = { ...defaultSettings };
+  try {
+    if (fs.existsSync(settingsPath)) {
+      const data = fs.readFileSync(settingsPath, "utf8");
+      const parsed = JSON.parse(data);
+      for (const key of Object.keys(parsed)) {
+        if (SETTINGS_KEYS.has(key)) {
+          settings[key] = parsed[key];
+        }
+      }
+    }
+  } catch (e) {
+    if (e.code !== "ENOENT") {
+      console.error("Failed to load settings synchronously:", e);
+    }
+  }
+  return sanitizeSettings(settings);
+}
+
 module.exports = {
+  loadSettings,
   loadSettingsAsync,
   saveSettings,
   getDefaultSettings: () => ({ ...defaultSettings }),

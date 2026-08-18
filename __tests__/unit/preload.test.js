@@ -74,6 +74,9 @@ describe("preload", () => {
 
     unsubscribe();
     expect(ipcRenderer.removeListener).toHaveBeenCalledWith("servers-batch", handler);
+
+    mockExposedApis.api.servers.removeListeners();
+    expect(ipcRenderer.removeAllListeners).toHaveBeenCalledWith("servers-batch");
   });
 
   test("ui endpoints delegate to ipcRenderer", async () => {

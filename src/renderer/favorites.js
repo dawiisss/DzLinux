@@ -18,7 +18,7 @@ export function renderFavoritesManager() {
 
   if (state.favorites.length === 0) {
     tbody.innerHTML =
-      '<tr><td colspan="8" class="empty-state-msg">No favorited servers</td></tr>';
+      '<tr><td colspan="9" class="empty-state-msg">No favorited servers</td></tr>';
     return;
   }
 

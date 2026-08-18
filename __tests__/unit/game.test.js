@@ -34,6 +34,7 @@ describe("game", () => {
         "electron",
         () => ({
           app: { getPath: jest.fn(() => "/tmp/dzlinux-test-data") },
+          shell: { openExternal: jest.fn().mockResolvedValue(true) },
         }),
         { virtual: true },
       );
@@ -320,6 +321,65 @@ describe("game", () => {
         "Failed to parse logs after crash:",
         expect.any(Error),
       );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    test("handles undefined or null port gracefully without throwing", async () => {
+      mockExecFile.mockImplementation((cmd, args, cb) => {
+        cb(null, "stdout", "stderr");
+        return { once: (evt, handler) => { if (evt === 'spawn') handler(); } };
+      });
+
+      const game = require("../../src/main/game");
+      await expect(game.launchDayZ("1.2.3.4", null, [])).resolves.not.toThrow();
+      expect(mockExecFile).toHaveBeenCalledWith(
+        "steam",
+        expect.arrayContaining(["-connect=1.2.3.4", "-port=2302"]),
+        expect.any(Function),
+      );
+    });
+  });
+
+  describe("openWorkshopPage", () => {
+    test("opens external workshop URL for valid mod ID", async () => {
+      jest.resetModules();
+      const mockOpenExternal = jest.fn().mockResolvedValue(true);
+      jest.doMock(
+        "electron",
+        () => ({
+          app: { getPath: jest.fn(() => "/tmp/dzlinux-test-data") },
+          shell: { openExternal: mockOpenExternal },
+        }),
+        { virtual: true },
+      );
+
+      const game = require("../../src/main/game");
+      await game.openWorkshopPage("1559212036");
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        "steam://url/CommunityFilePage/1559212036",
+      );
+    });
+
+    test("ignores invalid mod ID strings or objects", async () => {
+      jest.resetModules();
+      const mockOpenExternal = jest.fn().mockResolvedValue(true);
+      const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+      jest.doMock(
+        "electron",
+        () => ({
+          app: { getPath: jest.fn(() => "/tmp/dzlinux-test-data") },
+          shell: { openExternal: mockOpenExternal },
+        }),
+        { virtual: true },
+      );
+
+      const game = require("../../src/main/game");
+      await game.openWorkshopPage("invalid-mod-id");
+      expect(mockOpenExternal).not.toHaveBeenCalled();
+
+      await game.openWorkshopPage(null);
+      expect(mockOpenExternal).not.toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
     });

@@ -120,7 +120,9 @@ export async function loadInstalledMods() {
           "#2ec4b6",
           "download",
         );
-        window.api.mods.openWorkshop(mod.id);
+        window.api.mods.openWorkshop(mod.id).catch((err) => {
+          showToast(`Failed to open Workshop: ${err.message}`, "#ff5a5f", "alert");
+        });
       });
       const wsIcon = document.createElement("app-icon");
       wsIcon.setAttribute("name", "external-link");
@@ -164,7 +166,9 @@ export async function loadInstalledMods() {
     openFolderBtn.style.marginRight = "8px";
     openFolderBtn.textContent = "Open Folder";
     openFolderBtn.addEventListener("click", () => {
-      window.api.mods.openFolder(mod.id);
+      window.api.mods.openFolder(mod.id).catch((err) => {
+        showToast(`Failed to open folder: ${err.message}`, "#ff5a5f", "alert");
+      });
     });
     tdActions.appendChild(openFolderBtn);
 
@@ -259,11 +263,7 @@ export async function loadInstalledMods() {
               ).toString());
               for (const mod of result.outdatedMods) {
                 if (misMatchBanner.dataset.generation !== generation) break;
-                showToast(
-                  `Updating ${mod.name}...`,
-                  "#ff9f1c",
-                  `<app-icon name="download" style="width: 1.1rem; height: 1.1rem; color: #ff9f1c;"></app-icon>`,
-                );
+                showToast(`Updating ${mod.name}...`, "#ff9f1c", "download");
                 await window.api.steamworks.subscribe(mod.id);
                 await new Promise((r) => setTimeout(r, 500));
               }
@@ -315,7 +315,9 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
   try {
     const success = await window.api.steamworks.subscribe(modId);
     if (!success) {
-      window.api.mods.subscribe(modId);
+      window.api.mods.subscribe(modId).catch((err) => {
+        showToast(`Failed to subscribe: ${err.message}`, "#ff5a5f", "alert");
+      });
       showToast(`Opening Steam for ${modName}`, "#2ec4b6", "download");
       if (statusLabel) {
         statusLabel.textContent = "Subscribing...";
@@ -471,7 +473,7 @@ export function buildDependencyTree(container, node, prefix, installedSet) {
     if (child.error) {
       statusIcon = "⚠";
       statusColor = "#ff5a5f";
-      extraInfo = `<span style="color:#ff5a5f;font-size:0.7rem;"> [ERROR: ${escapeHtml(child.error)}]</span>`;
+      extraInfo = `<span style="color:#ff5a5f;font-size:0.7rem;"> [Error: ${escapeHtml(child.error)}]</span>`;
     } else if (child.truncated) {
       statusIcon = "…";
       statusColor = "#ffb703";

@@ -14,7 +14,7 @@ All contributors and participants are expected to adhere to our [Code of Conduct
 
 ## How to Contribute
 
-### 1. Reporting Bugs & Requesting Features
+### 1. Reporting Bugs and Requesting Features
 - Search the open issues to ensure your bug or feature request has not already been reported.
 - Open a new issue with a clear title and description, detailing how to reproduce the bug (if applicable) or explaining the utility of the feature request.
 
@@ -39,7 +39,7 @@ This repository strictly enforces `pnpm` for dependency and package management.
   pnpm install
   ```
 
-### 2. Linting & Formatting
+### 2. Linting and Formatting
 Before committing your changes, ensure your code passes ESLint checks:
 - Run the linter:
   ```bash
@@ -58,7 +58,7 @@ This project uses Jest for unit and integration testing.
   ```
 - Ensure any test setup/teardown cleaning up env variables uses `delete process.env.VAR` rather than assigning `undefined` or `null` to avoid global variable leakages.
 
-### 4. UI Design & Casing Guidelines
+### 4. UI Design and Casing Guidelines
 To maintain our tactical HUD styling:
 - **Case Formatting**: Do not use all-uppercase strings in toast notifications, dialogs, button labels, or general user-facing UI copy unless explicitly requested (e.g. use standard sentence case or title case like `Your DzLinux client is up to date` instead of `YOUR DZLINUX CLIENT IS UP TO DATE`).
 - Use HSL variables and defined design systems instead of ad-hoc CSS colors.

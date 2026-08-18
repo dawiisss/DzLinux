@@ -10,6 +10,42 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.8.0] - 2026-08-18
+
+### Added
+
+- **Synchronous Settings Loader:** Added and exported a synchronous `loadSettings()` helper in `settings.js` specifically for early startup flag initialization prior to `app.whenReady()`.
+- **Async Steam Path Unit Tests:** Added dedicated unit test coverage for `getSteamInstallPathAsync()` and `findDayzWorkshopFolderAsync()` in `steamPaths.test.js`.
+- **Workshop URL Opener Unit Tests:** Added unit test coverage for `openWorkshopPage()` verifying URL parameter sanitization and Electron shell opening in `game.test.js`.
+- **Launch Port and Settings Unit Tests:** Added unit tests verifying defensive port defaulting in `game.test.js` and synchronous `loadSettings()` in `settings.test.js`.
+
+### Changed
+
+- **Proton Launch Process Spawn:** Replaced `child_process.execFile` with `spawn` using `stdio: "ignore"` in `launchProton.js` to avoid `maxBuffer` memory limits and prevent unexpected process termination during long DayZ gameplay sessions.
+- **Dependency Cache Memory Bounds:** Capped the Steam Workshop dependency resolver cache at 1,000 entries with bulk eviction to 90% capacity in `steamDependencyResolver.js` to prevent unbounded memory growth and reduce churn at the boundary.
+- **Direct Toast Icon Identifiers:** Standardized `showToast()` calls across `serverRow.js` and `modManager.js` to pass clean icon name strings (`"star"`, `"download"`) rather than raw SVG constants or HTML elements.
+- **UI Copy Casing Standardization:** Converted hardcoded uppercase button and label text (`Refresh`, `Servers:`, `Players:`, `Filtered:`) in `index.html`, reset dialog text in `settings.js` (`cannot`), and dependency error tags in `modManager.js` (`[Error: ...]`).
+- **Early Wayland Ozone Bootstrap:** Moved Chromium command-line switch configuration (`UseOzonePlatform`, `ozone-platform=wayland`) in `main.js` to execute prior to `app.whenReady()`, ensuring Chromium activates native Wayland Ozone mode during initial process bootstrap.
+- **External URL Opener Standardization:** Replaced `child_process.execFile("xdg-open")` in `openWorkshopPage()` with Electron's `shell.openExternal(url)` for robust sandbox/Flatpak compatibility and error propagation.
+- **Table Colspan Consistency:** Aligned table skeleton loading placeholders and empty-state rows across `index.html`, `serverBrowserRender.js`, and `favorites.js` to `colspan="9"` to maintain visual alignment with the 9-column Security/Trust layout.
+- **Preload API Cleanliness:** Removed orphaned `onComplete` IPC channel and listener references from `preload.js`.
+- **Markdown Heading Anchor Hygiene:** Replaced literal ampersands (`&`) with `and` in markdown headings across all repository documentation.
+- **Sync Filesystem Deprecation Notices:** Annotated legacy synchronous filesystem methods `getSteamInstallPath()` and `findDayzWorkshopFolder()` in `steamPaths.js` with JSDoc `@deprecated` warnings directing callers to async equivalents (`Rule 13`).
+- **Build Utility Import Hygiene:** Removed unused `_path` import from `scripts/lib/utils.js`.
+- **Centralized `existsAsync` Utility:** Consolidated the duplicate `existsAsync` helper (previously defined locally in `steamPaths.js`, `game.js`, and `launchProton.js`) into the shared `fileUtils.js` module.
+- **Synchronous Settings Loader Documentation:** Added JSDoc to `loadSettings()` in `settings.js` explicitly documenting it as a startup-only constraint required for pre-ready Chromium command-line switch initialization.
+- **Server Pipeline Step Numbering:** Fixed step comment numbering gap (4→6) in `servers.js` `fetchDayZServers` to be sequential.
+
+### Fixed
+
+- **Test Environment Variable Teardown:** Wrapped `process.env.TEST_VAR` test manipulation in `prepareEnv.test.js` with a `try ... finally` block to guarantee environment restoration on assertion failures (`Rule 8`).
+- **Early Wayland Settings Load Error:** Fixed a startup `TypeError: settingsManager.loadSettings is not a function` in `main.js` which caused Wayland flags to fail silently.
+- **Game Launch Missing Port Exception:** Fixed a potential `TypeError` in `launchDayZ` and `launchViaSteam` when `port` argument is missing or non-string by safely defaulting to `"2302"`.
+- **History Favorite Port Mapping:** Fixed a bug where adding a favorite directly from the Connection History view assigned the game port as the A2S query port instead of preserving `queryPort`.
+- **Gitignore Cleanliness:** Removed obsolete `server-portal/` entry from `.gitignore`.
+- **UI Label Casing:** Changed hardcoded uppercase `ACTIVE LINK:` label in the Steam profile header to title case `Active Link:`.
+- **Mod Manager IPC Error Propagation:** Added `.catch()` handlers with toast error feedback to fire-and-forget IPC calls (`openWorkshop`, `openFolder`, `subscribe` fallback) in `modManager.js` so failures are surfaced to the user instead of silently swallowed.
+
 ## [1.7.0] - 2026-08-11
 
 ### Added

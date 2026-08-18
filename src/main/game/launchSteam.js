@@ -5,9 +5,10 @@ const { sanitizeArg } = require("./prepareEnv");
 async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) {
   const steamArgs = ["-applaunch", "221100", "-noLauncher"];
   if (ip) {
+    const portStr = port !== undefined && port !== null ? String(port) : "2302";
     steamArgs.push(
       `-connect=${sanitizeArg(ip)}`,
-      `-port=${sanitizeArg(port.toString())}`
+      `-port=${sanitizeArg(portStr)}`
     );
   }
   if (modString) {

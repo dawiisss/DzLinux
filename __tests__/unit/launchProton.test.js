@@ -6,7 +6,7 @@ describe("launchProton", () => {
   let mockStat;
   let mockReaddir;
   let mockWriteFile;
-  let mockExecFile;
+  let mockSpawn;
   let mockLockAndDelay;
   let mockBuildEnvironment;
   let mockConfigureDxvk;
@@ -46,13 +46,18 @@ describe("launchProton", () => {
 
   // Fake child process: fires "spawn" (or "error" when spawnError given) on next tick.
   function makeChild(spawnError = null) {
+    const listeners = {};
     return {
       once: jest.fn((event, cb) => {
+        listeners[event] = cb;
         if (event === "spawn" && !spawnError) process.nextTick(cb);
         if (event === "error" && spawnError) {
           process.nextTick(() => cb(spawnError));
         }
       }),
+      _triggerExit: (code) => {
+        if (listeners.exit) listeners.exit(code);
+      },
     };
   }
 
@@ -69,7 +74,7 @@ describe("launchProton", () => {
     mockStat = jest.fn().mockResolvedValue({ isDirectory: () => true });
     mockReaddir = jest.fn();
     mockWriteFile = jest.fn().mockResolvedValue();
-    mockExecFile = jest.fn().mockImplementation(() => makeChild());
+    mockSpawn = jest.fn().mockImplementation(() => makeChild());
     mockLockAndDelay = jest.fn().mockResolvedValue();
     mockBuildEnvironment = jest.fn().mockResolvedValue({ MOCK_ENV: "1" });
     mockConfigureDxvk = jest.fn().mockResolvedValue();
@@ -82,7 +87,7 @@ describe("launchProton", () => {
         writeFile: mockWriteFile,
       },
     }));
-    jest.doMock("child_process", () => ({ execFile: mockExecFile }));
+    jest.doMock("child_process", () => ({ spawn: mockSpawn }));
     jest.doMock("../../src/main/steamworksManager", () => ({
       lockAndDelayForLaunch: mockLockAndDelay,
     }));
@@ -251,16 +256,15 @@ describe("launchProton", () => {
         compatDataPath,
         { MOCK_ENV: "1" },
       );
-      expect(mockExecFile).toHaveBeenCalledWith(
+      expect(mockSpawn).toHaveBeenCalledWith(
         settings.protonPath,
         ["waitforexitandrun", dayzExe, "-connect", "1.2.3.4"],
-        { env: { MOCK_ENV: "1" } },
-        expect.any(Function),
+        { env: { MOCK_ENV: "1" }, stdio: "ignore" },
       );
       expect(mockLockAndDelay).toHaveBeenCalled();
       // Steam singleton lock must happen before the process is spawned
       expect(mockLockAndDelay.mock.invocationCallOrder[0]).toBeLessThan(
-        mockExecFile.mock.invocationCallOrder[0],
+        mockSpawn.mock.invocationCallOrder[0],
       );
     });
 
@@ -274,7 +278,7 @@ describe("launchProton", () => {
 
       await launchProton.launchViaProton([], wrappedSettings, jest.fn());
 
-      const [cmd, args] = mockExecFile.mock.calls[0];
+      const [cmd, args] = mockSpawn.mock.calls[0];
       expect(cmd).toBe("gamemoderun");
       expect(args[0]).toBe("mangohud");
       expect(args[1]).toBe(settings.protonPath);
@@ -294,7 +298,7 @@ describe("launchProton", () => {
         jest.fn(),
       );
 
-      const [cmd, args] = mockExecFile.mock.calls[0];
+      const [cmd, args] = mockSpawn.mock.calls[0];
       expect(cmd).toBe("gamemoderun");
       expect(args).toEqual([
         settings.protonPath,
@@ -306,7 +310,6 @@ describe("launchProton", () => {
       expect(args.some((a) => a.includes("%command%"))).toBe(false);
     });
 
-
     test("expands tokens with %command% embedded in them", async () => {
       mockAccess.mockImplementation(launchPathsExist);
       const expandedSettings = {
@@ -316,7 +319,7 @@ describe("launchProton", () => {
 
       await launchProton.launchViaProton([], expandedSettings, jest.fn());
 
-      const [cmd, args] = mockExecFile.mock.calls[0];
+      const [cmd, args] = mockSpawn.mock.calls[0];
       expect(cmd).toBe("env");
       // Embedded expansion quotes each substituted arg; quotes inside the
       // token are kept as-is, standalone quoted args are unwrapped.
@@ -328,7 +331,7 @@ describe("launchProton", () => {
 
     test("rejects when the child process fails to spawn", async () => {
       mockAccess.mockImplementation(launchPathsExist);
-      mockExecFile.mockImplementation(() =>
+      mockSpawn.mockImplementation(() =>
         makeChild(new Error("spawn failed")),
       );
 
@@ -339,31 +342,30 @@ describe("launchProton", () => {
 
     test("reports non-zero exit through handleGameExit", async () => {
       mockAccess.mockImplementation(launchPathsExist);
-      let exitCallback;
-      mockExecFile.mockImplementation((cmd, args, opts, cb) => {
-        exitCallback = cb;
-        return makeChild();
+      let child;
+      mockSpawn.mockImplementation(() => {
+        child = makeChild();
+        return child;
       });
       const handleGameExit = jest.fn();
 
       await launchProton.launchViaProton([], settings, handleGameExit);
-      const exitError = new Error("exit code 1");
-      exitCallback(exitError, "", "some stderr");
+      child._triggerExit(1);
 
-      expect(handleGameExit).toHaveBeenCalledWith(exitError);
+      expect(handleGameExit).toHaveBeenCalledWith(new Error("Process exited with code 1"));
     });
 
     test("does not call handleGameExit on a clean exit", async () => {
       mockAccess.mockImplementation(launchPathsExist);
-      let exitCallback;
-      mockExecFile.mockImplementation((cmd, args, opts, cb) => {
-        exitCallback = cb;
-        return makeChild();
+      let child;
+      mockSpawn.mockImplementation(() => {
+        child = makeChild();
+        return child;
       });
       const handleGameExit = jest.fn();
 
       await launchProton.launchViaProton([], settings, handleGameExit);
-      exitCallback(null, "", "");
+      child._triggerExit(0);
 
       expect(handleGameExit).not.toHaveBeenCalled();
     });
@@ -377,7 +379,7 @@ describe("launchProton", () => {
         launchProton.launchViaProton([], settings, jest.fn()),
       ).resolves.toBeUndefined();
 
-      expect(mockExecFile).toHaveBeenCalled();
+      expect(mockSpawn).toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalled();
     });
   });

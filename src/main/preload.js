@@ -33,14 +33,8 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.on("servers-batch", handler);
       return () => ipcRenderer.removeListener("servers-batch", handler);
     },
-    onComplete: (callback) => {
-      const handler = (_event) => callback();
-      ipcRenderer.on("servers-complete", handler);
-      return () => ipcRenderer.removeListener("servers-complete", handler);
-    },
     removeListeners: () => {
       ipcRenderer.removeAllListeners("servers-batch");
-      ipcRenderer.removeAllListeners("servers-complete");
     },
   },
 

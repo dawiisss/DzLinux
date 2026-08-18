@@ -588,12 +588,10 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
     // 4. Inject unlisted favorites
     injectFavoritesPlaceholders(servers, settings.favorites, serversMap);
 
-
-
-    // 6. Monetization check & Tagging
+    // 5. Monetization check & Tagging
     await fetchAndApplyMonetization(servers);
 
-    // 6.5 Verified IPs
+    // 6. Verified IPs
     if (settings.enableTrustScore !== false) {
       await fetchAndApplyVerifiedIps(servers);
     }

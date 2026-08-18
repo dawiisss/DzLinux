@@ -168,7 +168,7 @@ export function renderHistoryTable() {
         await removeFavorite(rec.ip, rec.port);
         showToast("Removed from Favorites", "#ff5a5f", "star-off");
       } else {
-        await addFavorite(rec.ip, rec.port, rec.port, rec.name);
+        await addFavorite(rec.ip, rec.port, rec.queryPort || null, rec.name);
         showToast("Added to Favorites", "#ff9f1c", "star");
       }
       renderHistoryTable();

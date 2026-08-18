@@ -3,6 +3,7 @@ const axios = require("axios");
 const dependencyCache = new Map();
 const MAX_DEPTH = 5;
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const MAX_CACHE_ENTRIES = 1000;
 
 async function asyncPool(concurrency, iterable, iteratorFn) {
   const ret = [];
@@ -113,6 +114,15 @@ async function resolveDependencies(modId, depth = 0, visited = new Set()) {
 
   // Cache successful results with depth to handle different truncation levels
   dependencyCache.set(cacheKey, { result, timestamp: Date.now() });
+
+  if (dependencyCache.size > MAX_CACHE_ENTRIES) {
+    const target = Math.floor(MAX_CACHE_ENTRIES * 0.9);
+    const iter = dependencyCache.keys();
+    while (dependencyCache.size > target) {
+      dependencyCache.delete(iter.next().value);
+    }
+  }
+
   return result;
 }
 

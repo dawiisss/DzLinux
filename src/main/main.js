@@ -55,13 +55,18 @@ if (!gotTheLock) {
     return win;
   };
 
-  app.whenReady().then(async () => {
-    await initLogger();
-    const settings = await settingsManager.loadSettingsAsync();
-    if (settings.nativeWayland && process.env.XDG_SESSION_TYPE === "wayland") {
+  try {
+    const initialSettings = settingsManager.loadSettings();
+    if (initialSettings.nativeWayland && process.env.XDG_SESSION_TYPE === "wayland") {
       app.commandLine.appendSwitch("enable-features", "UseOzonePlatform");
       app.commandLine.appendSwitch("ozone-platform", "wayland");
     }
+  } catch (err) {
+    process.stderr.write(`Failed to load early settings for Wayland flags: ${err.message}\n`);
+  }
+
+  app.whenReady().then(async () => {
+    await initLogger();
     registerIpcHandlers();
 
     const mainWindow = createWindow();

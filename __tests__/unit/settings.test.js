@@ -54,6 +54,25 @@ describe("settings", () => {
     expect(settings.showDiagnosticsTab).toBe(true);
   });
 
+  test("loadSettings returns defaults synchronously when no file exists", () => {
+    const { loadSettings } = require("../../src/main/settings");
+    const settings = loadSettings();
+    expect(settings.nativeWayland).toBe(false);
+    expect(settings.theme).toBe("tactical-dark");
+  });
+
+  test("loadSettings returns parsed settings synchronously from disk", () => {
+    fs.writeFileSync(
+      settingsPath,
+      JSON.stringify({ nativeWayland: true, theme: "toxic" }),
+      "utf8",
+    );
+    const { loadSettings } = require("../../src/main/settings");
+    const settings = loadSettings();
+    expect(settings.nativeWayland).toBe(true);
+    expect(settings.theme).toBe("toxic");
+  });
+
   test("saveSettings then loadSettingsAsync round-trips correctly", async () => {
     const { loadSettingsAsync, saveSettings } = require("../../src/main/settings");
     const toSave = {

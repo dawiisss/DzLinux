@@ -86,4 +86,74 @@ describe("steamPaths", () => {
     expect(candidates.length).toBe(3);
     expect(candidates[0]).toContain("steamapps/compatdata/221100");
   });
+
+  describe("async steamPaths methods", () => {
+    test("getSteamInstallPathAsync returns first matched candidate", async () => {
+      const targetDir = path.join(tmpDir, ".steam", "steam");
+      fs.mkdirSync(targetDir, { recursive: true });
+
+      const { getSteamInstallPathAsync, _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+
+      const result = await getSteamInstallPathAsync();
+      expect(result).toBe(targetDir);
+    });
+
+    test("getSteamInstallPathAsync returns fallback if no matches", async () => {
+      const { getSteamInstallPathAsync, _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+
+      const expectedFallback = path.join(tmpDir, ".local", "share", "Steam");
+      const result = await getSteamInstallPathAsync();
+      expect(result).toBe(expectedFallback);
+    });
+
+    test("findDayzWorkshopFolderAsync parses libraryfolders.vdf", async () => {
+      const steamDir = path.join(tmpDir, ".local", "share", "Steam");
+      fs.mkdirSync(steamDir, { recursive: true });
+
+      const vdfPath = path.join(steamDir, "steamapps", "libraryfolders.vdf");
+      fs.mkdirSync(path.dirname(vdfPath), { recursive: true });
+
+      const fakeLibraryFolders = `
+        "libraryfolders"
+        {
+          "0"
+          {
+            "path"    "${tmpDir.replace(/\\/g, "\\\\")}/AsyncCustomLibrary"
+          }
+        }
+      `;
+      fs.writeFileSync(vdfPath, fakeLibraryFolders, "utf8");
+
+      const customWorkshop = path.join(tmpDir, "AsyncCustomLibrary", "steamapps", "workshop", "content", "221100");
+      fs.mkdirSync(customWorkshop, { recursive: true });
+
+      const { findDayzWorkshopFolderAsync, _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+
+      const result = await findDayzWorkshopFolderAsync();
+      expect(result).toBe(customWorkshop);
+    });
+
+    test("findDayzWorkshopFolderAsync falls back to main workshop folder", async () => {
+      const steamDir = path.join(tmpDir, ".local", "share", "Steam");
+      const mainWorkshop = path.join(steamDir, "steamapps", "workshop", "content", "221100");
+      fs.mkdirSync(mainWorkshop, { recursive: true });
+
+      const { findDayzWorkshopFolderAsync, _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+
+      const result = await findDayzWorkshopFolderAsync();
+      expect(result).toBe(mainWorkshop);
+    });
+
+    test("findDayzWorkshopFolderAsync returns empty string if not found", async () => {
+      const { findDayzWorkshopFolderAsync, _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+
+      const result = await findDayzWorkshopFolderAsync();
+      expect(result).toBe("");
+    });
+  });
 });

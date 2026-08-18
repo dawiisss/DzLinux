@@ -14,9 +14,6 @@ scripts/
 # Test Coverage
 coverage/
 
-#Server portal
-server-portal/
-
 # Agent configs and release templates
 .agents/
 releases-templates/

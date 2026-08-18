@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
+const { existsAsync } = require("./fileUtils");
 
 const STEAM_DIR_CANDIDATES = [
   path.join(os.homedir(), ".steam", "steam"),
@@ -18,18 +19,9 @@ const STEAM_DIR_CANDIDATES = [
 
 let cachedSteamInstallPath = null;
 let cachedDayzWorkshopFolder = null;
-
-const fsPromises = fs.promises;
-
-async function existsAsync(p) {
-  try {
-    await fsPromises.access(p);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
+/**
+ * @deprecated Use getSteamInstallPathAsync() to prevent blocking the event loop (Rule 13).
+ */
 function getSteamInstallPath() {
   if (cachedSteamInstallPath !== null) {
     return cachedSteamInstallPath;
@@ -56,6 +48,9 @@ async function getSteamInstallPathAsync() {
   return path.join(os.homedir(), ".local", "share", "Steam");
 }
 
+/**
+ * @deprecated Use findDayzWorkshopFolderAsync() to prevent blocking the event loop (Rule 13).
+ */
 function findDayzWorkshopFolder() {
   if (cachedDayzWorkshopFolder !== null) {
     return cachedDayzWorkshopFolder;
@@ -109,7 +104,7 @@ async function findDayzWorkshopFolderAsync() {
   if (steamPath && await existsAsync(steamPath)) {
     const vdfPath = path.join(steamPath, "steamapps", "libraryfolders.vdf");
     if (await existsAsync(vdfPath)) {
-      const vdfContent = await fsPromises.readFile(vdfPath, "utf8");
+      const vdfContent = await fs.promises.readFile(vdfPath, "utf8");
       const pathRegex = /"path"\s+"([^"]+)"/g;
       let match;
       while ((match = pathRegex.exec(vdfContent)) !== null) {

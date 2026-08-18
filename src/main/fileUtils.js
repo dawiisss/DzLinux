@@ -23,4 +23,13 @@ async function writeJsonAtomically(filePath, value) {
   }
 }
 
-module.exports = { writeJsonAtomically };
+async function existsAsync(filePath) {
+  try {
+    await fs.promises.access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+module.exports = { writeJsonAtomically, existsAsync };

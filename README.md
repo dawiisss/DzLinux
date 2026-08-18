@@ -44,7 +44,7 @@ This command can also be used to update the version if you are using .deb / .rpm
 - **Favorites Filter and Hide Favorites**: Pin favourite servers for quick access, or hide them from the main list to browse new servers more easily.
 - **Virtual Scroll and Paging**: Switch between classic pagination and endless scrolling for large server lists.
 
-### Server Trust Score & Security
+### Server Trust Score and Security
 - **Strict IP Verification**: Background engine automatically cross-references servers against an open-source JSON list of known, verified DayZ community IP addresses to prevent malicious servers from spoofing popular community names.
 - **Heuristic Scoring**: Servers are dynamically assigned a Trust Score tier (Green, Yellow, or Gray shield) based on verified IPs, password protection, active moderation tools (CFTools/VPPAdmin), and high population heuristics.
 - **Settings Toggle**: The Trust Score engine and background IP verifications can be globally disabled in the Settings menu to hide UI elements and save bandwidth.
