@@ -10,6 +10,18 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [1.8.1] - 2026-09-30
+
+### Changed
+
+- **Electron Security Update:** Bumped `electron` from `43.3.0` to `43.7.5` to resolve multiple high-severity security vulnerabilities.
+- **Dependency Upgrades:** Updated `axios` to `^1.20.0`, `eslint` to `^10.11.0`, `globals` to `^17.12.0`, `jest` to `^30.5.2`, and `lint-staged` to `^17.6.0`.
+- **Hardened Package Overrides:** Enforced strict minimum patch versions in `pnpm-workspace.yaml` overrides for `fast-uri` (`^3.1.8`), `js-yaml` (`^4.3.2`), and `@xmldom/xmldom` (`^0.8.15`), and configured `@parcel/watcher: false` build policy for pnpm v11 compatibility.
+
+### Fixed
+
+- **Dependabot Security Vulnerabilities:** Resolved 17 Dependabot security alerts across `electron` (sandboxed window restrictions, cross-origin reads, webview worker node integration, preload cache poisoning), `fast-uri` (host confusion and SSRF), `js-yaml` (empty merge source CPU denial-of-service), and `@xmldom/xmldom` (injection and ReDoS).
+
 ## [1.8.0] - 2026-08-18
 
 ### Added
