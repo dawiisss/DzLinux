@@ -713,7 +713,7 @@
               style="
                 display: flex;
                 gap: 20px;
-                border-left: 1px solid var(--border-color);
+                border-left: 1px solid var(--border);
                 padding-left: 20px;
               "
             >
@@ -1417,7 +1417,7 @@
               </button>
               <div
                 class="direct-connect-wrapper"
-                style="margin: 0; background: var(--bg-color)"
+                style="margin: 0"
               >
                 <input
                   type="text"
@@ -1783,7 +1783,7 @@
                 class="form-input"
                 min="10"
                 max="500"
-                placeholder="500"
+                placeholder="150"
               />
             </div>
             <div class="settings-info">
@@ -2308,7 +2308,7 @@
                 margin: 0;
                 font-family: inherit;
                 font-size: 0.85rem;
-                color: #fff;
+                color: var(--text-main);
                 white-space: pre-wrap;
               "
             ></pre>
@@ -2582,8 +2582,9 @@
         </div>
         <div class="modal-body">
           <p
-            class="modal-description font-bold text-white"
+            class="modal-description font-bold"
             id="crashDiagnosticDescription"
+            style="color: var(--text-main)"
           ></p>
           <div
             class="console-log-box text-red"
@@ -2619,7 +2620,7 @@
     <!-- HISTORY ANALYTICS & NOTES MODAL -->
     <div id="historyAnalyticsModal" class="modal-overlay" style="display: none">
       <div
-        class="modal-content"
+        class="modal-box modal-content"
         style="
           max-width: 820px;
           width: 90%;

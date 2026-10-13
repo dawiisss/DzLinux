@@ -1,6 +1,6 @@
 import { state, addFavorite, removeFavorite } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
-import { renderFavoritesManager } from "./favorites.js";
+import { renderFavoritesManager, getPlaceholderServerById } from "./favorites.js";
 
 import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "./utils.js";
 
@@ -29,8 +29,10 @@ export function initContextMenu() {
     e.preventDefault();
     hideContextMenu();
 
-    const rowId = row.id.replace("row-", "").replace("fav-", "");
-    const server = state.allServers.find((s) => s.id === rowId);
+    const rowId = row.id.replace(/^(?:fav-row-|row-)/, "");
+    const server =
+      state.allServers.find((s) => s.id === rowId) ||
+      getPlaceholderServerById(rowId);
     if (!server) return;
 
     const menu = document.createElement("div");
@@ -81,16 +83,17 @@ export function initContextMenu() {
 
         document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
 
-        const starBtn = document.querySelector(`#row-${server.id} .star-btn`);
-        if (starBtn) {
-          starBtn.innerHTML = isFav ? STAR_UNFAV_SVG : STAR_FAV_SVG;
-          starBtn.className = isFav ? "star-btn" : "star-btn active";
-          starBtn.title = isFav ? "Add to Favorites" : "Remove from Favorites";
-          starBtn.setAttribute(
-            "aria-label",
-            isFav ? "Add to Favorites" : "Remove from Favorites",
-          );
-        }
+        document
+          .querySelectorAll(`#row-${server.id} .star-btn, #fav-row-${server.id} .star-btn`)
+          .forEach((starBtn) => {
+            starBtn.innerHTML = isFav ? STAR_UNFAV_SVG : STAR_FAV_SVG;
+            starBtn.className = isFav ? "star-btn" : "star-btn active";
+            starBtn.title = isFav ? "Add to Favorites" : "Remove from Favorites";
+            starBtn.setAttribute(
+              "aria-label",
+              isFav ? "Add to Favorites" : "Remove from Favorites",
+            );
+          });
         renderFavoritesManager();
       },
     );

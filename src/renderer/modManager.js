@@ -532,7 +532,7 @@ export async function initModManager() {
           if (!tree || !tree.id) return;
           if (tree.error || tree.truncated || tree.circular) hasErrors = true;
           const card = document.createElement("div");
-          card.style.background = "rgba(0,0,0,0.3)";
+          card.style.background = "var(--bg-card)";
           card.style.border = "1px solid var(--border)";
           card.style.borderRadius = "6px";
           card.style.padding = "12px 16px";
@@ -571,7 +571,7 @@ export async function initModManager() {
           header.style.cursor =
             tree.children.length > 0 || tree.error ? "pointer" : "default";
           header.innerHTML = `
-          <div style="font-weight:600;color:#fff;font-size:0.9rem;">
+          <div style="font-weight:600;color:var(--text-main);font-size:0.9rem;">
             ${escapeHtml(tree.name || `Mod ${tree.id}`)}
             <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;margin-left:8px;">(${escapeHtml(String(tree.id))})</span>
           </div>

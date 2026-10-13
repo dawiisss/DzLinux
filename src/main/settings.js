@@ -36,7 +36,7 @@ const defaultSettings = {
   mangoHudConfig: "cpu_temp,gpu_temp,ram,fps,frame_timing",
   dxvkConfig: "",
   serverListPageSize: 50,
-  queryConcurrency: 500,
+  queryConcurrency: 150,
   serverListMode: "compact",
   autoRefreshEnabled: false,
   autoRefreshTime: 360,
@@ -188,7 +188,10 @@ function sanitizeSettings(settings) {
     "autoRefreshEnabled",
     "watchlistRefreshEnabled",
     "showWatchlistTab",
+    "enableWatchlist",
     "showDiagnosticsTab",
+    "showHistoryTab",
+    "enableHistory",
     "sidebarPinned",
     "autoSaveFilters",
     "flagFavoritesOnly",
@@ -212,8 +215,43 @@ function sanitizeSettings(settings) {
   if (!isBoundedString(safeSettings.dxvkConfig, 10000)) safeSettings.dxvkConfig = "";
   if (!validateFavorites(safeSettings.favorites)) safeSettings.favorites = [];
   if (!validateWatchlist(safeSettings.watchlist)) safeSettings.watchlist = [];
+  if (
+    !Array.isArray(safeSettings.filterMaps) ||
+    !safeSettings.filterMaps.every((m) => isBoundedString(m, 100))
+  ) {
+    safeSettings.filterMaps = [];
+  }
+  if (
+    !Array.isArray(safeSettings.filterCountries) ||
+    !safeSettings.filterCountries.every((c) => isBoundedString(c, 20))
+  ) {
+    safeSettings.filterCountries = [];
+  }
+  if (
+    !safeSettings.modLoadouts ||
+    typeof safeSettings.modLoadouts !== "object" ||
+    Array.isArray(safeSettings.modLoadouts)
+  ) {
+    safeSettings.modLoadouts = {};
+  } else {
+    const sanitizedLoadouts = {};
+    for (const [name, mods] of Object.entries(safeSettings.modLoadouts)) {
+      if (isBoundedString(name, 100) && Array.isArray(mods)) {
+        sanitizedLoadouts[name] = mods.filter(
+          (m) => typeof m === "string" && isBoundedString(m, 50),
+        );
+      }
+    }
+    safeSettings.modLoadouts = sanitizedLoadouts;
+  }
   if (!Number.isInteger(safeSettings.serverListPageSize) || safeSettings.serverListPageSize < 10 || safeSettings.serverListPageSize > 500) safeSettings.serverListPageSize = defaultSettings.serverListPageSize;
-  if (!Number.isInteger(safeSettings.queryConcurrency) || safeSettings.queryConcurrency < MIN_QUERY_CONCURRENCY || safeSettings.queryConcurrency > MAX_QUERY_CONCURRENCY) safeSettings.queryConcurrency = defaultSettings.queryConcurrency;
+  if (!Number.isInteger(safeSettings.queryConcurrency)) {
+    safeSettings.queryConcurrency = defaultSettings.queryConcurrency;
+  } else if (safeSettings.queryConcurrency > MAX_QUERY_CONCURRENCY) {
+    safeSettings.queryConcurrency = MAX_QUERY_CONCURRENCY;
+  } else if (safeSettings.queryConcurrency < MIN_QUERY_CONCURRENCY) {
+    safeSettings.queryConcurrency = MIN_QUERY_CONCURRENCY;
+  }
   if (!Number.isInteger(safeSettings.autoRefreshTime) || safeSettings.autoRefreshTime < 30 || safeSettings.autoRefreshTime > 3600) safeSettings.autoRefreshTime = defaultSettings.autoRefreshTime;
   if (!Number.isInteger(safeSettings.watchlistRefreshTime) || safeSettings.watchlistRefreshTime < 5 || safeSettings.watchlistRefreshTime > 600) safeSettings.watchlistRefreshTime = defaultSettings.watchlistRefreshTime;
   if (!Number.isInteger(safeSettings.watchlistThreshold) || safeSettings.watchlistThreshold < 0 || safeSettings.watchlistThreshold > 10000) safeSettings.watchlistThreshold = defaultSettings.watchlistThreshold;

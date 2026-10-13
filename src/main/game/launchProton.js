@@ -6,6 +6,7 @@ const { existsAsync } = require("../fileUtils");
 const steamworksManager = require("../steamworksManager");
 const { configureDxvk } = require("./configDxvk");
 const { buildEnvironment } = require("./prepareEnv");
+const steamPaths = require("../steamPaths");
 
 let cachedProtonVersions = null;
 
@@ -102,10 +103,9 @@ async function launchViaProton(args, settings, handleGameExit) {
     throw new Error(`Proton executable not found at: ${settings.protonPath}`);
   }
 
-  let steamappsPath = "";
-  if (settings.modDirectory && settings.modDirectory.includes("steamapps")) {
-    steamappsPath = settings.modDirectory.split("steamapps")[0] + "steamapps";
-  }
+  const steamappsPath = await steamPaths.findDayzSteamappsFolderAsync(
+    settings.modDirectory,
+  );
 
   const compatDataPath = steamappsPath
     ? path.join(steamappsPath, "compatdata", "221100")
@@ -135,8 +135,20 @@ async function launchViaProton(args, settings, handleGameExit) {
   const env = await buildEnvironment(settings, compatDataPath);
   await configureDxvk(settings, compatDataPath, env);
 
+  const prefix = [];
+  const launchParamsStr = settings.launchParams || "";
+  const hasGameMode = /\bgamemoderun\b/.test(launchParamsStr);
+  const hasMangoHud = /\bmangohud\b/.test(launchParamsStr);
+
+  if (settings.enableGameMode && !hasGameMode) {
+    prefix.push("gamemoderun");
+  }
+  if (settings.mangoHudEnabled && !hasMangoHud) {
+    prefix.push("mangohud");
+  }
+
   const protonArgs = ["waitforexitandrun", dayzExe, ...args];
-  const launchArgs = [settings.protonPath, ...protonArgs];
+  const launchArgs = [...prefix, settings.protonPath, ...protonArgs];
 
   if (settings.launchParams && settings.launchParams.includes("%command%")) {
     // Parse custom launch parameters with %command% replacement
@@ -149,9 +161,11 @@ async function launchViaProton(args, settings, handleGameExit) {
     });
 
     const execArgs = [];
+    let seenCommand = false;
     for (const token of parsedParams) {
       if (token === "%command%") {
         execArgs.push(...launchArgs);
+        seenCommand = true;
       } else if (token.includes("%command%")) {
         const expandedToken = token.replace(
           "%command%",
@@ -165,9 +179,24 @@ async function launchViaProton(args, settings, handleGameExit) {
             return p;
           }),
         );
+        seenCommand = true;
       } else {
+        if (seenCommand && launchArgs.includes(token)) {
+          continue;
+        }
         execArgs.push(token);
       }
+    }
+
+    const envRegex = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/;
+    while (execArgs.length > 0 && envRegex.test(execArgs[0])) {
+      const match = execArgs[0].match(envRegex);
+      env[match[1]] = match[2];
+      execArgs.shift();
+    }
+
+    if (execArgs.length === 0) {
+      execArgs.push(...launchArgs);
     }
 
     console.log("Executing via spawn with %command% expansion");
@@ -180,8 +209,12 @@ async function launchViaProton(args, settings, handleGameExit) {
     return new Promise((resolve, reject) => {
       const child = spawn(cmd, argsList, { env, stdio: "ignore" });
       child.once("spawn", resolve);
-      child.once("error", reject);
+      child.once("error", (err) => {
+        steamworksManager.unlockForLaunch();
+        reject(err);
+      });
       child.once("exit", (code) => {
+        steamworksManager.unlockForLaunch();
         if (code !== 0 && code !== null) {
           console.log(`Proton process exited with non-zero code (${code})`);
           handleGameExit(new Error(`Process exited with code ${code}`));
@@ -191,11 +224,7 @@ async function launchViaProton(args, settings, handleGameExit) {
       });
     });
   } else {
-    const prefix = [];
-    if (settings.enableGameMode) prefix.push("gamemoderun");
-    if (settings.mangoHudEnabled) prefix.push("mangohud");
-
-    const wrappedArgs = [...prefix, settings.protonPath, ...protonArgs];
+    const wrappedArgs = launchArgs;
 
     console.log(`Executing: ${wrappedArgs.join(" ")}`);
 
@@ -207,8 +236,12 @@ async function launchViaProton(args, settings, handleGameExit) {
         stdio: "ignore",
       });
       child.once("spawn", resolve);
-      child.once("error", reject);
+      child.once("error", (err) => {
+        steamworksManager.unlockForLaunch();
+        reject(err);
+      });
       child.once("exit", (code) => {
+        steamworksManager.unlockForLaunch();
         if (code !== 0 && code !== null) {
           console.log(`Proton process exited with non-zero code (${code})`);
           handleGameExit(new Error(`Process exited with code ${code}`));

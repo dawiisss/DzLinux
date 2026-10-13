@@ -155,5 +155,63 @@ describe("steamPaths", () => {
       const result = await findDayzWorkshopFolderAsync();
       expect(result).toBe("");
     });
+
+    describe("findDayzSteamappsFolderAsync", () => {
+      test("finds steamapps directly from modDirectory when DayZ_x64.exe exists", async () => {
+        const steamappsDir = path.join(tmpDir, "PrimaryLibrary", "steamapps");
+        const dayzExe = path.join(steamappsDir, "common", "DayZ", "DayZ_x64.exe");
+        fs.mkdirSync(path.dirname(dayzExe), { recursive: true });
+        fs.writeFileSync(dayzExe, "dummy");
+
+        const modDir = path.join(steamappsDir, "workshop", "content", "221100");
+        fs.mkdirSync(modDir, { recursive: true });
+
+        const { findDayzSteamappsFolderAsync, _clearCache } = require("../../src/main/steamPaths");
+        _clearCache();
+
+        const result = await findDayzSteamappsFolderAsync(modDir);
+        expect(result).toBe(steamappsDir);
+      });
+
+      test("finds steamapps from secondary library in libraryfolders.vdf when modDir lacks DayZ_x64.exe", async () => {
+        const defaultSteamDir = path.join(tmpDir, ".local", "share", "Steam");
+        fs.mkdirSync(defaultSteamDir, { recursive: true });
+
+        const secondaryLibrary = path.join(tmpDir, "SecondaryLibrary");
+        const secondarySteamapps = path.join(secondaryLibrary, "steamapps");
+        const secondaryDayzExe = path.join(secondarySteamapps, "common", "DayZ", "DayZ_x64.exe");
+        fs.mkdirSync(path.dirname(secondaryDayzExe), { recursive: true });
+        fs.writeFileSync(secondaryDayzExe, "dummy");
+
+        const vdfPath = path.join(defaultSteamDir, "steamapps", "libraryfolders.vdf");
+        fs.mkdirSync(path.dirname(vdfPath), { recursive: true });
+        const vdfContent = `
+          "libraryfolders"
+          {
+            "0"
+            {
+              "path"    "${secondaryLibrary.replace(/\\/g, "\\\\")}"
+            }
+          }
+        `;
+        fs.writeFileSync(vdfPath, vdfContent, "utf8");
+
+        const { findDayzSteamappsFolderAsync, _clearCache } = require("../../src/main/steamPaths");
+        _clearCache();
+
+        // modDir is elsewhere (e.g. symlinked or unverified)
+        const result = await findDayzSteamappsFolderAsync("/custom/symlinked/mods");
+        expect(result).toBe(secondarySteamapps);
+      });
+
+      test("falls back to modDirectory steamapps if no library folders match", async () => {
+        const modDir = "/custom/path/steamapps/workshop/content/221100";
+        const { findDayzSteamappsFolderAsync, _clearCache } = require("../../src/main/steamPaths");
+        _clearCache();
+
+        const result = await findDayzSteamappsFolderAsync(modDir);
+        expect(result).toBe("/custom/path/steamapps");
+      });
+    });
   });
 });

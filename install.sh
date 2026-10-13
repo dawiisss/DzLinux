@@ -89,7 +89,22 @@ get_download_digest() {
     local file_ext=$1
     local asset_name=$(echo "$RELEASE_JSON" | grep "\"name\":" | grep -E "${file_ext}\"" | head -n 1 | cut -d '"' -f 4)
     if [ -n "$asset_name" ]; then
-        echo "$RELEASE_JSON" | grep -A 30 "\"name\": \"$asset_name\"" | grep "\"digest\":" | head -n 1 | sed -E 's/.*"sha256:([^"]+)".*/\1/'
+        if command -v jq &> /dev/null; then
+            echo "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest // empty' | sed -E 's/^sha256://'
+        elif command -v python3 &> /dev/null; then
+            python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+for a in data.get('assets', []):
+    if a.get('name') == sys.argv[2]:
+        d = a.get('digest', '')
+        if d.startswith('sha256:'): d = d[7:]
+        print(d)
+        break
+" "$RELEASE_JSON" "$asset_name"
+        else
+            echo "$RELEASE_JSON" | grep -A 30 "\"name\": \"$asset_name\"" | grep "\"digest\":" | head -n 1 | sed -E 's/.*"sha256:([^"]+)".*/\1/'
+        fi
     fi
 }
 
@@ -186,7 +201,7 @@ if [ "$OS_TYPE" = "appimage" ]; then
     
     # Download icon
     ICON_DIR="/usr/share/icons/hicolor/512x512/apps"
-    curl -s -L -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux/main/build/icon.png" || true
+    curl -s -L -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux/main/src/assets/icon.png" || true
     if [ -f "$TEMP_DIR/dzlinux.png" ]; then
         sudo mkdir -p "$ICON_DIR"
         sudo mv "$TEMP_DIR/dzlinux.png" "$ICON_DIR/"

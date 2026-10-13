@@ -51,6 +51,11 @@ if (!gotTheLock) {
       },
     });
 
+    win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+    win.webContents.on("will-navigate", (event) => {
+      event.preventDefault();
+    });
+
     win.loadFile(path.join(__dirname, "..", "index.html"));
     return win;
   };

@@ -152,24 +152,28 @@ describe("steamworksManager", () => {
     expect(forkSpy).toHaveBeenCalled();
   });
 
-  test("lockAndDelayForLaunch locks, delays, and invokes callback on timeout", async () => {
+  test("lockAndDelayForLaunch locks worker and keeps it locked until unlockForLaunch is called", async () => {
     jest.useFakeTimers();
 
     const steamworksManager = require("../../src/main/steamworksManager");
     steamworksManager.init();
 
-    const mockCallback = jest.fn();
-    const launchPromise = steamworksManager.lockAndDelayForLaunch(mockCallback);
+    const launchPromise = steamworksManager.lockAndDelayForLaunch();
 
     // Mock worker exit to resolve lockForLaunch
     exitCallback();
 
-    // Advance timer past launch delay (1500ms) and launch timeout (15000ms)
-    await jest.runAllTimersAsync();
+    // Advance timer past launch delay (1500ms)
+    await jest.advanceTimersByTimeAsync(1500);
 
     await launchPromise;
 
-    expect(mockCallback).toHaveBeenCalled();
+    // Worker remains locked even after delay
+    expect(steamworksManager.init()).toBe(false);
+
+    // Explicit unlock releases lock
+    steamworksManager.unlockForLaunch();
+    expect(steamworksManager.init()).toBe(true);
 
     jest.useRealTimers();
   });

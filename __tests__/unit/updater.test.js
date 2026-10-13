@@ -66,6 +66,12 @@ describe("compareVersions", () => {
   test("v prefix on only one version", () => {
     expect(compareVersions("v1.0.1", "1.0.0")).toBe(1);
   });
+
+  test("compares semver pre-release versions with multiple segments correctly", () => {
+    expect(compareVersions("1.8.1-beta.1", "1.8.1")).toBe(-1);
+    expect(compareVersions("1.8.1", "1.8.1-beta.1")).toBe(1);
+    expect(compareVersions("1.8.1-alpha.1", "1.8.1-beta.1")).toBe(-1);
+  });
 });
 
 describe("isSystemInstall", () => {
@@ -312,52 +318,23 @@ describe("setupAutoUpdater", () => {
     expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
   });
 
-  test("checks for updates if packaged and not system install", async () => {
+  test("does not trigger automatic update check on startup in setupAutoUpdater", async () => {
     const originalIsPackaged = electron.app.isPackaged;
     electron.app.isPackaged = true;
-    electron.app.getAppPath.mockReturnValue("/home/user/.local/share/dzlinux"); // not a system install
+    electron.app.getAppPath.mockReturnValue("/home/user/.local/share/dzlinux");
 
+    const { autoUpdater } = require("electron-updater");
     const axios = require("axios");
-    jest.spyOn(axios, "get").mockResolvedValue({
-      data: {
-        tag_name: "v1.0.7",
-        html_url: "https://example.com",
-        body: "",
-        published_at: "2023-01-01",
-      },
-    });
+    const axiosSpy = jest.spyOn(axios, "get");
 
     setupAutoUpdater(mockMainWindow);
 
     await new Promise((resolve) => setTimeout(resolve, 50));
 
-    expect(axios.get).toHaveBeenCalled();
+    expect(autoUpdater.checkForUpdates).not.toHaveBeenCalled();
+    expect(axiosSpy).not.toHaveBeenCalled();
 
-    // cleanup
     electron.app.isPackaged = originalIsPackaged;
-    jest.restoreAllMocks();
-  });
-
-  test("checks for updates via autoUpdater on startup if packaged, not system install, and is AppImage", async () => {
-    const originalAppImage = process.env.APPIMAGE;
-    const originalIsPackaged = electron.app.isPackaged;
-    electron.app.isPackaged = true;
-    electron.app.getAppPath.mockReturnValue("/home/user/.local/share/dzlinux"); // not a system install
-    process.env.APPIMAGE = "/path/to/AppImage";
-
-    const { autoUpdater } = require("electron-updater");
-
-    setupAutoUpdater(mockMainWindow);
-
-    expect(autoUpdater.checkForUpdates).toHaveBeenCalled();
-
-    // cleanup
-    electron.app.isPackaged = originalIsPackaged;
-    if (originalAppImage === undefined) {
-      delete process.env.APPIMAGE;
-    } else {
-      process.env.APPIMAGE = originalAppImage;
-    }
     jest.restoreAllMocks();
   });
 });

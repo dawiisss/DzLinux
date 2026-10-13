@@ -1,5 +1,5 @@
 import { state, addFavorite, removeFavorite } from "./state.js";
-import { showToast } from "./feedback.js";
+import { showToast, showConfirmModal } from "./feedback.js";
 import { openAnalyticsModal } from "./historyChartModal.js";
 import { escapeHtml } from "./utils.js";
 import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
@@ -263,7 +263,10 @@ export function initHistoryManager() {
 
   if (clearBtn) {
     clearBtn.addEventListener("click", async () => {
-      if (!confirm("Are you sure you want to clear all server connection history?")) return;
+      const confirmed = await showConfirmModal(
+        "Are you sure you want to clear all server connection history?",
+      );
+      if (!confirmed) return;
       try {
         await window.api.history.clear();
         showToast("All history cleared", "#2ec4b6", "trash");

@@ -14,28 +14,20 @@ function lockForLaunch() {
 }
 
 function unlockForLaunch() {
+  if (launchTimeoutId) {
+    clearTimeout(launchTimeoutId);
+    launchTimeoutId = null;
+  }
   isLockedForLaunch = false;
 }
 
 const STEAMWORKS_LAUNCH_LOCK_MS = 1500;
-const STEAMWORKS_LAUNCH_TIMEOUT_MS = 15000;
 
 let launchTimeoutId = null;
 
-async function lockAndDelayForLaunch(onTimeout) {
+async function lockAndDelayForLaunch() {
   await lockForLaunch();
   await new Promise((r) => setTimeout(r, STEAMWORKS_LAUNCH_LOCK_MS));
-  launchTimeoutId = setTimeout(async () => {
-    launchTimeoutId = null;
-    unlockForLaunch();
-    if (typeof onTimeout === "function") {
-      try {
-        await onTimeout();
-      } catch (err) {
-        console.error("Error in lockAndDelayForLaunch timeout callback:", err);
-      }
-    }
-  }, STEAMWORKS_LAUNCH_TIMEOUT_MS);
 }
 
 function init() {

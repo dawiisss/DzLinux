@@ -187,12 +187,13 @@ async function saveModsMetadataCache(entriesMap) {
 // Updates only that server's entry in the persistent cache, leaves other entries intact
 async function refreshServerModCache(ip, port, queryPort) {
   try {
-    const cache = await loadModsMetadataCache();
     const key = `${ip}:${port}`;
 
     console.log(`Refreshing mods cache for ${key} via GameDig...`);
     const { queryServerGameDig } = require("./serverQuery");
     const result = await queryServerGameDig(ip, port, queryPort);
+
+    const cache = await loadModsMetadataCache();
 
     if (result && result.mods && result.mods.length > 0) {
       const entry = {

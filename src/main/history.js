@@ -153,9 +153,16 @@ async function recordConnection(server) {
   const playersToUse = typeof server.players === "number" ? server.players : (record ? record.lastPlayers || 0 : 0);
   const maxPlayersToUse = typeof server.maxPlayers === "number" && server.maxPlayers > 0 ? server.maxPlayers : (record ? record.maxPlayers || 60 : 60);
 
+  const isRapidOrUpdate =
+    record &&
+    (server.updateOnly === true ||
+      (typeof record.lastJoined === "number" && now - record.lastJoined < 15000));
+
   if (record) {
-    record.lastJoined = now;
-    record.playCount = (record.playCount || 1) + 1;
+    if (!isRapidOrUpdate) {
+      record.lastJoined = now;
+      record.playCount = (record.playCount || 1) + 1;
+    }
     record.name = nameToUse;
     record.map = mapToUse;
     record.lastPing = pingToUse;
@@ -179,12 +186,19 @@ async function recordConnection(server) {
     memoryHistory.records.push(record);
   }
 
-  record.snapshots.push({
-    timestamp: now,
-    players: playersToUse,
-    maxPlayers: maxPlayersToUse,
-    ping: pingToUse,
-  });
+  if (!isRapidOrUpdate) {
+    record.snapshots.push({
+      timestamp: now,
+      players: playersToUse,
+      maxPlayers: maxPlayersToUse,
+      ping: pingToUse,
+    });
+  } else if (record.snapshots.length > 0) {
+    const lastSnap = record.snapshots[record.snapshots.length - 1];
+    lastSnap.ping = pingToUse;
+    lastSnap.players = playersToUse;
+    lastSnap.maxPlayers = maxPlayersToUse;
+  }
 
   await saveHistory();
   return record;

@@ -109,6 +109,54 @@ describe("game", () => {
       expect(result.hasAllMods).toBe(false);
       expect(result.missingMods).toHaveLength(1);
     });
+
+    test("detects installed mod with uppercase ADDONS folder", async () => {
+      const modDir = path.join(tmpDir, "23456");
+      fs.mkdirSync(path.join(modDir, "ADDONS"), { recursive: true });
+
+      jest.doMock("../../src/main/settings", () => ({
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
+      }));
+
+      const game = require("../../src/main/game");
+      const result = await game.checkMods([{ id: "23456" }]);
+      expect(result.hasAllMods).toBe(true);
+      expect(result.missingMods).toHaveLength(0);
+    });
+
+    test("detects installed mod with meta.cpp or mod.cpp without addons folder", async () => {
+      const modDirMeta = path.join(tmpDir, "34567");
+      fs.mkdirSync(modDirMeta, { recursive: true });
+      fs.writeFileSync(path.join(modDirMeta, "meta.cpp"), "// meta");
+
+      const modDirMod = path.join(tmpDir, "45678");
+      fs.mkdirSync(modDirMod, { recursive: true });
+      fs.writeFileSync(path.join(modDirMod, "mod.cpp"), "// mod");
+
+      jest.doMock("../../src/main/settings", () => ({
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
+      }));
+
+      const game = require("../../src/main/game");
+      const result = await game.checkMods([{ id: "34567" }, { id: "45678" }]);
+      expect(result.hasAllMods).toBe(true);
+      expect(result.missingMods).toHaveLength(0);
+    });
+
+    test("marks mod missing if directory has neither addons nor meta.cpp/mod.cpp", async () => {
+      const modDirEmpty = path.join(tmpDir, "56789");
+      fs.mkdirSync(modDirEmpty, { recursive: true });
+      fs.writeFileSync(path.join(modDirEmpty, "readme.txt"), "hello");
+
+      jest.doMock("../../src/main/settings", () => ({
+        loadSettingsAsync: jest.fn(() => ({ modDirectory: tmpDir })),
+      }));
+
+      const game = require("../../src/main/game");
+      const result = await game.checkMods([{ id: "56789" }]);
+      expect(result.hasAllMods).toBe(false);
+      expect(result.missingMods).toHaveLength(1);
+    });
   });
 
   describe("scanProtonVersions", () => {
@@ -336,6 +384,29 @@ describe("game", () => {
       expect(mockExecFile).toHaveBeenCalledWith(
         "steam",
         expect.arrayContaining(["-connect=1.2.3.4", "-port=2302"]),
+        expect.any(Function),
+      );
+    });
+
+    test("formats -connect= and -port= arguments for launchViaProton", async () => {
+      const mockLaunchViaProton = jest.fn().mockResolvedValue();
+      jest.doMock("../../src/main/settings", () => ({
+        loadSettingsAsync: jest.fn(() => ({
+          modDirectory: "/tmp",
+          enableGameMode: false,
+          protonPath: "/protons/GE-Proton/proton",
+        })),
+      }));
+      jest.doMock("../../src/main/game/launchProton", () => ({
+        launchViaProton: mockLaunchViaProton,
+      }));
+
+      const game = require("../../src/main/game");
+      await game.launchDayZ("1.2.3.4", 2302, []);
+
+      expect(mockLaunchViaProton).toHaveBeenCalledWith(
+        expect.arrayContaining(["-connect=1.2.3.4", "-port=2302", "-noLauncher"]),
+        expect.objectContaining({ protonPath: "/protons/GE-Proton/proton" }),
         expect.any(Function),
       );
     });

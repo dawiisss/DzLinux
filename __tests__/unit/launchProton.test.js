@@ -8,6 +8,8 @@ describe("launchProton", () => {
   let mockWriteFile;
   let mockSpawn;
   let mockLockAndDelay;
+  let mockUnlockForLaunch;
+  let mockFindDayzSteamapps;
   let mockBuildEnvironment;
   let mockConfigureDxvk;
   let launchProton;
@@ -76,6 +78,13 @@ describe("launchProton", () => {
     mockWriteFile = jest.fn().mockResolvedValue();
     mockSpawn = jest.fn().mockImplementation(() => makeChild());
     mockLockAndDelay = jest.fn().mockResolvedValue();
+    mockUnlockForLaunch = jest.fn();
+    mockFindDayzSteamapps = jest.fn().mockImplementation((modDir) => {
+      if (modDir && modDir.includes("steamapps")) {
+        return Promise.resolve(modDir.split("steamapps")[0] + "steamapps");
+      }
+      return Promise.resolve("");
+    });
     mockBuildEnvironment = jest.fn().mockResolvedValue({ MOCK_ENV: "1" });
     mockConfigureDxvk = jest.fn().mockResolvedValue();
 
@@ -90,6 +99,10 @@ describe("launchProton", () => {
     jest.doMock("child_process", () => ({ spawn: mockSpawn }));
     jest.doMock("../../src/main/steamworksManager", () => ({
       lockAndDelayForLaunch: mockLockAndDelay,
+      unlockForLaunch: mockUnlockForLaunch,
+    }));
+    jest.doMock("../../src/main/steamPaths", () => ({
+      findDayzSteamappsFolderAsync: mockFindDayzSteamapps,
     }));
     jest.doMock("../../src/main/game/prepareEnv", () => ({
       buildEnvironment: mockBuildEnvironment,
@@ -329,6 +342,65 @@ describe("launchProton", () => {
       expect(args.some((a) => a.includes("%command%"))).toBe(false);
     });
 
+    test("strips leading environment variables and assigns them to env object", async () => {
+      mockAccess.mockImplementation(launchPathsExist);
+      const expandedSettings = {
+        ...settings,
+        launchParams: "DXVK_HUD=fps OBS_VKCAPTURE=1 %command% -nosplash",
+      };
+
+      await launchProton.launchViaProton(
+        ["-nosplash"],
+        expandedSettings,
+        jest.fn(),
+      );
+
+      const [cmd, args, options] = mockSpawn.mock.calls[0];
+      expect(cmd).toBe(settings.protonPath);
+      expect(options.env.DXVK_HUD).toBe("fps");
+      expect(options.env.OBS_VKCAPTURE).toBe("1");
+      expect(args).toEqual([
+        "waitforexitandrun",
+        dayzExe,
+        "-nosplash",
+      ]);
+      // Verify -nosplash was not duplicated in args
+      expect(args.filter((a) => a === "-nosplash")).toHaveLength(1);
+    });
+
+    test("prepends enabled wrappers when %command% is present without wrappers in launchParams", async () => {
+      mockAccess.mockImplementation(launchPathsExist);
+      const expandedSettings = {
+        ...settings,
+        enableGameMode: true,
+        mangoHudEnabled: true,
+        launchParams: "%command%",
+      };
+
+      await launchProton.launchViaProton([], expandedSettings, jest.fn());
+
+      const [cmd, args] = mockSpawn.mock.calls[0];
+      expect(cmd).toBe("gamemoderun");
+      expect(args[0]).toBe("mangohud");
+      expect(args[1]).toBe(settings.protonPath);
+    });
+
+    test("does not duplicate wrapper prefixes already specified in launchParams", async () => {
+      mockAccess.mockImplementation(launchPathsExist);
+      const expandedSettings = {
+        ...settings,
+        enableGameMode: true,
+        launchParams: "gamemoderun %command%",
+      };
+
+      await launchProton.launchViaProton([], expandedSettings, jest.fn());
+
+      const [cmd, args] = mockSpawn.mock.calls[0];
+      expect(cmd).toBe("gamemoderun");
+      expect(args[0]).toBe(settings.protonPath);
+      expect(args.filter((a) => a === "gamemoderun")).toHaveLength(0);
+    });
+
     test("rejects when the child process fails to spawn", async () => {
       mockAccess.mockImplementation(launchPathsExist);
       mockSpawn.mockImplementation(() =>
@@ -338,6 +410,7 @@ describe("launchProton", () => {
       await expect(
         launchProton.launchViaProton([], settings, jest.fn()),
       ).rejects.toThrow("spawn failed");
+      expect(mockUnlockForLaunch).toHaveBeenCalled();
     });
 
     test("reports non-zero exit through handleGameExit", async () => {
@@ -353,6 +426,7 @@ describe("launchProton", () => {
       child._triggerExit(1);
 
       expect(handleGameExit).toHaveBeenCalledWith(new Error("Process exited with code 1"));
+      expect(mockUnlockForLaunch).toHaveBeenCalled();
     });
 
     test("does not call handleGameExit on a clean exit", async () => {
@@ -368,6 +442,7 @@ describe("launchProton", () => {
       child._triggerExit(0);
 
       expect(handleGameExit).not.toHaveBeenCalled();
+      expect(mockUnlockForLaunch).toHaveBeenCalled();
     });
 
     test("tolerates steam_appid.txt write failures and still launches", async () => {
@@ -381,6 +456,30 @@ describe("launchProton", () => {
 
       expect(mockSpawn).toHaveBeenCalled();
       expect(errorSpy).toHaveBeenCalled();
+    });
+
+    test("resolves DayZ in secondary library when modDirectory is symlinked or external", async () => {
+      const secondarySteamapps = "/mnt/games/SteamLibrary/steamapps";
+      const secondaryDayz = path.join(secondarySteamapps, "common", "DayZ", "DayZ_x64.exe");
+
+      mockAccess.mockImplementation((p) => {
+        if (p === settings.protonPath || p === secondaryDayz) return Promise.resolve();
+        return Promise.reject(new Error("ENOENT"));
+      });
+
+      mockFindDayzSteamapps.mockResolvedValueOnce(secondarySteamapps);
+
+      await launchProton.launchViaProton(
+        [],
+        { ...settings, modDirectory: "/symlinked/mods" },
+        jest.fn(),
+      );
+
+      expect(mockSpawn).toHaveBeenCalledWith(
+        settings.protonPath,
+        ["waitforexitandrun", secondaryDayz],
+        expect.any(Object),
+      );
     });
   });
 });

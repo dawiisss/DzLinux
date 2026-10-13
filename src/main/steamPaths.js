@@ -139,6 +139,51 @@ async function findDayzWorkshopFolderAsync() {
   return "";
 }
 
+async function findDayzSteamappsFolderAsync(modDirectory) {
+  if (modDirectory && modDirectory.includes("steamapps")) {
+    const candidate = modDirectory.split("steamapps")[0] + "steamapps";
+    const dayzExe = path.join(candidate, "common", "DayZ", "DayZ_x64.exe");
+    if (await existsAsync(dayzExe)) {
+      return candidate;
+    }
+  }
+
+  const steamPath = await getSteamInstallPathAsync();
+  if (steamPath && (await existsAsync(steamPath))) {
+    const vdfPath = path.join(steamPath, "steamapps", "libraryfolders.vdf");
+    if (await existsAsync(vdfPath)) {
+      try {
+        const vdfContent = await fs.promises.readFile(vdfPath, "utf8");
+        const pathRegex = /"path"\s+"([^"]+)"/g;
+        let match;
+        while ((match = pathRegex.exec(vdfContent)) !== null) {
+          const libPath = match[1];
+          const candidate = path.join(libPath, "steamapps");
+          const dayzExe = path.join(candidate, "common", "DayZ", "DayZ_x64.exe");
+          if (await existsAsync(dayzExe)) {
+            return candidate;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to parse libraryfolders.vdf for DayZ steamapps folder:", err);
+      }
+    }
+
+    const mainSteamapps = path.join(steamPath, "steamapps");
+    const mainDayzExe = path.join(mainSteamapps, "common", "DayZ", "DayZ_x64.exe");
+    if (await existsAsync(mainDayzExe)) {
+      return mainSteamapps;
+    }
+  }
+
+  // Fallback: if modDirectory contains steamapps, return that even if dayzExe wasn't verified
+  if (modDirectory && modDirectory.includes("steamapps")) {
+    return modDirectory.split("steamapps")[0] + "steamapps";
+  }
+
+  return "";
+}
+
 function getDayzLogsCandidatePaths() {
   return STEAM_DIR_CANDIDATES.map((steamDir) =>
     path.join(
@@ -162,6 +207,7 @@ module.exports = {
   getSteamInstallPathAsync,
   findDayzWorkshopFolder,
   findDayzWorkshopFolderAsync,
+  findDayzSteamappsFolderAsync,
   getDayzLogsCandidatePaths,
   _clearCache: () => {
     cachedSteamInstallPath = null;

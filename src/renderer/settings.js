@@ -12,7 +12,7 @@ export async function initSettings() {
   const normalizeQueryConcurrency = () => {
     const parsed = Number.parseInt(queryConcurrencyInput.value, 10);
     if (!Number.isFinite(parsed) || parsed < 10) {
-      queryConcurrencyInput.value = "500";
+      queryConcurrencyInput.value = "150";
     } else if (parsed > 500) {
       queryConcurrencyInput.value = "500";
     }
@@ -41,7 +41,7 @@ export async function initSettings() {
   document.getElementById("serverListPageSize").value =
     settings.serverListPageSize || 50;
   queryConcurrencyInput.value =
-    settings.queryConcurrency || 500;
+    settings.queryConcurrency || 150;
   document.getElementById("serverListMode").value =
     settings.serverListMode || "compact";
   applyServerListMode(settings.serverListMode || "compact");
@@ -101,6 +101,9 @@ export async function initSettings() {
   document.getElementById("maxMem").value = settings.maxMem || "16000";
   document.getElementById("mallocTrim").checked = settings.mallocTrim !== false;
   document.getElementById("noEsync").checked = settings.noEsync === true;
+  document.getElementById("mangoHudConfig").value =
+    settings.mangoHudConfig || "";
+  document.getElementById("dxvkConfig").value = settings.dxvkConfig || "";
 
   const flagNoSplash = document.getElementById("flagNoSplash");
   const flagNoPause = document.getElementById("flagNoPause");
@@ -211,7 +214,7 @@ export async function initSettings() {
           500,
           Math.max(
             10,
-            parseInt(document.getElementById("queryConcurrency").value, 10) || 500,
+            parseInt(document.getElementById("queryConcurrency").value, 10) || 150,
           ),
         ),
       serverListMode: document.getElementById("serverListMode").value,

@@ -60,7 +60,9 @@ describe("History Manager (Unit Tests)", () => {
 
   test("recordConnection increments playCount and updates latest stats on re-join", async () => {
     const server = { ip: "127.0.0.1", port: 2302, name: "Test Server 1" };
-    await historyManager.recordConnection(server);
+    const first = await historyManager.recordConnection(server);
+    // Simulate time elapsed past the 15-second rapid deduplication threshold
+    first.lastJoined = Date.now() - 30000;
 
     const reJoinServer = {
       ip: "127.0.0.1",
@@ -115,5 +117,42 @@ describe("History Manager (Unit Tests)", () => {
     await historyManager.clearAllHistory();
     const records = await historyManager.getHistoryRecords();
     expect(records).toHaveLength(0);
+  });
+
+  test("recordConnection with updateOnly=true updates stats without incrementing playCount", async () => {
+    const server = { ip: "127.0.0.1", port: 2302, name: "Test Server", ping: 0, players: 10 };
+    await historyManager.recordConnection(server);
+
+    const updated = await historyManager.recordConnection({
+      ...server,
+      ping: 35,
+      players: 12,
+      updateOnly: true,
+    });
+
+    expect(updated.playCount).toBe(1);
+    expect(updated.lastPing).toBe(35);
+    expect(updated.lastPlayers).toBe(12);
+    expect(updated.snapshots).toHaveLength(1);
+    expect(updated.snapshots[0].ping).toBe(35);
+  });
+
+  test("rapid recordConnection calls within 15 seconds update in place without incrementing playCount", async () => {
+    const server = { ip: "127.0.0.1", port: 2302, name: "Test Server", ping: 10, players: 5 };
+    await historyManager.recordConnection(server);
+
+    const rapid = await historyManager.recordConnection({
+      ip: "127.0.0.1",
+      port: 2302,
+      name: "Test Server Rapid",
+      ping: 20,
+      players: 15,
+    });
+
+    expect(rapid.playCount).toBe(1);
+    expect(rapid.lastPing).toBe(20);
+    expect(rapid.lastPlayers).toBe(15);
+    expect(rapid.snapshots).toHaveLength(1);
+    expect(rapid.snapshots[0].ping).toBe(20);
   });
 });

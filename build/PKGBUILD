@@ -1,11 +1,11 @@
 # Maintainer: DzLinux Team <dawiisss@github.com>
 pkgname=dzlinux-bin
-pkgver=1.8.1
+pkgver=2.0.0
 pkgrel=1
 pkgdesc="A high-performance DayZ Server Browser and Mod Manager for Linux."
 arch=('x86_64')
 url="https://github.com/dawiisss/DzLinux"
-license=('proprietary')
+license=('MIT')
 depends=('libxss' 'nss' 'gtk3' 'libnotify')
 provides=('dzlinux')
 conflicts=('dzlinux')
@@ -14,14 +14,25 @@ sha256sums=('SKIP')
 
 package() {
   install -d "${pkgdir}/opt/dzlinux"
-  # The tar.gz usually extracts to a folder or the root of srcdir. Adjusting based on electron-builder output.
-  cp -r "${srcdir}"/* "${pkgdir}/opt/dzlinux/"
+  if [ -d "${srcdir}/DzLinux-${pkgver}-linux-x64" ]; then
+    cp -r "${srcdir}/DzLinux-${pkgver}-linux-x64"/* "${pkgdir}/opt/dzlinux/"
+  else
+    find "${srcdir}" -mindepth 1 -maxdepth 1 ! -name "*.tar.gz" -exec cp -r {} "${pkgdir}/opt/dzlinux/" \;
+  fi
   
   install -d "${pkgdir}/usr/bin"
   ln -s /opt/dzlinux/dzlinux "${pkgdir}/usr/bin/dzlinux"
   
   # Ensure executable
   chmod +x "${pkgdir}/opt/dzlinux/dzlinux"
+  
+  # Install desktop icon
+  install -d "${pkgdir}/usr/share/pixmaps"
+  if [ -f "${pkgdir}/opt/dzlinux/resources/app.asar.unpacked/src/assets/icon.png" ]; then
+    install -Dm644 "${pkgdir}/opt/dzlinux/resources/app.asar.unpacked/src/assets/icon.png" "${pkgdir}/usr/share/pixmaps/dzlinux.png"
+  elif [ -f "${srcdir}/build/icons/512x512.png" ]; then
+    install -Dm644 "${srcdir}/build/icons/512x512.png" "${pkgdir}/usr/share/pixmaps/dzlinux.png"
+  fi
   
   install -d "${pkgdir}/usr/share/applications"
   echo "[Desktop Entry]

@@ -52,6 +52,7 @@ describe("settings", () => {
     expect(settings.audioFeedback).toBe(true);
     expect(settings.showWatchlistTab).toBe(true);
     expect(settings.showDiagnosticsTab).toBe(true);
+    expect(settings.queryConcurrency).toBe(150);
   });
 
   test("loadSettings returns defaults synchronously when no file exists", () => {
@@ -351,6 +352,55 @@ describe("settings", () => {
       expect(settings.modDirectory).toBe(
         path.join(fakeLibPath, "steamapps", "workshop", "content", "221100"),
       );
+    });
+  });
+
+  describe("sanitizeSettings", () => {
+    test("sanitizes boolean keys enableWatchlist, showHistoryTab, and enableHistory", async () => {
+      const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
+      await saveSettings({
+        enableWatchlist: "not-a-boolean",
+        showHistoryTab: 123,
+        enableHistory: null,
+      });
+
+      const loaded = await loadSettingsAsync();
+      expect(typeof loaded.enableWatchlist).toBe("boolean");
+      expect(typeof loaded.showHistoryTab).toBe("boolean");
+      expect(typeof loaded.enableHistory).toBe("boolean");
+    });
+
+    test("sanitizes filterMaps and filterCountries to empty arrays if invalid", async () => {
+      const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
+      await saveSettings({
+        filterMaps: "invalid-string",
+        filterCountries: { country: "US" },
+      });
+
+      const loaded = await loadSettingsAsync();
+      expect(loaded.filterMaps).toEqual([]);
+      expect(loaded.filterCountries).toEqual([]);
+    });
+
+    test("sanitizes modLoadouts to object and filters invalid entries", async () => {
+      const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
+      await saveSettings({
+        modLoadouts: ["invalid", "array"],
+      });
+
+      let loaded = await loadSettingsAsync();
+      expect(loaded.modLoadouts).toEqual({});
+
+      await saveSettings({
+        modLoadouts: {
+          PVP: ["12345", "67890"],
+          Invalid: "not-an-array",
+        },
+      });
+
+      loaded = await loadSettingsAsync();
+      expect(loaded.modLoadouts.PVP).toEqual(["12345", "67890"]);
+      expect(loaded.modLoadouts.Invalid).toBeUndefined();
     });
   });
 });

@@ -54,6 +54,10 @@ async function buildEnvironment(settings, compatDataPath) {
     env.PROTON_LOG = "0";
   }
 
+  if (settings.nativeWayland) {
+    env.PROTON_ENABLE_WAYLAND = "1";
+  }
+
   if (settings.mangoHudEnabled) {
     env.MANGOHUD = "1";
     if (settings.mangoHudConfig) {
@@ -68,14 +72,23 @@ function buildExtraParams(settings) {
   let extraParams = [];
 
   if (settings.launchParams) {
+    const rawTokens = (
+      settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || []
+    ).map((p) => {
+      if (p.startsWith('"') && p.endsWith('"'))
+        return p.substring(1, p.length - 1);
+      return p;
+    });
+
     if (!settings.launchParams.includes("%command%")) {
-      extraParams = (
-        settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || []
-      ).map((p) => {
-        if (p.startsWith('"') && p.endsWith('"'))
-          return p.substring(1, p.length - 1);
-        return p;
-      });
+      extraParams = rawTokens;
+    } else {
+      const cmdIndex = rawTokens.findIndex((t) => t.includes("%command%"));
+      if (cmdIndex !== -1) {
+        extraParams = rawTokens
+          .slice(cmdIndex + 1)
+          .filter((t) => t.startsWith("-"));
+      }
     }
   }
 

@@ -22,6 +22,7 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) 
 
   return new Promise((resolve, reject) => {
     const child = execFile("steam", steamArgs, (error, _stdout, _stderr) => {
+      steamworksManager.unlockForLaunch();
       if (error) {
         console.error(`Error launching game: ${error.message}`);
         handleGameExit(error);
@@ -30,7 +31,10 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) 
       }
     });
     child.once("spawn", resolve);
-    child.once("error", reject);
+    child.once("error", (err) => {
+      steamworksManager.unlockForLaunch();
+      reject(err);
+    });
   });
 }
 

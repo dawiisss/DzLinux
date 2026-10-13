@@ -182,6 +182,86 @@ describe("steamDependencyResolver", () => {
       expect(results[0].id).toBe("111");
       expect(results[1].id).toBe("222");
     });
+
+    test("batches multiple uncached mod IDs into a single request", async () => {
+      const mockAxios = setupMock({
+        data: {
+          response: {
+            publishedfiledetails: [
+              {
+                result: 1,
+                publishedfileid: "100",
+                title: "Mod 100",
+                children: [],
+              },
+              {
+                result: 1,
+                publishedfileid: "200",
+                title: "Mod 200",
+                children: [],
+              },
+            ],
+          },
+        },
+      });
+
+      const resolver = require("../../src/main/steamDependencyResolver");
+      const results = await resolver.resolveBatchDependencies(["100", "200"]);
+      expect(results).toHaveLength(2);
+      expect(mockAxios.post).toHaveBeenCalledTimes(1);
+      const postBody = mockAxios.post.mock.calls[0][1];
+      expect(postBody).toContain("itemcount=2");
+    });
+
+    test("deduplicates shared dependencies across different depths without duplicate requests", async () => {
+      const mockAxios = setupMock((callIndex) => {
+        if (callIndex === 0) {
+          return {
+            data: {
+              response: {
+                publishedfiledetails: [
+                  {
+                    result: 1,
+                    publishedfileid: "A",
+                    title: "Mod A",
+                    children: [{ publishedfileid: "SHARED" }],
+                  },
+                  {
+                    result: 1,
+                    publishedfileid: "B",
+                    title: "Mod B",
+                    children: [{ publishedfileid: "SHARED" }],
+                  },
+                ],
+              },
+            },
+          };
+        } else {
+          return {
+            data: {
+              response: {
+                publishedfiledetails: [
+                  {
+                    result: 1,
+                    publishedfileid: "SHARED",
+                    title: "Shared Dependency",
+                    children: [],
+                  },
+                ],
+              },
+            },
+          };
+        }
+      });
+
+      const resolver = require("../../src/main/steamDependencyResolver");
+      const results = await resolver.resolveBatchDependencies(["A", "B"]);
+      expect(results).toHaveLength(2);
+      expect(results[0].children[0].name).toBe("Shared Dependency");
+      expect(results[1].children[0].name).toBe("Shared Dependency");
+      // Call 0 was [A, B], Call 1 was [SHARED] — SHARED is only requested once
+      expect(mockAxios.post).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe("getFlatList", () => {

@@ -519,7 +519,12 @@ async function addToHistory(ip, port) {
           ping: statusObj.ping,
           players: typeof statusObj.players === "number" ? statusObj.players : players,
           maxPlayers: typeof statusObj.maxPlayers === "number" ? statusObj.maxPlayers : maxPlayers,
+          updateOnly: true,
         }).then(() => {
+          const existingH = state.history.find((h) => h.ip === ip && String(h.port) === portStr);
+          if (existingH) {
+            existingH.ping = statusObj.ping;
+          }
           window.dispatchEvent(new CustomEvent("history-note-updated"));
         }).catch(() => {});
       }
@@ -533,9 +538,6 @@ async function addToHistory(ip, port) {
   if (state.history.length > 500) state.history = state.history.slice(0, 500);
 
   state.historySet = new Set(state.history.map((h) => `${h.ip}:${h.port}`));
-
-  state.settings.history = state.history;
-  await window.api.settings.save(state.settings);
 }
 
 export function initServerBrowser() {

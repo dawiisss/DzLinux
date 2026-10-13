@@ -138,7 +138,7 @@ export async function renderWatchlist() {
       serverMap.set(`${s.ip}:${s.port}`, s);
     }
 
-    watchlist.forEach((item, index) => {
+    watchlist.forEach((item) => {
       const server = serverMap.get(`${item.ip}:${item.port}`);
       const tr = document.createElement("tr");
       tr.className = "server-row";
@@ -157,12 +157,20 @@ export async function renderWatchlist() {
       );
       input.title = "Toggle Watchlist Status";
       input.addEventListener("change", async () => {
+        const currentList = await window.api.watchlist.load();
+        const target = currentList.find(
+          (w) => w.ip === item.ip && String(w.port) === String(item.port),
+        );
+        if (target) {
+          target.active = input.checked;
+          target.lastStatus = "idle";
+          await window.api.watchlist.save(currentList);
+        }
         item.active = input.checked;
         item.lastStatus = "idle";
-        await window.api.watchlist.save(watchlist);
         await renderWatchlist();
         showToast(
-          `Watchlist: ${item.name} ${item.active ? "activated" : "deactivated"}`,
+          `Watchlist: ${item.name || "Unknown Server"} ${item.active ? "activated" : "deactivated"}`,
           item.active ? "var(--accent-green)" : "var(--text-dim)",
           "eye",
         );
@@ -187,8 +195,15 @@ export async function renderWatchlist() {
       );
       autoJoinInput.title = "Auto-Join on Notify";
       autoJoinInput.addEventListener("change", async () => {
+        const currentList = await window.api.watchlist.load();
+        const target = currentList.find(
+          (w) => w.ip === item.ip && String(w.port) === String(item.port),
+        );
+        if (target) {
+          target.autoJoin = autoJoinInput.checked;
+          await window.api.watchlist.save(currentList);
+        }
         item.autoJoin = autoJoinInput.checked;
-        await window.api.watchlist.save(watchlist);
         showToast(
           `Auto-Join ${item.autoJoin ? "enabled" : "disabled"} for ${item.name || "Server"}`,
           item.autoJoin ? "var(--accent-green)" : "var(--text-dim)",
@@ -254,7 +269,16 @@ export async function renderWatchlist() {
       modeLabel.style.cursor = "pointer";
 
       const toggleMode = async () => {
-        item.mode = (item.mode || "below") === "below" ? "above" : "below";
+        const currentList = await window.api.watchlist.load();
+        const target = currentList.find(
+          (w) => w.ip === item.ip && String(w.port) === String(item.port),
+        );
+        const nextMode = (item.mode || "below") === "below" ? "above" : "below";
+        if (target) {
+          target.mode = nextMode;
+          await window.api.watchlist.save(currentList);
+        }
+        item.mode = nextMode;
         modeLabel.textContent =
           item.mode === "below"
             ? "Notify when slots open (<=)"
@@ -265,7 +289,6 @@ export async function renderWatchlist() {
             ? "Current mode: Notify when slots open. Click to toggle."
             : "Current mode: Notify when target reached. Click to toggle.",
         );
-        await window.api.watchlist.save(watchlist);
       };
 
       modeLabel.addEventListener("click", toggleMode);
@@ -286,8 +309,16 @@ export async function renderWatchlist() {
       });
 
       slider.addEventListener("change", async () => {
-        item.threshold = parseInt(slider.value);
-        await window.api.watchlist.save(watchlist);
+        const newThreshold = parseInt(slider.value, 10);
+        const currentList = await window.api.watchlist.load();
+        const target = currentList.find(
+          (w) => w.ip === item.ip && String(w.port) === String(item.port),
+        );
+        if (target) {
+          target.threshold = newThreshold;
+          await window.api.watchlist.save(currentList);
+        }
+        item.threshold = newThreshold;
         showToast(
           `Threshold updated to ${item.threshold} players`,
           "var(--accent)",
@@ -325,8 +356,15 @@ export async function renderWatchlist() {
 
       const resetStatus = async () => {
         if (item.lastStatus === "notified") {
+          const currentList = await window.api.watchlist.load();
+          const target = currentList.find(
+            (w) => w.ip === item.ip && String(w.port) === String(item.port),
+          );
+          if (target) {
+            target.lastStatus = "idle";
+            await window.api.watchlist.save(currentList);
+          }
           item.lastStatus = "idle";
-          await window.api.watchlist.save(watchlist);
           await renderWatchlist();
           showToast(
             `Status reset to Monitoring for ${item.name || "Server"}`,
@@ -378,8 +416,11 @@ export async function renderWatchlist() {
       delBtn.title = "Remove from Watchlist";
       delBtn.setAttribute("aria-label", "Remove from Watchlist");
       delBtn.addEventListener("click", async () => {
-        watchlist.splice(index, 1);
-        await window.api.watchlist.save(watchlist);
+        const currentList = await window.api.watchlist.load();
+        const filteredList = currentList.filter(
+          (w) => !(w.ip === item.ip && String(w.port) === String(item.port)),
+        );
+        await window.api.watchlist.save(filteredList);
         renderWatchlist();
         showToast("Removed from watchlist", "var(--accent-red)", "trash");
       });

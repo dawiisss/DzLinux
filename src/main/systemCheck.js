@@ -102,46 +102,54 @@ async function checkDiskSpaceAndPermissions() {
     };
   }
 
-  const dfRes = await execFilePromise("df", ["-k", modDir]);
-  if (!dfRes.error) {
-    const lines = dfRes.stdout.trim().split("\n");
-    if (lines.length > 1) {
-      const parts = lines[1].trim().split(/\s+/);
-      if (parts.length >= 4) {
-        const freeKb = parseInt(parts[3], 10);
-        if (!isNaN(freeKb)) {
-          const freeGb = (freeKb / (1024 * 1024)).toFixed(1);
-          if (freeKb < 2 * 1024 * 1024) {
-            return {
-              id: "storage",
-              category: "Storage & Workshop",
-              label: "Workshop Directory & Disk Space",
-              status: "error",
-              details: `Critical low disk space on Workshop drive: only ${freeGb} GB available (minimum 10 GB recommended for DayZ mods).`,
-              fixSuggestion: "Free up disk space on the partition containing your Steam Workshop folder.",
-            };
-          }
-          if (freeKb < 10 * 1024 * 1024) {
-            return {
-              id: "storage",
-              category: "Storage & Workshop",
-              label: "Workshop Directory & Disk Space",
-              status: "warn",
-              details: `Low disk space on Workshop drive: ${freeGb} GB available (${modDir}).`,
-              fixSuggestion: "Consider freeing up additional disk space for large server mod downloads.",
-            };
-          }
-          return {
-            id: "storage",
-            category: "Storage & Workshop",
-            label: "Workshop Directory & Disk Space",
-            status: "pass",
-            details: `Workshop directory writable with ${freeGb} GB available free space (${modDir}).`,
-            fixSuggestion: null,
-          };
+  let freeKb = null;
+  try {
+    const stats = await fs.promises.statfs(modDir);
+    freeKb = Math.floor((stats.bavail * stats.bsize) / 1024);
+  } catch {
+    const dfRes = await execFilePromise("df", ["-Pk", modDir]);
+    if (!dfRes.error) {
+      const lines = dfRes.stdout.trim().split("\n");
+      if (lines.length > 1) {
+        const parts = lines[1].trim().split(/\s+/);
+        if (parts.length >= 4) {
+          const parsed = parseInt(parts[3], 10);
+          if (!isNaN(parsed)) freeKb = parsed;
         }
       }
     }
+  }
+
+  if (freeKb !== null) {
+    const freeGb = (freeKb / (1024 * 1024)).toFixed(1);
+    if (freeKb < 2 * 1024 * 1024) {
+      return {
+        id: "storage",
+        category: "Storage & Workshop",
+        label: "Workshop Directory & Disk Space",
+        status: "error",
+        details: `Critical low disk space on Workshop drive: only ${freeGb} GB available (minimum 10 GB recommended for DayZ mods).`,
+        fixSuggestion: "Free up disk space on the partition containing your Steam Workshop folder.",
+      };
+    }
+    if (freeKb < 10 * 1024 * 1024) {
+      return {
+        id: "storage",
+        category: "Storage & Workshop",
+        label: "Workshop Directory & Disk Space",
+        status: "warn",
+        details: `Low disk space on Workshop drive: ${freeGb} GB available (${modDir}).`,
+        fixSuggestion: "Consider freeing up additional disk space for large server mod downloads.",
+      };
+    }
+    return {
+      id: "storage",
+      category: "Storage & Workshop",
+      label: "Workshop Directory & Disk Space",
+      status: "pass",
+      details: `Workshop directory writable with ${freeGb} GB available free space (${modDir}).`,
+      fixSuggestion: null,
+    };
   }
 
   return {

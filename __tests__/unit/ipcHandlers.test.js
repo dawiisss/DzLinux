@@ -14,6 +14,7 @@ describe("ipcHandlers", () => {
   let mockSystemCheck;
   let mockRealpath;
   let mockFsAccess;
+  let mockFsStatfs;
   let mockExecFile;
   let mockShell;
   let event;
@@ -86,6 +87,7 @@ describe("ipcHandlers", () => {
 
     mockRealpath = jest.fn((p) => Promise.resolve(p));
     mockFsAccess = jest.fn().mockResolvedValue();
+    mockFsStatfs = jest.fn();
     mockExecFile = jest.fn();
     mockShell = {
       openExternal: jest.fn().mockResolvedValue(),
@@ -109,7 +111,10 @@ describe("ipcHandlers", () => {
       { virtual: true },
     );
     jest.doMock("fs", () => ({
-      promises: { realpath: mockRealpath, access: mockFsAccess },
+      promises: { realpath: mockRealpath, access: mockFsAccess, statfs: mockFsStatfs },
+    }));
+    jest.doMock("node:fs", () => ({
+      promises: { realpath: mockRealpath, access: mockFsAccess, statfs: mockFsStatfs },
     }));
     jest.doMock("child_process", () => ({ execFile: mockExecFile }));
     jest.doMock("../../src/main/settings", () => mockSettings);
@@ -631,31 +636,25 @@ describe("ipcHandlers", () => {
     test("get-disk-space returns null for disallowed paths", async () => {
       const result = await handlers.get("get-disk-space")(event, "/etc");
       expect(result).toBeNull();
-      expect(mockExecFile).not.toHaveBeenCalled();
+      expect(mockFsStatfs).not.toHaveBeenCalled();
     });
 
-    test("get-disk-space parses df output for allowed paths", async () => {
-      mockExecFile.mockImplementation((cmd, args, cb) =>
-        cb(
-          null,
-          "Filesystem     1K-blocks    Used Available Use% Mounted on\n/dev/sda1       1000    250       750  25% /\n",
-        ),
-      );
+    test("get-disk-space parses statfs output for allowed paths", async () => {
+      mockFsStatfs.mockResolvedValue({
+        blocks: 1000,
+        bsize: 1024,
+        bavail: 750,
+        bfree: 750,
+      });
 
       const result = await handlers.get("get-disk-space")(event, "/home/test");
 
-      expect(mockExecFile).toHaveBeenCalledWith(
-        "df",
-        ["-k", "/home/test"],
-        expect.any(Function),
-      );
+      expect(mockFsStatfs).toHaveBeenCalledWith("/home/test");
       expect(result).toEqual({ total: 1024000, used: 256000, free: 768000 });
     });
 
-    test("get-disk-space returns null when df fails", async () => {
-      mockExecFile.mockImplementation((cmd, args, cb) =>
-        cb(new Error("df failed")),
-      );
+    test("get-disk-space returns null when statfs fails", async () => {
+      mockFsStatfs.mockRejectedValue(new Error("statfs failed"));
       const result = await handlers.get("get-disk-space")(event, "/home/test");
       expect(result).toBeNull();
     });

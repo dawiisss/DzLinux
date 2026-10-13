@@ -1,5 +1,6 @@
 const path = require("node:path");
 const os = require("node:os");
+const fs = require("node:fs");
 
 const mockHome = path.join(os.tmpdir(), "dzlinux-pathguard-test-home");
 
@@ -169,6 +170,30 @@ describe("pathGuard", () => {
         path.join(customModDir, "@mod123", "addons", "config.cpp"),
       );
       expect(allowed).toBe(true);
+    });
+
+    test("allows paths when modDirectory is a symlink pointing to an external directory", async () => {
+      const tmpTestDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), "dzlinux-symlink-test-"),
+      );
+      const realTargetDir = path.join(tmpTestDir, "external-drive", "dayz-mods");
+      const symlinkModDir = path.join(tmpTestDir, "symlinked-mods");
+      fs.mkdirSync(realTargetDir, { recursive: true });
+      fs.symlinkSync(realTargetDir, symlinkModDir, "dir");
+
+      try {
+        settingsManager.loadSettingsAsync.mockResolvedValueOnce({
+          modDirectory: symlinkModDir,
+        });
+
+        const symlinkChild = path.join(symlinkModDir, "@mod123", "addons");
+        fs.mkdirSync(symlinkChild, { recursive: true });
+
+        const allowed = await pathGuard.isAllowedPath(symlinkChild);
+        expect(allowed).toBe(true);
+      } finally {
+        fs.rmSync(tmpTestDir, { recursive: true, force: true });
+      }
     });
 
     test("still validates when settings fail to load", async () => {

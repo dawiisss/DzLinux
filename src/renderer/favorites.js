@@ -6,6 +6,13 @@ import { buildServerRow, buildDetailRow } from "./serverRow.js";
 
 const placeholderCache = new Map();
 
+export function getPlaceholderServerById(id) {
+  for (const server of placeholderCache.values()) {
+    if (server.id === id) return server;
+  }
+  return null;
+}
+
 // Cap concurrent GameDig queries when pinging favorites — one simultaneous
 // UDP query per favorite could exhaust sockets on large favorite lists.
 const FAVORITES_PING_CONCURRENCY = 50;

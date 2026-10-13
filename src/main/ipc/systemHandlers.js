@@ -4,7 +4,6 @@
 const { ipcMain, shell, BrowserWindow } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
-const { execFile } = require("node:child_process");
 const { autoUpdater, checkForUpdates, isSystemInstall } = require("../updater");
 const logParser = require("../logParser");
 const systemCheck = require("../systemCheck");
@@ -68,28 +67,15 @@ function registerSystemHandlers() {
     if (!(await isAllowedPath(dirPath)) || !dirPath.startsWith("/")) {
       return null;
     }
-    return new Promise((resolve) => {
-      execFile("df", ["-k", dirPath], (error, stdout) => {
-        if (error) {
-          resolve(null);
-          return;
-        }
-        const lines = stdout.trim().split("\n");
-        if (lines.length > 1) {
-          const parts = lines[1].trim().split(/\s+/);
-          if (parts.length >= 4) {
-            const total = parseInt(parts[1], 10) * 1024;
-            const used = parseInt(parts[2], 10) * 1024;
-            const free = parseInt(parts[3], 10) * 1024;
-            if (!isNaN(total) && !isNaN(used) && !isNaN(free)) {
-              resolve({ total, used, free });
-              return;
-            }
-          }
-        }
-        resolve(null);
-      });
-    });
+    try {
+      const stats = await fs.promises.statfs(dirPath);
+      const total = stats.blocks * stats.bsize;
+      const free = stats.bavail * stats.bsize;
+      const used = total - stats.bfree * stats.bsize;
+      return { total, used, free };
+    } catch {
+      return null;
+    }
   });
 
   ipcMain.on("renderer-log", (_event, msg) => console.log(`[RENDERER] ${msg}`));

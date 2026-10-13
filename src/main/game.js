@@ -1,3 +1,4 @@
+const fs = require("node:fs");
 const path = require("node:path");
 const { shell } = require("electron");
 const { existsAsync } = require("./fileUtils");
@@ -48,6 +49,19 @@ function handleGameExit(error) {
   }
 }
 
+async function isModFolderValid(modPath) {
+  if (!(await existsAsync(modPath))) return false;
+  try {
+    const entries = await fs.promises.readdir(modPath);
+    return entries.some((entry) => {
+      const lower = entry.toLowerCase();
+      return lower === "addons" || lower === "meta.cpp" || lower === "mod.cpp";
+    });
+  } catch {
+    return false;
+  }
+}
+
 async function checkMods(requiredMods) {
   if (!requiredMods || requiredMods.length === 0) {
     return { missingMods: [], hasAllMods: true };
@@ -73,17 +87,7 @@ async function checkMods(requiredMods) {
         const needsUpdate = (state & 8) !== 0;
 
         const modPath = path.join(settings.modDirectory, mod.id);
-        let isValidDayZMod = false;
-        if (await existsAsync(modPath)) {
-          const addonsPath = path.join(modPath, "addons");
-          const addonsUpperPath = path.join(modPath, "Addons");
-          if (
-            (await existsAsync(addonsPath)) ||
-            (await existsAsync(addonsUpperPath))
-          ) {
-            isValidDayZMod = true;
-          }
-        }
+        const isValidDayZMod = await isModFolderValid(modPath);
 
         if (
           !isInstalled ||
@@ -103,12 +107,8 @@ async function checkMods(requiredMods) {
       continue;
     }
     const modPath = path.join(settings.modDirectory, mod.id);
-    const addonsPath = path.join(modPath, "addons");
-    const addonsUpperPath = path.join(modPath, "Addons");
-    const hasModPath = await existsAsync(modPath);
-    const hasAddons = await existsAsync(addonsPath);
-    const hasAddonsUpper = await existsAsync(addonsUpperPath);
-    if (!hasModPath || (!hasAddons && !hasAddonsUpper)) {
+    const isValidDayZMod = await isModFolderValid(modPath);
+    if (!isValidDayZMod) {
       missingMods.push(mod);
     }
   }
@@ -134,10 +134,8 @@ async function launchDayZ(ip, port, mods) {
   const portStr = port !== undefined && port !== null ? String(port) : "2302";
   const args = ip
     ? [
-        "-connect",
-        sanitizeArg(ip),
-        "-port",
-        sanitizeArg(portStr),
+        `-connect=${sanitizeArg(ip)}`,
+        `-port=${sanitizeArg(portStr)}`,
         "-noLauncher",
       ]
     : ["-noLauncher"];

@@ -1,0 +1,16 @@
+exclude:
+  - src/
+  - __tests__/
+  - build/
+  - dist/
+  - scripts/
+  - coverage/
+  - node_modules/
+  - .agents/
+  - .husky/
+  - package.json
+  - pnpm-lock.yaml
+  - pnpm-workspace.yaml
+  - jest.config.js
+  - eslint.config.mjs
+  - install.sh

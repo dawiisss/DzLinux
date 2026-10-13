@@ -24,17 +24,21 @@ function compareVersions(v1, v2) {
     const n = parseInt(p, 10);
     return isNaN(n) ? -1 : n;
   };
-  const p1 = v1.replace(/^v/, "").split(".");
-  const p2 = v2.replace(/^v/, "").split("-")[0].split(".");
+  const clean1 = String(v1 || "").replace(/^v/, "");
+  const clean2 = String(v2 || "").replace(/^v/, "");
+  const [core1, pre1] = clean1.split("-", 2);
+  const [core2, pre2] = clean2.split("-", 2);
+  const p1 = core1.split(".");
+  const p2 = core2.split(".");
   for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
     const n1 = parsePart(p1[i] || "0");
     const n2 = parsePart(p2[i] || "0");
     if (n1 > n2) return 1;
     if (n2 > n1) return -1;
   }
-  // If equal, pre-release tags ([0] comes after -) make the version lower
-  if (v1.includes("-") && !v2.includes("-")) return -1;
-  if (!v1.includes("-") && v2.includes("-")) return 1;
+  if (pre1 && !pre2) return -1;
+  if (!pre1 && pre2) return 1;
+  if (pre1 && pre2 && pre1 !== pre2) return pre1.localeCompare(pre2);
   return 0;
 }
 
@@ -126,33 +130,6 @@ function setupAutoUpdater(mainWindow) {
       });
     }
   });
-
-  if (app.isPackaged && !isSystemInstall()) {
-    if (isAppImage()) {
-      autoUpdater.checkForUpdates().catch((err) => {
-        console.error(
-          "Auto-update check failed on startup:",
-          err ? err.message : "Unknown error",
-        );
-      });
-    } else {
-      checkForUpdates().then((result) => {
-        if (result.kind === "available" && mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send("update-available", {
-            version: result.updateInfo.version,
-            releaseNotes: result.updateInfo.releaseNotes,
-            releaseDate: result.updateInfo.releaseDate,
-            downloadUrl: result.updateInfo.downloadUrl,
-          });
-        }
-      }).catch((err) => {
-        console.error(
-          "Auto-update check failed:",
-          err ? err.message : "Unknown error",
-        );
-      });
-    }
-  }
 }
 
 module.exports = {

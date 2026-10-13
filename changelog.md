@@ -10,6 +10,53 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [2.0.0] - 2026-10-13
+
+### Added
+
+- **Multi-Library Steam and Proton Path Resolution:** Added `findDayzSteamappsFolderAsync()` in `src/main/steamPaths.js` to locate DayZ installs across secondary Steam libraries defined in `libraryfolders.vdf`, ensuring reliable launching when the workshop mod directory is symlinked or stored in a separate library from the game executable.
+- **Batch Steam Workshop Dependency Resolution:** Added batch querying helper `fetchPublishedFileDetailsBatch()` in `src/main/steamDependencyResolver.js` to resolve up to 50 Workshop items in a single HTTP request with in-flight deduplication.
+- **Placeholder Server Lookup Helper:** Exported `getPlaceholderServerById()` in `src/renderer/favorites.js` to retrieve offline or unlisted favorited servers from the placeholder cache.
+- **CSS Theme Custom Properties:** Defined missing `:root` custom properties (`--text-bright`, `--bg-hover`, `--bg-dark`, and `--primary`) in `src/styles/main.css` for consistent styling across light and dark themes.
+- **GitHub Pages Artifact Scoping:** Added root `_config.yml` configuration to exclude internal source directories (`src/`, `__tests__/`, `build/`, `dist/`, `scripts/`, `coverage/`, `node_modules/`) and project configuration files from GitHub Pages Jekyll deployment builds.
+
+### Changed
+
+- **Workshop Dependency Cache Structure:** Changed `dependencyCache` in `src/main/steamDependencyResolver.js` to store raw Workshop item metadata keyed solely by `modId`, eliminating duplicate cache entries and redundant requests for shared dependencies at varying recursion depths.
+- **Server Browser Query Concurrency Default:** Reduced default background query concurrency from 500 to 150 across `defaultSettings` in `src/main/settings.js`, UI placeholders in `src/index.html`, and renderer fallback routines (`serverBrowserRender.js` and `src/renderer/settings.js`) to prevent NAT table exhaustion and false UDP ping timeouts on fresh installations, while maintaining 500 as the maximum configurable limit.
+- **Packaging and Flatpak Runtime Upgrade:** Updated Flatpak manifest `build/com.dawiisss.dzlinux.yml` runtime and base version to `24.08`, restructured build commands to install the application bundle into `/app/main/` and launch via `dzlinux.sh` to prevent recursive execution loops.
+- **PKGBUILD Licensing and Asset Packaging:** Updated `build/PKGBUILD` license to `MIT`, handled top-level `DzLinux-${pkgver}-linux-x64/` archive wrapper directory during `makepkg` extraction, excluded downloaded source tarballs from `/opt/dzlinux/`, and installed desktop pixmap icons to `/usr/share/pixmaps/dzlinux.png`.
+- **Installer Digest Parsing:** Updated `install.sh` to extract release SHA-256 digests via `jq` or `python3` when available, falling back to `grep`/`sed`, and updated icon download source to `src/assets/icon.png`.
+- **Repository Asset Cleanup:** Removed redundant root-level and build-level duplicate icon files (`icon.png` and `build/icon.png`), standardizing on `src/assets/icon.png` and `build/icons/`.
+- **Watchlist Stale Closure Protection:** Refactored event handlers in `src/renderer/watchlist.js` (Active, Auto-Join, Mode, Threshold slider, Status reset, and Delete) to re-load the latest watchlist from disk and match target servers by IP and port instead of mutating stale in-memory arrays.
+- **Dependency Tree Card Styling:** Updated mod dependency cards in `src/renderer/modManager.js` to use `var(--bg-card)` and `var(--text-main)` instead of hardcoded dark backgrounds and white text.
+- **Disk Space Inspection via statfs:** Replaced `df -k` child process execution in `src/main/ipc/systemHandlers.js` and `src/main/systemCheck.js` with Node `fs.promises.statfs` to prevent column alignment and parsing errors on complex filesystems or device names containing spaces.
+- **Settings Sanitization Hardening:** Hardened `sanitizeSettings()` in `src/main/settings.js` to strictly validate `enableWatchlist`, `showHistoryTab`, and `enableHistory` as booleans, ensure `filterMaps` and `filterCountries` are bounded string arrays, and enforce `modLoadouts` as a clean key-value dictionary.
+
+### Fixed
+
+- **Proton Native Wayland Setting Propagation:** Wired the `nativeWayland` setting from renderer configuration into `buildEnvironment()` in `src/main/game/prepareEnv.js` to properly set `PROTON_ENABLE_WAYLAND=1` during Proton game launch.
+- **Steamworks Worker Lock Lifetime:** Removed premature 15-second automatic timeout unlock from `lockAndDelayForLaunch()` in `src/main/steamworksManager.js`, ensuring the Steamworks worker remains locked throughout the DayZ game session and unlocking upon game exit in `launchProton.js` and `launchSteam.js`.
+- **Favorites View Detail Row Refresh:** Fixed `buildDetailRow()` in `src/renderer/serverRow.js` to preserve the `isFavoritesView` flag and target the correct row element (`fav-detail-${server.id}`) during mod refreshes, preventing scroll position resets and missing rows.
+- **Context Menu Favorites Lookup and Star Sync:** Fixed row ID parsing in `src/renderer/contextMenu.js` to correctly preserve `fav-` prefix IDs for unlisted servers, added fallback to `getPlaceholderServerById()`, and updated star button toggle to update both main browser and favorites table rows.
+- **Server Row Insertion Performance:** Eliminated redundant synchronous full-array filtering and pagination DOM recalculations inside `insertServerRow()` in `src/renderer/serverBrowser/serverBrowserRender.js`, relying on debounced stats updates.
+- **Non-Blocking History Clear Modal:** Replaced native blocking `confirm()` dialog in `src/renderer/history.js` with `showConfirmModal()` from `src/renderer/feedback.js`.
+- **Redundant Settings Disk Writes:** Removed duplicate `state.settings.history` assignment and `window.api.settings.save()` call from `addToHistory()` in `src/renderer/serverBrowser/serverBrowserTable.js`, letting `window.api.history.record()` solely manage connection history persistence.
+- **Proton Environment Variable and Wrapper Ordering:** Fixed `launchViaProton()` in `src/main/game/launchProton.js` to strip leading `KEY=VALUE` environment assignments before selecting the executable binary and assign them to `env`, automatically prepend `gamemoderun` and `mangohud` when enabled, and deduplicate tokens matching existing arguments.
+- **Steam Launch Flag Preservation with Placeholder Command:** Updated `buildExtraParams()` in `src/main/game/prepareEnv.js` to extract DayZ engine flags appearing after `%command%` instead of discarding all launch arguments.
+- **Case-Insensitive Workshop Mod Verification:** Extracted `isModFolderValid()` in `src/main/game.js` to recognize mods with uppercase `ADDONS`, `meta.cpp`, or `mod.cpp` on case-sensitive Linux filesystems, preventing false missing-mod reports.
+- **Mod Metadata Cache Concurrent Write Protection:** Moved cache loading in `refreshServerModCache()` in `src/main/servers.js` to execute after GameDig A2S queries complete, preventing concurrent queries from overwriting each other's updates.
+- **Server History Double Play Count Increment:** Updated `addToHistory()` in `src/renderer/serverBrowser/serverBrowserTable.js` and `recordConnection()` in `src/main/history.js` with an `updateOnly: true` flag during background ping resolution, preventing duplicate play count increments and redundant snapshots.
+- **Light Theme Diagnostic Contrast:** Replaced hardcoded `#fff` text color in `.diagnostic-analysis-label` and `.diagnostic-fix-label` in `src/styles/main.css` with `var(--text-main)` to fix illegible text in light themes.
+- **Semver Pre-Release Comparison and Startup Check Deduplication:** Updated `compareVersions()` in `src/main/updater.js` to strip pre-release suffixes prior to numeric core segment parsing, avoiding multi-dot semver misidentifications (e.g., `1.8.1-beta.1` vs `1.8.1`), and removed duplicate update check execution during startup in `setupAutoUpdater()`.
+- **History Connection Deduplication and IPC Validation:** Hardened `recordConnection()` in `src/main/history.js` with rapid-call deduplication (within 15 seconds) to prevent double play-count increments, and added strict IP, port, server ID, and note validation in `src/main/ipc/historyHandlers.js`.
+- **Electron WebContents Navigation Lockdown:** Attached `setWindowOpenHandler` (denying unmanaged popups) and `will-navigate` (preventing unexpected top-level navigation) security guards to the main window webContents in `src/main/main.js`.
+- **HTML CSS Variable and Layout Diagnostics Fixes:** Fixed undefined CSS variables (`var(--border-color)` to `var(--border)` and removing `var(--bg-color)`), updated `#updateReleaseNotes` and `#crashDiagnosticDescription` to use `var(--text-main)` for theme compatibility, and added `modal-box` to `#historyAnalyticsModal` in `src/index.html`.
+- **MangoHud and DXVK Configuration Initialization:** Initialized `#mangoHudConfig` and `#dxvkConfig` input values from loaded settings in `src/renderer/settings.js`, preventing subsequent configuration changes from silently overwriting preset values with empty strings.
+- **Symlinked Path Validation in Path Guard:** Updated `isAllowedPath()` in `src/main/ipc/pathGuard.js` to resolve symlinks across all allowed prefixes (including `modDirectory` and Steam library roots), ensuring workshop mods on secondary drives and symlinked Steam libraries validate correctly.
+- **Proton Direct Launch Connection Arguments:** Standardized connection flags in `src/main/game.js` to `-connect=${ip}` and `-port=${port}` to match `launchSteam.js`, preventing `DayZ_x64.exe` from ignoring connection parameters when launched directly under Proton.
+- **HTTP Cache Semantics Security Patch:** Enforced `http-cache-semantics` version `^4.2.1` in `pnpm-workspace.yaml` overrides to resolve high-severity vulnerability GHSA-ch52-4w7c-c8xp.
+
 ## [1.8.1] - 2026-09-30
 
 ### Changed

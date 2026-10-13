@@ -152,18 +152,7 @@ export function insertServerRow(server) {
   if (visibleRows >= state.pagination.size) return;
   const tr = buildServerRow(server);
   tbody.appendChild(tr);
-
-  const allPinged = state.allServers.filter(
-    (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
-  );
-  const filteredCount = allPinged.filter((s) => serverPassesFilters(s)).length;
-  const startIdx = (state.pagination.page - 1) * state.pagination.size;
-  const endIdx = Math.min(startIdx + visibleRows + 1, filteredCount);
-  const totalPages = Math.ceil(filteredCount / state.pagination.size) || 1;
-  document.getElementById("paginationInfo").textContent =
-    `Showing ${filteredCount ? startIdx + 1 : 0} - ${endIdx} of ${filteredCount} servers (Page ${state.pagination.page}/${totalPages})`;
-  document.getElementById("nextPageBtn").disabled =
-    state.pagination.page >= totalPages;
+  updateStatsInline();
 }
 
 async function asyncPool(iterable, iteratorFn, concurrency, shouldAbortFn) {
@@ -328,7 +317,7 @@ export async function startBackgroundPinging() {
       updateStatsInline();
       insertServerRow(server);
     },
-    state.settings?.queryConcurrency || 500,
+    state.settings?.queryConcurrency || 150,
     () => myGeneration !== state.bgPing.generation
   );
 

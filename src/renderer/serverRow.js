@@ -84,16 +84,21 @@ export function buildDetailRow(server, isFavoritesView = false) {
       Refresh
     `;
     if (state.expandedServerId === server.id) {
-      const oldDetail = document.getElementById(`detail-${server.id}`);
+      const detailRowId = isFavoritesView
+        ? `fav-detail-${server.id}`
+        : `detail-${server.id}`;
+      const oldDetail = document.getElementById(detailRowId);
       if (oldDetail) {
         const savedScrollTop = oldDetail.scrollTop || 0;
-        const newDetail = buildDetailRow(server);
+        const newDetail = buildDetailRow(server, isFavoritesView);
         oldDetail.replaceWith(newDetail);
         newDetail.scrollTop = savedScrollTop;
       }
-      const favTab = document.getElementById("favorites");
-      if (favTab && favTab.classList.contains("active")) {
-        document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
+      if (!isFavoritesView) {
+        const favTab = document.getElementById("favorites");
+        if (favTab && favTab.classList.contains("active")) {
+          document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
+        }
       }
     }
   });

@@ -2,6 +2,9 @@
   --bg-deep: #0a0b0e;
   --bg-panel: rgba(17, 19, 23, 0.65);
   --bg-card: rgba(24, 27, 33, 0.6);
+  --bg-hover: var(--bg-card);
+  --bg-dark: var(--bg-deep);
+  --primary: var(--accent);
   --accent: #ff9f1c;
   --accent-rgb: 255, 159, 28;
   --accent-green: #2ec4b6;
@@ -12,6 +15,7 @@
   --border: rgba(255, 255, 255, 0.12);
   --border-hover: rgba(255, 159, 28, 0.4);
   --text-main: #f4f4f7;
+  --text-bright: var(--text-main);
   --text-muted: #8e94a5;
   --text-dim: #5c606e;
   --glass-blur: blur(16px);
@@ -2449,7 +2453,7 @@ body.layout-modern #sidebar.pinned .sidebar-toggle {
   border-left: 2px solid var(--text-dim);
 }
 .diagnostic-analysis-label {
-  color: #fff;
+  color: var(--text-main);
   font-weight: 600;
 }
 
@@ -2463,7 +2467,7 @@ body.layout-modern #sidebar.pinned .sidebar-toggle {
   border-left: 2px solid #2ec4b6;
 }
 .diagnostic-fix-label {
-  color: #fff;
+  color: var(--text-main);
   font-weight: 600;
 }
 

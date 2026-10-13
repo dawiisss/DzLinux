@@ -115,6 +115,16 @@ describe("prepareEnv", () => {
       expect(env.PROTON_LOG).toBe("0");
     });
 
+    test("sets PROTON_ENABLE_WAYLAND when nativeWayland enabled", async () => {
+      const env = await buildEnvironment({ nativeWayland: true }, "");
+      expect(env.PROTON_ENABLE_WAYLAND).toBe("1");
+    });
+
+    test("does not set PROTON_ENABLE_WAYLAND when nativeWayland disabled", async () => {
+      const env = await buildEnvironment({ nativeWayland: false }, "");
+      expect(env.PROTON_ENABLE_WAYLAND).toBeUndefined();
+    });
+
     test("sets MANGOHUD and MANGOHUD_CONFIG when mangoHud enabled with config", async () => {
       const env = await buildEnvironment(
         { mangoHudEnabled: true, mangoHudConfig: "cpu_stats,gpu_stats" },
@@ -165,11 +175,18 @@ describe("prepareEnv", () => {
       expect(result).toEqual(["-nosplash", "-skipintro"]);
     });
 
-    test("returns empty array when launchParams contains %command%", () => {
+    test("extracts launch flags appearing after %command%", () => {
       const result = buildExtraParams({
         launchParams: "-nosplash %command% -skipintro",
       });
-      expect(result).toEqual([]);
+      expect(result).toEqual(["-skipintro"]);
+    });
+
+    test("extracts flags when leading environment variables are present before %command%", () => {
+      const result = buildExtraParams({
+        launchParams: "VAR=1 DXVK_HUD=fps %command% -nosplash -noPause",
+      });
+      expect(result).toEqual(["-nosplash", "-noPause"]);
     });
 
     test("parses quoted launch params", () => {
