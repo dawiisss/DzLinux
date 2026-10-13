@@ -58,7 +58,9 @@ This command can also be used to update the version if you are using .deb / .rpm
 
 ### Proton and Wine Auto-Detection
 - Automatically scans your Steam directories to detect installed Proton versions (Proton GE, Experimental, etc.).
+- **Multi-Library Steam Support**: Automatically locates DayZ installs and Workshop content across secondary Steam libraries defined in `libraryfolders.vdf`, supporting symlinked paths and multi-drive storage.
 - Launch DayZ with the best compatibility layer in one click.
+- **Native Wayland Support**: Toggle native Wayland flags (`PROTON_ENABLE_WAYLAND=1`) and Ozone platform flags directly from settings.
 
 ### Watchlist and Auto-Join System
 - **Real-Time Threshold Monitoring**: Continuously evaluates target servers against user-defined player capacity thresholds (queue slot availability or minimum population targets).
@@ -82,8 +84,9 @@ This command can also be used to update the version if you are using .deb / .rpm
 - **Layout Selection**: Switch instantly between the traditional **Classic Navigation** and a sleek **Modern Sidebar Layout** with collapsible, pinnable navigation.
 - **HUD Color Themes**: Includes 8+ curated color themes (including high-contrast dark profiles like *Tactical Dark*, *Vampire*, *Toxic*, *Cyberpunk*, *Forest Moss*, and clean light-mode themes like *Frostbite* and *Solar Sand*).
 
-### Crash Diagnostics
-- Automatically monitors game exit events and parses DayZ crash logs in real time.
+### System Compatibility and Crash Diagnostics
+- **Built-in System Diagnostics**: On-demand compatibility audit verifying Steam installation status, Proton runtimes, disk space/permissions, Vulkan graphics, GameMode, and MangoHud.
+- **Real-Time Crash Diagnostics**: Automatically monitors game exit events and parses DayZ crash logs in real time.
 - Displays a crash summary modal with a description, log snippet, and suggested fix.
 - One-click copy of the full diagnostic report to clipboard for easy sharing.
 
@@ -99,38 +102,45 @@ This command can also be used to update the version if you are using .deb / .rpm
 If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
 ### AppImage (Portable)
-1. Download `DzLinux-1.8.1.AppImage`.
+1. Download `DzLinux-2.0.0.AppImage`.
 2. Make it executable:
    ```bash
-   chmod +x DzLinux-1.8.1.AppImage
+   chmod +x DzLinux-2.0.0.AppImage
    ```
 3. Run or double-click to launch.
 
 ### Portable Archive (tar.gz)
-1. Download `dzlinux-1.8.1.tar.gz`.
+1. Download `DzLinux-2.0.0-linux-x64.tar.gz`.
 2. Extract to your games directory:
    ```bash
-   tar -xzf dzlinux-1.8.1.tar.gz -C ~/Games/
+   tar -xzf DzLinux-2.0.0-linux-x64.tar.gz -C ~/Games/
    ```
 3. Run the binary:
    ```bash
-   cd ~/Games/DzLinux
+   cd ~/Games/DzLinux-2.0.0-linux-x64
    ./dzlinux
    ```
 
 ### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
-1. Download `dzlinux_1.8.1_amd64.deb`.
+1. Download `dzlinux_2.0.0_amd64.deb`.
 2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_1.8.1_amd64.deb
+   sudo dpkg -i dzlinux_2.0.0_amd64.deb
    sudo apt install -f
    ```
 
 ### RPM Package (rpm) - Fedora, RHEL, openSUSE
-1. Download `dzlinux-1.8.1.x86_64.rpm`.
+1. Download `dzlinux-2.0.0.x86_64.rpm`.
 2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-1.8.1.x86_64.rpm
+   sudo rpm -i dzlinux-2.0.0.x86_64.rpm
+   ```
+
+### Arch Linux (PKGBUILD)
+1. Clone or download `build/PKGBUILD`.
+2. Build and install with `makepkg`:
+   ```bash
+   makepkg -si
    ```
 
 ---
