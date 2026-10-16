@@ -4,6 +4,7 @@ import { applyServerListMode, applyLayoutMode } from "./theme.js";
 import { applyTabVisibility } from "./ui-behavior.js";
 import { startCountdown } from "./serverBrowser.js";
 import { startWatchlistPoll } from "./watchlist.js";
+import { updateLaunchOptionAvailability } from "./launchOptions.js";
 
 export async function initSettings() {
   const settings = state.settings;
@@ -79,17 +80,18 @@ export async function initSettings() {
   document.getElementById("disableProtonLogs").checked =
     settings.disableProtonLogs !== false;
   const gmCheckbox = document.getElementById("enableGameMode");
+  const protonSelect = document.getElementById("protonPath");
+  let gameModeAvailable = true;
+  const updateLaunchControls = () =>
+    updateLaunchOptionAvailability(protonSelect.value, gameModeAvailable);
+  protonSelect.addEventListener("change", updateLaunchControls);
+  updateLaunchControls();
   gmCheckbox.checked = settings.enableGameMode === true;
   window.api.game
     .checkGameMode()
     .then((hasGameMode) => {
-      if (!hasGameMode) {
-        gmCheckbox.disabled = true;
-        gmCheckbox.checked = false;
-        gmCheckbox.parentElement.style.opacity = "0.5";
-        gmCheckbox.parentElement.title =
-          "Feral GameMode is not installed on this system. Install 'gamemode' to use this feature.";
-      }
+      gameModeAvailable = hasGameMode;
+      updateLaunchControls();
     })
     .catch((err) => {
       console.error("GameMode check failed:", err);
@@ -151,22 +153,44 @@ export async function initSettings() {
 
   parseLaunchParamsToUI();
 
-  // Proton Scanner
-  try {
-    const versions = await window.api.game.scanProton();
-    const select = document.getElementById("protonPath");
+  // Refresh the selector without discarding a configured custom path.
+  const populateProtonVersions = async (refresh = false) => {
+    const selected = refresh ? protonSelect.value : settings.protonPath || "default";
+    const versions = await window.api.game.scanProton(refresh);
+    const select = protonSelect;
+    while (select.options.length > 1) select.remove(1);
     versions.forEach((v) => {
       const opt = document.createElement("option");
       opt.value = v.path;
       opt.textContent = v.name;
       select.appendChild(opt);
     });
-    if (settings.protonPath) {
-      select.value = settings.protonPath;
+    if (selected !== "default" && !versions.some(v => v.path === selected)) {
+      const opt = document.createElement("option");
+      opt.value = selected;
+      opt.textContent = `Configured Proton: ${selected}`;
+      select.appendChild(opt);
     }
+    select.value = selected;
+    updateLaunchControls();
+  };
+  try {
+    await populateProtonVersions();
   } catch (e) {
     console.error(e);
   }
+  document.getElementById("rescanProtonBtn").addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    try {
+      await populateProtonVersions(true);
+      showToast("Proton versions refreshed", "#2ec4b6", "refresh");
+    } catch (err) {
+      showToast(`Could not scan Proton versions: ${err.message}`, "#ff5a5f", "alert");
+    } finally {
+      button.disabled = false;
+    }
+  });
 
   // Settings persistence
   const saveSettingsSilently = async (silent) => {

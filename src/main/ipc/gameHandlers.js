@@ -38,8 +38,8 @@ function registerGameHandlers() {
     gameManager.openWorkshopPage(modId),
   );
   ipcMain.handle("check-gamemode", () => gameManager.checkGameMode());
-  ipcMain.handle("scan-proton-versions", () =>
-    gameManager.scanProtonVersions(),
+  ipcMain.handle("scan-proton-versions", (_event, refresh) =>
+    gameManager.scanProtonVersions(refresh === true),
   );
 }
 

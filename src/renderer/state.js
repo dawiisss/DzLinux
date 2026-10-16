@@ -83,50 +83,43 @@ export const state = {
   currentModCheckGeneration: 0,
 };
 
-export async function addFavorite(ip, port, queryPort, name) {
-  const key = `${ip}:${port}`;
-  if (state.favoritesSet.has(key)) return;
+let favoritesQueue = Promise.resolve();
 
-  const nextFavorites = [
-    ...state.favorites,
-    {
-      ip,
-      port: parseInt(port, 10),
-      queryPort: queryPort || null,
-      name: name || "",
-    },
-  ];
-
-  // Persist first — only commit to local state after the main process
-  // confirms the save, so a rejected or failed save never leaves a
-  // phantom favorite in the renderer.
-  const saved = await window.api.settings.saveFavorites({
-    favorites: nextFavorites,
-  });
-  if (saved === false) throw new Error("Failed to persist favorites");
-
-  state.favorites = nextFavorites;
-  state.favoritesSet.add(key);
-  if (state.settings) {
-    state.settings.favorites = state.favorites;
-  }
+function queueFavoriteChange(change) {
+  const result = favoritesQueue.then(change);
+  favoritesQueue = result.catch(() => {});
+  return result;
 }
 
-export async function removeFavorite(ip, port) {
-  const key = `${ip}:${port}`;
-  const nextFavorites = state.favorites.filter(
-    (f) => `${f.ip}:${f.port}` !== key,
-  );
-  if (nextFavorites.length === state.favorites.length) return;
+export function addFavorite(ip, port, queryPort, name) {
+  return queueFavoriteChange(async () => {
+    const key = `${ip}:${port}`;
+    if (state.favoritesSet.has(key)) return;
+    await persistFavorites([
+      ...state.favorites,
+      { ip, port: parseInt(port, 10), queryPort: queryPort || null, name: name || "" },
+    ]);
+  });
+}
 
-  // Persist first — see addFavorite for rationale.
+export function removeFavorite(ip, port) {
+  return queueFavoriteChange(async () => {
+    const key = `${ip}:${port}`;
+    const nextFavorites = state.favorites.filter(f => `${f.ip}:${f.port}` !== key);
+    if (nextFavorites.length === state.favorites.length) return;
+    await persistFavorites(nextFavorites);
+  });
+}
+
+async function persistFavorites(nextFavorites) {
+  // Commit only after persistence succeeds, inside the mutation queue.
   const saved = await window.api.settings.saveFavorites({
     favorites: nextFavorites,
   });
   if (saved === false) throw new Error("Failed to persist favorites");
 
   state.favorites = nextFavorites;
-  state.favoritesSet.delete(key);
+  state.favoritesSet = new Set(nextFavorites.map(f => `${f.ip}:${f.port}`));
   if (state.settings) {
     state.settings.favorites = state.favorites;
   }

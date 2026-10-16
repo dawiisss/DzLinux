@@ -21,6 +21,7 @@ const MODS_METADATA_CACHE_FILE = path.join(
   "mods_metadata_cache.json",
 );
 const MODS_METADATA_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours per entry
+let modCacheRefreshQueue = Promise.resolve();
 
 async function loadServerCache() {
   try {
@@ -193,13 +194,15 @@ async function refreshServerModCache(ip, port, queryPort) {
     const { queryServerGameDig } = require("./serverQuery");
     const result = await queryServerGameDig(ip, port, queryPort);
 
-    const cache = await loadModsMetadataCache();
+    // Failure is not evidence that a server is vanilla. Preserve the cache.
+    if (!result || !Array.isArray(result.mods)) return null;
 
-    if (result && result.mods && result.mods.length > 0) {
+    const update = modCacheRefreshQueue.then(async () => {
+      const cache = await loadModsMetadataCache();
       const entry = {
         timestamp: Date.now(),
-        mods: result.mods,
-        country: "",
+        mods: Array.isArray(result.mods) ? result.mods : [],
+        country: cache.get(key)?.country || "",
         thirdPerson: result.thirdPerson,
         password: !!result.password,
         time: result.time || "",
@@ -209,28 +212,12 @@ async function refreshServerModCache(ip, port, queryPort) {
       cache.set(key, entry);
       await saveModsMetadataCache(cache);
       console.log(
-        `Mods cache refreshed for ${key}: ${result.mods.length} mods found`,
+        `Mods cache refreshed for ${key}: ${entry.mods.length} mods found`,
       );
       return entry;
-    }
-
-    // Server not reachable via GameDig — store empty entry
-    const emptyEntry = {
-      timestamp: Date.now(),
-      mods: [],
-      country: "",
-      thirdPerson: true,
-      password: false,
-      time: "",
-      modded: false,
-      map: "",
-    };
-    cache.set(key, emptyEntry);
-    await saveModsMetadataCache(cache);
-    console.log(
-      `Mods cache: saved empty entry for ${key} (server not reachable via GameDig)`,
-    );
-    return emptyEntry;
+    });
+    modCacheRefreshQueue = update.catch(() => {});
+    return await update;
   } catch (e) {
     console.error(`Failed to refresh mods cache for ${ip}:${port}:`, e.message);
     return null;

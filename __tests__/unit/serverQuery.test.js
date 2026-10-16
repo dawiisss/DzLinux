@@ -20,6 +20,9 @@ describe("serverQuery", () => {
     jest.mock("gamedig", () => ({
       GameDig: { query: jest.fn() },
     }));
+    jest.doMock("../../src/main/settings", () => ({
+      loadSettingsAsync: jest.fn().mockResolvedValue({ queryConcurrency: 10 }),
+    }));
   });
 
   afterEach(async () => {
@@ -35,7 +38,7 @@ describe("serverQuery", () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
-  describe("pingServer", () => {
+  describe("queryServerGameDig", () => {
     test("returns server info on success", async () => {
       const { GameDig } = require("gamedig");
       GameDig.query.mockResolvedValueOnce({
@@ -53,7 +56,7 @@ describe("serverQuery", () => {
       });
 
       const serverQuery = require("../../src/main/serverQuery");
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
       expect(result).toBeTruthy();
       expect(result.ping).toBe(50);
       expect(result.players).toBe(2);
@@ -68,7 +71,7 @@ describe("serverQuery", () => {
       GameDig.query.mockRejectedValue(new Error("timeout"));
 
       const serverQuery = require("../../src/main/serverQuery");
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
       expect(result).toBeNull();
     });
 
@@ -91,7 +94,7 @@ describe("serverQuery", () => {
       });
 
       const serverQuery = require("../../src/main/serverQuery");
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
       expect(result.mods).toHaveLength(2);
       expect(result.mods[0]).toEqual({ id: "111", name: "Mod A" });
       expect(result.mods[1]).toEqual({ id: "222", name: "Mod B" });
@@ -108,7 +111,7 @@ describe("serverQuery", () => {
       });
 
       const serverQuery = require("../../src/main/serverQuery");
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
       expect(result.thirdPerson).toBe(false);
     });
 
@@ -123,7 +126,7 @@ describe("serverQuery", () => {
       });
 
       const serverQuery = require("../../src/main/serverQuery");
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
       expect(result.modded).toBe(true);
     });
 
@@ -143,7 +146,7 @@ describe("serverQuery", () => {
       });
 
       const serverQuery = require("../../src/main/serverQuery");
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
       expect(result.time).toBe("12:30");
     });
   });
@@ -207,7 +210,7 @@ describe("serverQuery", () => {
         .mockRejectedValue(new Error("EACCES"));
 
       try {
-        const result = await serverQuery.pingServer("6.6.6.6", 2302, 2303);
+        const result = await serverQuery.queryServerGameDig("6.6.6.6", 2302, 2303);
         expect(result).toBeTruthy();
 
         await serverQuery.getCacheWriteQueue();
@@ -236,7 +239,7 @@ describe("serverQuery", () => {
         raw: { numplayers: 0, dayzMods: null, tags: [], rules: {} },
       });
 
-      await serverQuery.pingServer("6.6.6.6", 2302, 2303);
+      await serverQuery.queryServerGameDig("6.6.6.6", 2302, 2303);
 
       await serverQuery.getCacheWriteQueue();
 
@@ -246,7 +249,7 @@ describe("serverQuery", () => {
         .mockRejectedValue(new Error("EACCES"));
 
       try {
-        await serverQuery.pingServer("6.6.6.6", 2302);
+        await serverQuery.queryServerGameDig("6.6.6.6", 2302);
 
         await serverQuery.getCacheWriteQueue();
         expect(writeSpy).toHaveBeenCalled();
@@ -283,7 +286,7 @@ describe("serverQuery", () => {
       const serverQuery = require("../../src/main/serverQuery");
 
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
-      await serverQuery.pingServer("7.7.7.7", 2302);
+      await serverQuery.queryServerGameDig("7.7.7.7", 2302);
       expect(mockGameDig.GameDig.query).not.toHaveBeenCalledWith(
         expect.objectContaining({ port: 27015 }),
       );
@@ -291,7 +294,7 @@ describe("serverQuery", () => {
       mockGameDig.GameDig.query.mockClear();
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
 
-      await serverQuery.pingServer("8.8.8.8", 2302);
+      await serverQuery.queryServerGameDig("8.8.8.8", 2302);
       expect(mockGameDig.GameDig.query).toHaveBeenCalledWith(
         expect.objectContaining({ port: 27016 }),
       );
@@ -352,24 +355,64 @@ describe("serverQuery", () => {
       return mockGameDig.GameDig.query.mock.calls.map((call) => call[0].port);
     }
 
-    test("tries CDN queryPort before cached port and skips the offset scan", async () => {
+    test("status sweeps omit expensive details and retain the reported population", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      mockGameDig.GameDig.query.mockResolvedValue({ ...onlineState, players: [], numplayers: 37 });
+      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      expect(result.players).toBe(37);
+      expect(mockGameDig.GameDig.query).toHaveBeenCalledWith(expect.objectContaining({
+        requestRules: false, requestPlayers: false, attemptTimeout: 2000, socketTimeout: 1000,
+      }));
+      await serverQuery.getCacheWriteQueue();
+    });
+
+    test("an offline hosted server costs one short attempt during the initial sweep", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
+      expect(await serverQuery.pingServer("1.2.3.4", 2302, 2303)).toBeNull();
+      expect(triedPorts(mockGameDig)).toEqual([2303]);
+    });
+
+    test("sweeps prefer a recovered cached port over a stale hosted port", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      seedCacheFile({ "1.2.3.4:2302": { port: 27015, timestamp: Date.now() } });
+      mockGameDig.GameDig.query.mockResolvedValue(onlineState);
+      await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      expect(triedPorts(mockGameDig)).toEqual([27015]);
+    });
+
+    test("manual detailed queries still fetch mods and perform full port discovery", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      mockGameDig.GameDig.query.mockRejectedValueOnce(new Error("timeout"))
+        .mockRejectedValueOnce(new Error("timeout"))
+        .mockResolvedValue({ ...onlineState, raw: { dayzMods: [{ workshopId: "123", title: "Mod" }] } });
+      expect(await serverQuery.queryServerGameDig("1.2.3.4", 2302, 27015))
+        .toMatchObject({ mods: [{ id: "123", name: "Mod" }] });
+      expect(triedPorts(mockGameDig)).toEqual([27015, 2302, 2303]);
+      expect(mockGameDig.GameDig.query).toHaveBeenLastCalledWith(expect.objectContaining({
+        requestRules: true, requestPlayers: false, attemptTimeout: 10000,
+      }));
+      await serverQuery.getCacheWriteQueue();
+    });
+
+    test("tries CDN and cached ports before scanning fallbacks", async () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
       seedCacheFile({
         "1.2.3.4:2302": { port: 27015, timestamp: Date.now() },
       });
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
 
-      const result = await serverQuery.pingServer("1.2.3.4", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 2303);
 
       expect(result).toBeNull();
-      expect(triedPorts(mockGameDig)).toEqual([2303, 27015]);
+      expect(triedPorts(mockGameDig)).toEqual([2303, 27015, 2302, 2304, 2305, 27016]);
     });
 
     test("scans game port, offsets +1/+2/+3, then 27016 when no port is known", async () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
 
-      await serverQuery.pingServer("2.2.2.2", 2302);
+      await serverQuery.queryServerGameDig("2.2.2.2", 2302);
 
       expect(triedPorts(mockGameDig)).toEqual([2302, 2303, 2304, 2305, 27016]);
     });
@@ -378,7 +421,7 @@ describe("serverQuery", () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
 
-      await serverQuery.pingServer("2.2.2.2", 27015);
+      await serverQuery.queryServerGameDig("2.2.2.2", 27015);
 
       expect(triedPorts(mockGameDig)).toEqual([27015, 27016, 27017, 27018]);
     });
@@ -387,26 +430,71 @@ describe("serverQuery", () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
 
-      await serverQuery.pingServer("3.3.3.3", 2302, 70000);
+      await serverQuery.queryServerGameDig("3.3.3.3", 2302, 70000);
 
       expect(triedPorts(mockGameDig)).toEqual([2302, 2303, 2304, 2305, 27016]);
     });
 
-    test("evicts a stale cached port after failure and rescans on the next call", async () => {
+    test("evicts a stale cached port and scans fallbacks in the same call", async () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
       seedCacheFile({
         "4.4.4.4:2302": { port: 27015, timestamp: Date.now() },
       });
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
 
-      await serverQuery.pingServer("4.4.4.4", 2302);
-      expect(triedPorts(mockGameDig)).toEqual([27015]);
+      await serverQuery.queryServerGameDig("4.4.4.4", 2302);
+      expect(triedPorts(mockGameDig)).toEqual([27015, 2302, 2303, 2304, 2305, 27016]);
 
       mockGameDig.GameDig.query.mockClear();
-      await serverQuery.pingServer("4.4.4.4", 2302);
+      await serverQuery.queryServerGameDig("4.4.4.4", 2302);
       expect(triedPorts(mockGameDig)).toEqual([2302, 2303, 2304, 2305, 27016]);
     });
 
+
+    test("recovers from a stale supplied port and persists the working fallback", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      mockGameDig.GameDig.query.mockImplementation(({ port }) => port === 2303
+        ? Promise.resolve(onlineState) : Promise.reject(new Error("timeout")));
+      expect(await serverQuery.queryServerGameDig("9.8.7.6", 2302, 27015)).toMatchObject({ ping: 42 });
+      expect(triedPorts(mockGameDig)).toEqual([27015, 2302, 2303]);
+      await serverQuery.getCacheWriteQueue();
+      const cache = JSON.parse(await fs.promises.readFile(path.join(tmpDir, "query_port_cache.json"), "utf8"));
+      expect(cache.entries["9.8.7.6:2302"].port).toBe(2303);
+    });
+
+    test("cancellation stops fallback attempts", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      const controller = new AbortController();
+      mockGameDig.GameDig.query.mockImplementation(async () => {
+        controller.abort();
+        throw new Error("timeout");
+      });
+      expect(await serverQuery.queryServerGameDig("9.8.7.6", 2302, 27015, controller.signal)).toBeNull();
+      expect(triedPorts(mockGameDig)).toEqual([27015]);
+    });
+
+    test("the main-process limit spans callers and drops cancelled queued requests", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      const finish = [];
+      let markStarted;
+      const started = new Promise(resolve => { markStarted = resolve; });
+      mockGameDig.GameDig.query.mockImplementation(() => new Promise(resolve => {
+        finish.push(resolve);
+        if (finish.length === 10) markStarted();
+      }));
+      const controllers = Array.from({ length: 15 }, () => new AbortController());
+      const requests = controllers.map((controller, index) =>
+        serverQuery.queryServerGameDig(`10.0.0.${index + 1}`, 2302, 2303, controller.signal));
+      await started;
+      try {
+        expect(mockGameDig.GameDig.query).toHaveBeenCalledTimes(10);
+      } finally {
+        controllers.forEach(controller => controller.abort());
+        finish.forEach(resolve => resolve(onlineState));
+      }
+      expect(await Promise.all(requests)).toEqual(Array(15).fill(null));
+      expect(mockGameDig.GameDig.query).toHaveBeenCalledTimes(10);
+    });
 
     test("persists the working query port to the cache file", async () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
@@ -416,7 +504,7 @@ describe("serverQuery", () => {
           : Promise.reject(new Error("timeout")),
       );
 
-      const result = await serverQuery.pingServer("5.5.5.5", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("5.5.5.5", 2302, 2303);
 
       expect(result).toBeTruthy();
       expect(mockGameDig.GameDig.query).toHaveBeenCalledTimes(1);
@@ -435,7 +523,7 @@ describe("serverQuery", () => {
         raw: { numplayers: 7, dayzMods: null, tags: [], rules: {} },
       });
 
-      const result = await serverQuery.pingServer("6.6.6.6", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("6.6.6.6", 2302, 2303);
 
       expect(result.players).toBe(7);
     });
@@ -453,7 +541,7 @@ describe("serverQuery", () => {
         },
       });
 
-      const result = await serverQuery.pingServer("6.6.6.6", 2302, 2303);
+      const result = await serverQuery.queryServerGameDig("6.6.6.6", 2302, 2303);
 
       expect(result.map).toBe("chernarusplus");
     });
@@ -470,7 +558,7 @@ describe("serverQuery", () => {
       seedCacheFile(entries);
       mockGameDig.GameDig.query.mockResolvedValue(onlineState);
 
-      await serverQuery.pingServer("newsrv", 2302);
+      await serverQuery.queryServerGameDig("newsrv", 2302);
       await serverQuery.getCacheWriteQueue();
 
       const written = JSON.parse(
@@ -488,8 +576,8 @@ describe("serverQuery", () => {
       const renameSpy = jest.spyOn(fs.promises, "rename");
 
       try {
-        await serverQuery.pingServer("7.7.7.7", 2302, 2303);
-        await serverQuery.pingServer("7.7.7.8", 2302, 2303);
+        await serverQuery.queryServerGameDig("7.7.7.7", 2302, 2303);
+        await serverQuery.queryServerGameDig("7.7.7.8", 2302, 2303);
         await serverQuery.getCacheWriteQueue();
 
         expect(renameSpy).toHaveBeenCalledTimes(1);

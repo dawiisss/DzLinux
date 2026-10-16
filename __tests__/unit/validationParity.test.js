@@ -1,6 +1,3 @@
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
 const mainValidation = require("../../src/main/validation");
 
 // The main process validates IPC payloads with node:net (validation.js) while
@@ -13,26 +10,9 @@ describe("validation parity (main process vs renderer)", () => {
   let rendererIsValidPort;
 
   beforeAll(() => {
-    const utilsPath = path.resolve(__dirname, "../../src/renderer/utils.js");
-    const code = fs.readFileSync(utilsPath, "utf8");
-
-    // Strip ES Module export statements for Node's VM context
-    // (utils.js has no import statements to resolve)
-    const cleanCode = code
-      .replace(/export function/g, "function")
-      .replace(/export const/g, "const")
-      .replace(/export /g, "");
-
-    const context = {
-      document: {
-        createElement: () => ({}),
-      },
-    };
-    vm.createContext(context);
-    vm.runInContext(cleanCode, context);
-
-    rendererIsValidIpOrHost = context.isValidIpOrHost;
-    rendererIsValidPort = context.isValidPort;
+    const renderer = require("../../src/renderer/utils.js");
+    rendererIsValidIpOrHost = renderer.isValidIpOrHost;
+    rendererIsValidPort = renderer.isValidPort;
   });
 
   const ipHostCorpus = [

@@ -48,6 +48,23 @@ async function getSteamInstallPathAsync() {
   return path.join(os.homedir(), ".local", "share", "Steam");
 }
 
+// Enumerate every configured library, with the install root as a fallback.
+async function getSteamLibraryPathsAsync() {
+  const steamPath = await getSteamInstallPathAsync();
+  const libraries = [];
+  try {
+    const content = await fs.promises.readFile(
+      path.join(steamPath, "steamapps", "libraryfolders.vdf"), "utf8",
+    );
+    for (const match of content.matchAll(/"path"\s+"([^"]+)"/g)) {
+      libraries.push(match[1].replace(/\\\\/g, "\\"));
+    }
+  } catch (err) {
+    if (err.code !== "ENOENT") console.warn("Could not read Steam libraries:", err.message);
+  }
+  return [...new Set([...libraries, steamPath])];
+}
+
 /**
  * @deprecated Use findDayzWorkshopFolderAsync() to prevent blocking the event loop (Rule 13).
  */
@@ -99,41 +116,11 @@ async function findDayzWorkshopFolderAsync() {
   if (cachedDayzWorkshopFolder !== null) {
     return cachedDayzWorkshopFolder;
   }
-  const steamPath = await getSteamInstallPathAsync();
-
-  if (steamPath && await existsAsync(steamPath)) {
-    const vdfPath = path.join(steamPath, "steamapps", "libraryfolders.vdf");
-    if (await existsAsync(vdfPath)) {
-      const vdfContent = await fs.promises.readFile(vdfPath, "utf8");
-      const pathRegex = /"path"\s+"([^"]+)"/g;
-      let match;
-      while ((match = pathRegex.exec(vdfContent)) !== null) {
-        const libPath = match[1];
-        const workshopPath = path.join(
-          libPath,
-          "steamapps",
-          "workshop",
-          "content",
-          "221100",
-        );
-        if (await existsAsync(workshopPath)) {
-          cachedDayzWorkshopFolder = workshopPath;
-          return workshopPath;
-        }
-      }
-    }
-
-    // Fallback to default steam install location
-    const mainWorkshopPath = path.join(
-      steamPath,
-      "steamapps",
-      "workshop",
-      "content",
-      "221100",
-    );
-    if (await existsAsync(mainWorkshopPath)) {
-      cachedDayzWorkshopFolder = mainWorkshopPath;
-      return mainWorkshopPath;
+  for (const library of await getSteamLibraryPathsAsync()) {
+    const workshopPath = path.join(library, "steamapps", "workshop", "content", "221100");
+    if (await existsAsync(workshopPath)) {
+      cachedDayzWorkshopFolder = workshopPath;
+      return workshopPath;
     }
   }
   return "";
@@ -148,31 +135,10 @@ async function findDayzSteamappsFolderAsync(modDirectory) {
     }
   }
 
-  const steamPath = await getSteamInstallPathAsync();
-  if (steamPath && (await existsAsync(steamPath))) {
-    const vdfPath = path.join(steamPath, "steamapps", "libraryfolders.vdf");
-    if (await existsAsync(vdfPath)) {
-      try {
-        const vdfContent = await fs.promises.readFile(vdfPath, "utf8");
-        const pathRegex = /"path"\s+"([^"]+)"/g;
-        let match;
-        while ((match = pathRegex.exec(vdfContent)) !== null) {
-          const libPath = match[1];
-          const candidate = path.join(libPath, "steamapps");
-          const dayzExe = path.join(candidate, "common", "DayZ", "DayZ_x64.exe");
-          if (await existsAsync(dayzExe)) {
-            return candidate;
-          }
-        }
-      } catch (err) {
-        console.error("Failed to parse libraryfolders.vdf for DayZ steamapps folder:", err);
-      }
-    }
-
-    const mainSteamapps = path.join(steamPath, "steamapps");
-    const mainDayzExe = path.join(mainSteamapps, "common", "DayZ", "DayZ_x64.exe");
-    if (await existsAsync(mainDayzExe)) {
-      return mainSteamapps;
+  for (const library of await getSteamLibraryPathsAsync()) {
+    const candidate = path.join(library, "steamapps");
+    if (await existsAsync(path.join(candidate, "common", "DayZ", "DayZ_x64.exe"))) {
+      return candidate;
     }
   }
 
@@ -205,6 +171,7 @@ function getDayzLogsCandidatePaths() {
 module.exports = {
   getSteamInstallPath,
   getSteamInstallPathAsync,
+  getSteamLibraryPathsAsync,
   findDayzWorkshopFolder,
   findDayzWorkshopFolderAsync,
   findDayzSteamappsFolderAsync,

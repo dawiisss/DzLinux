@@ -10,6 +10,33 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [2.0.1] - 2026-10-16
+
+### Added
+
+- **Server Mod Size Totals:** Display the Steam-reported total mod size immediately left of Refresh in expanded Server Browser and Favorites cards. Fetch sizes on demand through the cached batch Workshop lookup, mark incomplete totals, and explain that installed mods, updates, and compression affect the actual download.
+- **Renderer Regression Tests:** Added module-aware DOM tests for connection races, favorite persistence, launch-option availability, and failed mod-cache refreshes. Renderer modules now contribute to the coverage report.
+- **Proton Rescan:** Added a Rescan action to discover newly installed Proton versions without restarting the launcher.
+
+### Changed
+
+- **Launch Option Availability:** Disabled custom-Proton-only performance controls during Steam default launches, preserving saved preferences and explaining how to configure Steam Launch Options. Kept app-level Wayland support available in both modes.
+
+### Fixed
+
+- **Automatic Server List Mod Counts:** Fetch mod lists automatically for displayed server rows through a separate eight-request queue, reusing successful results across refreshes without blocking the lightweight population scan. Unknown and failed counts now display loading/unavailable markers instead of a misleading zero; background metadata requests support refresh cancellation.
+- **Expanded Mod List Completion:** Updated open mod panels and table mod counts immediately when queries complete in the Server Browser and Favorites, preserving scroll position without requiring collapse/reopen. Failed queries now replace the loading message with an error, and older automatic responses cannot overwrite a newer manual refresh.
+- **Large Server List Scan Performance:** Changed status pings to lightweight A2S info queries with a 2-second attempt timeout, avoiding player-roster and Workshop-rule downloads during full-list sweeps. Known query ports no longer trigger offset scans for every offline server; explicit mod queries retain full port recovery. Population counts now use the A2S-reported count when the player roster is omitted.
+- **Superseded Connections:** Prevented older history, server-query, and mod-verification responses from launching a previously selected server or replacing the current connection modal. Added a generation check after the final mod-cache refresh before automatic launch.
+- **Concurrent JSON Saves:** Serialized writes per destination, gave temporary files unique names, and captured immutable JSON snapshots to prevent same-millisecond collisions and older saves overwriting newer ones. Settings and watchlist caches now update only after persistence succeeds.
+- **Favorite Mutation Races:** Queued complete add/remove operations so rapid changes preserve all intended entries and keep the favorite array, lookup set, and saved data consistent.
+- **Query Cancellation and Concurrency:** Propagated cancellation into the server-query loop, removed cancelled queued queries, and added a shared main-process concurrency limit that retains slots until active UDP attempts settle. Prevented completed stale renderer pools from resetting the running state of a newer refresh.
+- **Stale Query Port Recovery:** Tried deduplicated fallback ports after supplied or cached query ports fail, allowing recovery and caching of the working port within the same request.
+- **AppImage Update Readiness:** Waited for electron-updater metadata before offering Download, used its confirmed release version and notes, and stopped forwarding premature availability events.
+- **Launch Feedback:** Stopped reporting GameMode as active for Steam default launches or failed custom Proton launches.
+- **Mod Cache Refresh Failures:** Preserved existing mod data when a server is unreachable, distinguished failure from a successful empty mod list across IPC and the renderer, retained actual vanilla-server metadata, and serialized concurrent cache merges.
+- **Secondary-Library Proton Discovery:** Reused shared Steam library enumeration for Workshop, DayZ, and Proton discovery so compatibility layers installed on secondary drives appear in Settings.
+
 ## [2.0.0] - 2026-10-13
 
 ### Added

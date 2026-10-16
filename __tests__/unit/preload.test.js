@@ -79,6 +79,18 @@ describe("preload", () => {
     expect(ipcRenderer.removeAllListeners).toHaveBeenCalledWith("servers-batch");
   });
 
+  test("mod queries pass cancellation IDs across the preload boundary", async () => {
+    const { ipcRenderer } = require("electron");
+    await mockExposedApis.api.servers.queryMods("1.2.3.4", 2302, 2303, "1:mods:0");
+    expect(ipcRenderer.invoke).toHaveBeenCalledWith("query-mods", "1.2.3.4", 2302, 2303, "1:mods:0");
+  });
+
+  test("mod sizes use the dedicated Workshop metadata endpoint", async () => {
+    const { ipcRenderer } = require("electron");
+    await mockExposedApis.api.mods.getDownloadSizes(["123", "456"]);
+    expect(ipcRenderer.invoke).toHaveBeenCalledWith("get-mod-download-sizes", ["123", "456"]);
+  });
+
   test("ui endpoints delegate to ipcRenderer", async () => {
     const { ipcRenderer } = require("electron");
     

@@ -15,8 +15,9 @@ contextBridge.exposeInMainWorld("api", {
 
   servers: {
     fetch: (generationId) => ipcRenderer.invoke("fetch-servers", generationId),
-    queryMods: (ip, port, queryPort) =>
-      ipcRenderer.invoke("query-mods", ip, port, queryPort),
+    queryMods: (ip, port, queryPort, requestId) => requestId === undefined
+      ? ipcRenderer.invoke("query-mods", ip, port, queryPort)
+      : ipcRenderer.invoke("query-mods", ip, port, queryPort, requestId),
     refreshModCache: (ip, port, queryPort) =>
       ipcRenderer.invoke("refresh-mod-cache", ip, port, queryPort),
     ping: (ip, port, queryPort, requestId) =>
@@ -40,6 +41,7 @@ contextBridge.exposeInMainWorld("api", {
 
   mods: {
     getInstalled: () => ipcRenderer.invoke("get-installed-mods"),
+    getDownloadSizes: (modIds) => ipcRenderer.invoke("get-mod-download-sizes", modIds),
     checkUpdates: (mods) => ipcRenderer.invoke("check-mod-updates", mods),
     checkUpdatesDetailed: (mods) =>
       ipcRenderer.invoke("check-mod-updates-detailed", mods),
@@ -54,7 +56,7 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.invoke("launch-game", ip, port, mods),
     checkRequired: (requiredMods) =>
       ipcRenderer.invoke("check-mods", requiredMods),
-    scanProton: () => ipcRenderer.invoke("scan-proton-versions"),
+    scanProton: (refresh = false) => ipcRenderer.invoke("scan-proton-versions", refresh),
     checkGameMode: () => ipcRenderer.invoke("check-gamemode"),
   },
 

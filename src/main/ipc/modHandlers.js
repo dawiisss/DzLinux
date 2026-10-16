@@ -14,6 +14,12 @@ function registerModHandlers() {
     );
   });
   ipcMain.handle("get-installed-mods", () => modManager.getInstalledMods());
+  ipcMain.handle("get-mod-download-sizes", (_event, modIds) => {
+    if (!Array.isArray(modIds) || modIds.length > 1000 || !modIds.every(isValidModId)) {
+      return Promise.reject(new Error("Invalid mod IDs"));
+    }
+    return steamDependencyResolver.getModDownloadSizes(modIds);
+  });
   ipcMain.handle("check-mod-updates", (_event, mods) =>
     modManager.checkModUpdates(
       (Array.isArray(mods) ? mods : []).filter(

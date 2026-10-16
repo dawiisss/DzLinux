@@ -77,6 +77,7 @@ describe("ipcHandlers", () => {
     mockDepResolver = {
       resolveDependencies: jest.fn().mockResolvedValue({ tree: [] }),
       resolveBatchDependencies: jest.fn().mockResolvedValue({}),
+      getModDownloadSizes: jest.fn().mockResolvedValue([{ id: "123", sizeBytes: 1000 }]),
     };
     mockWatchlist = {
       loadWatchlist: jest.fn().mockResolvedValue([]),
@@ -248,14 +249,19 @@ describe("ipcHandlers", () => {
       expect(result).toBeNull();
     });
 
-    test("refresh-mod-cache returns empty array for invalid input", async () => {
+    test("missing rules are not reported as an empty mod list", async () => {
+      mockServerQuery.queryServerGameDig.mockResolvedValue({ mods: null });
+      expect(await handlers.get("query-mods")(event, "1.2.3.4", 2302)).toBeNull();
+    });
+
+    test("refresh-mod-cache returns null for invalid input", async () => {
       const result = await handlers.get("refresh-mod-cache")(
         event,
         "1.2.3.4",
         99999,
         null,
       );
-      expect(result).toEqual([]);
+      expect(result).toBeNull();
       expect(mockServers.refreshServerModCache).not.toHaveBeenCalled();
     });
 
@@ -272,6 +278,16 @@ describe("ipcHandlers", () => {
 
 
   describe("ping cancellation", () => {
+    test("background mod enrichment receives generation cancellation", async () => {
+      let finish;
+      mockServerQuery.queryServerGameDig.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+      const result = handlers.get("query-mods")(event, "1.2.3.4", 2302, 2303, "gen1:mods:1");
+      const signal = mockServerQuery.queryServerGameDig.mock.calls[0][3];
+      listeners.get("cancel-ping-generation")(null, "gen1");
+      expect(signal.aborted).toBe(true);
+      finish({ mods: [{ id: "123" }] });
+      expect(await result).toBeNull();
+    });
     test("ping-server returns null for invalid port", async () => {
       const result = await handlers.get("ping-server")(
         event,
@@ -308,6 +324,7 @@ describe("ipcHandlers", () => {
         "gen1:req1",
       );
       listeners.get("cancel-ping-request")(null, "gen1:req1");
+      expect(mockServerQuery.pingServer.mock.calls[0][3].aborted).toBe(true);
       resolvePing({ ping: 10 });
 
       await expect(promise).resolves.toBeNull();
@@ -389,6 +406,9 @@ describe("ipcHandlers", () => {
     test("check-gamemode and scan-proton-versions delegate", async () => {
       await expect(handlers.get("check-gamemode")()).resolves.toBe(true);
       await expect(handlers.get("scan-proton-versions")()).resolves.toEqual([]);
+      expect(mockGame.scanProtonVersions).toHaveBeenLastCalledWith(false);
+      await handlers.get("scan-proton-versions")(event, true);
+      expect(mockGame.scanProtonVersions).toHaveBeenLastCalledWith(true);
     });
   });
 
@@ -412,6 +432,18 @@ describe("ipcHandlers", () => {
       await expect(handlers.get("get-installed-mods")()).resolves.toEqual([
         { id: "123" },
       ]);
+    });
+
+    test("mod sizes delegate valid IDs and reject malformed or oversized requests", async () => {
+      const handler = handlers.get("get-mod-download-sizes");
+      await expect(handler(event, ["123", 456])).resolves.toEqual([
+        { id: "123", sizeBytes: 1000 },
+      ]);
+      expect(mockDepResolver.getModDownloadSizes).toHaveBeenCalledWith(["123", 456]);
+      for (const invalid of [null, "123", ["123", "bad"], Array(1001).fill("123")]) {
+        await expect(handler(event, invalid)).rejects.toThrow("Invalid mod IDs");
+      }
+      expect(mockDepResolver.getModDownloadSizes).toHaveBeenCalledTimes(1);
     });
 
     test("check-mod-updates filters invalid entries", async () => {

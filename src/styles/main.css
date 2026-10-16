@@ -1053,6 +1053,28 @@ body.compact-mode .settings-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+}
+
+.detail-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mod-download-size {
+  color: var(--text-dim);
+  font-family: "Share Tech Mono", monospace;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.detail-header-actions .btn-refresh-mods {
+  margin-left: 0;
 }
 
 /* Mods cache refresh button inside detail panel header */

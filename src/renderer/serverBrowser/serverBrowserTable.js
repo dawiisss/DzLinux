@@ -7,6 +7,7 @@ import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "../utils.js";
 import { getCombinedAndFilteredServers } from "./serverBrowserCore.js";
 import { updateStatsBar, refreshServers } from "./serverBrowserRender.js";
 import { calculateTrustScore } from "../trustScore.js";
+import { getServerModCount, loadServerMods } from "../serverMods.js";
 
 export function renderServers() {
   const tbody = document.getElementById("serverListBody");
@@ -195,9 +196,12 @@ export function renderServers() {
 
   let prevTr = null;
   paginatedServers.forEach((server) => {
+    void loadServerMods(server);
     let tr = existingRows.get(server.id);
     if (tr) {
       existingRows.delete(server.id);
+      const modCount = tr.querySelector(".server-mod-count");
+      if (modCount) modCount.textContent = getServerModCount(server);
       const starBtn = tr.querySelector(".star-btn");
       if (starBtn) {
         const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
@@ -274,9 +278,8 @@ export async function connectToServer(ip, port) {
     showToast("Invalid server address or port", "#ef233c", "alert");
     return;
   }
+  const checkGeneration = ++state.currentModCheckGeneration;
   try {
-  state.currentModCheckGeneration++;
-  const checkGeneration = state.currentModCheckGeneration;
   if (state.currentModCheckInterval) {
     clearInterval(state.currentModCheckInterval);
     state.currentModCheckInterval = null;
@@ -285,8 +288,11 @@ export async function connectToServer(ip, port) {
     clearTimeout(state.currentModLaunchTimer);
     state.currentModLaunchTimer = null;
   }
+  const previousModal = document.getElementById("modModal");
+  if (previousModal) previousModal.style.display = "none";
     console.log(`Connecting to ${ip}:${port}... verifying mods`);
     await addToHistory(ip, port);
+    if (checkGeneration !== state.currentModCheckGeneration) return;
 
   const serverObj = state.allServers.find(
     (s) => s.ip === ip && s.port.toString() === port.toString()
@@ -305,6 +311,7 @@ export async function connectToServer(ip, port) {
     );
   }
 
+  if (checkGeneration !== state.currentModCheckGeneration) return;
   if (requiredMods === null) {
     showToast("Server appears to be offline or unreachable", "#ef233c", "alert");
     return;
@@ -312,19 +319,27 @@ export async function connectToServer(ip, port) {
 
   const { missingMods, hasAllMods } =
     await window.api.game.checkRequired(requiredMods);
+  if (checkGeneration !== state.currentModCheckGeneration) return;
 
   if (hasAllMods) {
     showToast("All mods synced! Launching DayZ client...", "#2ec4b6", "play");
-    if (state.settings.enableGameMode) {
+    const launched = await window.api.game.launch(ip, port, requiredMods)
+      .then(() => true)
+      .catch((err) => {
+        if (checkGeneration === state.currentModCheckGeneration) {
+          showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
+        }
+        return false;
+      });
+    if (!launched || checkGeneration !== state.currentModCheckGeneration) return;
+    if (state.settings.enableGameMode && state.settings.protonPath &&
+        state.settings.protonPath !== "default") {
       showToast(
         "GameMode active — system prioritization engaged",
         "#48cae4",
         "zap"
       );
     }
-    window.api.game.launch(ip, port, requiredMods).catch((err) => {
-      showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
-    });
   } else {
     const modal = document.getElementById("modModal");
     const list = document.getElementById("missingModsList");
@@ -427,6 +442,7 @@ export async function connectToServer(ip, port) {
               modal.style.display = "none";
               statusText.style.color = "var(--accent)";
               await refreshLocalModsCache();
+              if (checkGeneration !== state.currentModCheckGeneration) return;
               renderServers();
               window.api.game.launch(ip, port, requiredMods).catch((err) => {
                 showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
@@ -458,6 +474,7 @@ export async function connectToServer(ip, port) {
     });
   }
   } catch (err) {
+    if (checkGeneration !== state.currentModCheckGeneration) return;
     console.error(`Failed to connect to ${ip}:${port}:`, err);
     showToast(`Failed to connect: ${err.message || "Unknown error"}`, "#ef233c", "alert");
   }

@@ -1,6 +1,4 @@
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
+const { state } = require("../../src/renderer/state.js");
 
 describe("serverBrowserCore - serverPassesFilters", () => {
   let serverPassesFilters;
@@ -8,16 +6,6 @@ describe("serverBrowserCore - serverPassesFilters", () => {
   let context;
 
   beforeEach(() => {
-    const corePath = path.resolve(__dirname, "../../src/renderer/serverBrowser/serverBrowserCore.js");
-    const code = fs.readFileSync(corePath, "utf8");
-
-    // Clean up ES Module imports and exports for Node's VM context
-    const cleanCode = code
-      .replace(/import\s+{[^}]+}\s+from\s+['"][^'"]+['"];/g, "")
-      .replace(/export function/g, "function")
-      .replace(/export const/g, "const")
-      .replace(/export /g, "");
-
     context = {
       state: {
         filters: {
@@ -47,11 +35,10 @@ describe("serverBrowserCore - serverPassesFilters", () => {
       ]),
     };
 
-    vm.createContext(context);
-    vm.runInContext(cleanCode, context);
-
-    serverPassesFilters = context.serverPassesFilters;
-    getCombinedAndFilteredServers = context.getCombinedAndFilteredServers;
+    Object.assign(state, context.state);
+    context.state = state;
+    ({ serverPassesFilters, getCombinedAndFilteredServers } =
+      require("../../src/renderer/serverBrowser/serverBrowserCore.js"));
   });
 
   test("server passes filters by default", () => {

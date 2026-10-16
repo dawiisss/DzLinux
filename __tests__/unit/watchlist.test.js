@@ -81,7 +81,7 @@ describe("watchlist", () => {
       expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
         expect.stringContaining('"ip": "1.2.3.4"'),
-        "utf8",
+        { encoding: "utf8", flag: "wx" },
       );
       expect(settingsManager.saveSettings).toHaveBeenCalledWith({
         theme: "dark",
@@ -98,7 +98,7 @@ describe("watchlist", () => {
       expect(fs.promises.writeFile).toHaveBeenCalledWith(
         expect.stringContaining("watchlist.json"),
         expect.stringContaining('"ip": "1.2.3.4"'),
-        "utf8",
+        { encoding: "utf8", flag: "wx" },
       );
       expect(result).toBe(true);
     });

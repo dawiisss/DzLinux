@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",
@@ -69,13 +69,16 @@
   },
   "homepage": "https://github.com/dawiisss/DzLinux#readme",
   "devDependencies": {
+    "@babel/plugin-transform-modules-commonjs": "^7.29.7",
     "@eslint/js": "^10.0.1",
+    "babel-jest": "^30.5.2",
     "electron": "^43.7.5",
     "electron-builder": "^26.15.3",
     "eslint": "^10.11.0",
     "globals": "^17.12.0",
     "husky": "^9.1.7",
     "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
     "lint-staged": "^17.6.0"
   },
   "dependencies": {

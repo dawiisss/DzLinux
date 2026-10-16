@@ -174,6 +174,31 @@ describe("settings", () => {
     );
   });
 
+  test("a failed save does not replace the last persisted settings in memory", async () => {
+    const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
+    await saveSettings({ theme: "vampire", modDirectory: "/mods" });
+    jest.spyOn(console, "error").mockImplementation(() => {});
+    jest.spyOn(fs.promises, "writeFile").mockRejectedValueOnce(new Error("Disk full"));
+    expect(await saveSettings({ theme: "toxic", modDirectory: "/mods" })).toBe(false);
+    expect((await loadSettingsAsync()).theme).toBe("vampire");
+  });
+
+  test("slow auto-discovery cannot overwrite a more recent settings save", async () => {
+    const steamPaths = require("../../src/main/steamPaths");
+    let finishDiscovery;
+    jest.spyOn(steamPaths, "findDayzWorkshopFolderAsync").mockImplementationOnce(
+      () => new Promise(resolve => { finishDiscovery = resolve; }),
+    );
+    const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
+    const first = saveSettings({ theme: "vampire", modDirectory: "" });
+    const second = saveSettings({ theme: "toxic", modDirectory: "/mods" });
+    await Promise.resolve();
+    finishDiscovery("/discovered-mods");
+    expect(await Promise.all([first, second])).toEqual([true, true]);
+    expect((await loadSettingsAsync()).theme).toBe("toxic");
+    expect(JSON.parse(await fs.promises.readFile(settingsPath, "utf8")).theme).toBe("toxic");
+  });
+
   describe("findDayzWorkshopFolder", () => {
     let originalPlatform;
 

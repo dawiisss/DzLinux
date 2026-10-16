@@ -107,6 +107,7 @@ async function fetchPublishedFileDetailsBatch(modIds) {
                   const entry = {
                     title: details.title || `Mod ${primaryId}`,
                     childIds,
+                    sizeBytes: parseFileSize(details.file_size),
                     timestamp: Date.now(),
                   };
                   if (primaryId) dependencyCache.set(primaryId, entry);
@@ -138,6 +139,27 @@ async function fetchPublishedFileDetailsBatch(modIds) {
       dependencyCache.delete(iter.next().value);
     }
   }
+}
+
+function parseFileSize(value) {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (typeof value === "string" && !/^\d+$/.test(value)) return null;
+  const bytes = Number(value);
+  return Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : null;
+}
+
+// Reuse the batched Workshop metadata cache without traversing dependencies.
+async function getModDownloadSizes(modIds) {
+  const ids = [...new Set(modIds.map(String))];
+  await fetchPublishedFileDetailsBatch(ids);
+  return ids.map(id => {
+    const cached = dependencyCache.get(id);
+    return {
+      id,
+      sizeBytes: cached && Date.now() - cached.timestamp < CACHE_TTL_MS
+        ? cached.sizeBytes : null,
+    };
+  });
 }
 
 async function resolveDependencies(modId, depth = 0, visited = new Set()) {
@@ -206,6 +228,7 @@ module.exports = {
   resolveBatchDependencies,
   getFlatList,
   fetchPublishedFileDetailsBatch,
+  getModDownloadSizes,
   _clearCache: () => {
     dependencyCache.clear();
     inFlightRequests.clear();

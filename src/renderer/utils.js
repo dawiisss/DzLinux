@@ -163,7 +163,9 @@ export function applyPingResult(server, statusObj) {
     if (statusObj.time) server.time = statusObj.time;
     if (statusObj.map) server.map = statusObj.map;
     server.thirdPerson = statusObj.thirdPerson;
-    server.modded = statusObj.modded;
+    // An info-only ping must not classify cached Workshop mods as vanilla.
+    server.modded = statusObj.mods === null && server.mods?.length > 0
+      ? true : statusObj.modded;
     if (statusObj.password !== undefined) {
       server.password = statusObj.password;
     }

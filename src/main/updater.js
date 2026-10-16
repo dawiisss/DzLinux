@@ -48,7 +48,7 @@ async function checkForUpdates() {
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`,
       { timeout: 10000 },
     );
-    const latestVersion = (data.tag_name || "").replace(/^v/, "");
+    let latestVersion = (data.tag_name || "").replace(/^v/, "");
     const currentVersion = app.getVersion();
 
     if (compareVersions(latestVersion, currentVersion) <= 0) {
@@ -56,13 +56,14 @@ async function checkForUpdates() {
     }
 
     const isApp = isAppImage();
+    let appImageInfo;
     if (isApp) {
-      const checkPromise = autoUpdater.checkForUpdates();
-      if (checkPromise && typeof checkPromise.catch === "function") {
-        checkPromise.catch((err) => {
-          console.error("Failed to check updates via autoUpdater:", err);
-        });
+      const checked = await autoUpdater.checkForUpdates();
+      appImageInfo = checked?.updateInfo;
+      if (!appImageInfo || compareVersions(appImageInfo.version, currentVersion) <= 0) {
+        return { kind: "not-available", currentVersion };
       }
+      latestVersion = appImageInfo.version;
     }
 
     return {
@@ -71,8 +72,8 @@ async function checkForUpdates() {
       downloadUrl: isApp ? null : data.html_url,
       updateInfo: {
         version: latestVersion,
-        releaseNotes: data.body || "",
-        releaseDate: data.published_at,
+        releaseNotes: appImageInfo ? normalizeReleaseNotes(appImageInfo.releaseNotes) : data.body || "",
+        releaseDate: appImageInfo?.releaseDate || data.published_at,
         downloadUrl: isApp ? null : data.html_url,
       },
     };
@@ -85,18 +86,14 @@ async function checkForUpdates() {
   }
 }
 
+function normalizeReleaseNotes(notes) {
+  return Array.isArray(notes)
+    ? notes.map(n => n.note).join("\n") : String(notes || "");
+}
+
 function setupAutoUpdater(mainWindow) {
-  autoUpdater.on("update-available", (info) => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send("update-available", {
-        version: info.version,
-        releaseNotes: Array.isArray(info.releaseNotes)
-          ? info.releaseNotes.map((n) => n.note).join("\n")
-          : String(info.releaseNotes || ""),
-        releaseDate: info.releaseDate,
-      });
-    }
-  });
+  // Availability is returned by checkForUpdates only after metadata is ready.
+  // electron-updater emits update-available before its check promise settles.
 
   autoUpdater.on("update-not-available", () => {
     if (mainWindow && !mainWindow.isDestroyed()) {

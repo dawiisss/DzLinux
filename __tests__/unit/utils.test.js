@@ -1,6 +1,3 @@
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
 
 describe("renderer utils - countryToFlag", () => {
   let countryToFlag;
@@ -8,26 +5,7 @@ describe("renderer utils - countryToFlag", () => {
   let isValidPort;
 
   beforeAll(() => {
-    const utilsPath = path.resolve(__dirname, "../../src/renderer/utils.js");
-    const code = fs.readFileSync(utilsPath, "utf8");
-
-    // Clean up ES Module export statements for Node's VM context
-    const cleanCode = code
-      .replace(/export function/g, "function")
-      .replace(/export const/g, "const")
-      .replace(/export /g, "");
-
-    const context = {
-      document: {
-        createElement: () => ({}),
-      },
-    };
-    vm.createContext(context);
-    vm.runInContext(cleanCode, context);
-
-    countryToFlag = context.countryToFlag;
-    isValidIpOrHost = context.isValidIpOrHost;
-    isValidPort = context.isValidPort;
+    ({ countryToFlag, isValidIpOrHost, isValidPort } = require("../../src/renderer/utils.js"));
   });
 
   test("returns flag emoji for valid uppercase 2-letter country codes", () => {

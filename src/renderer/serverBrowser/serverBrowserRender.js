@@ -3,6 +3,7 @@ import { refreshLocalModsCache } from "../modManager.js";
 import { serverPassesFilters } from "./serverBrowserCore.js";
 import { buildServerRow, renderMetadataBadges } from "../serverRow.js";
 import { applyPingResult, getPlayerBadgeClass, renderPingBadge } from "../utils.js";
+import { cancelServerModQueries } from "../serverMods.js";
 
 let isServersBatchListenerAdded = false;
 let _needsResort = false;
@@ -321,6 +322,8 @@ export async function startBackgroundPinging() {
     () => myGeneration !== state.bgPing.generation
   );
 
+  // An older pool must not reset the running flag for a newer refresh.
+  if (myGeneration !== state.bgPing.generation) return;
   state.bgPing.isRunning = false;
   
   const shouldRerender = state.sort.column === "ping" || document.getElementById("serverListBody").childElementCount === 0;
@@ -343,6 +346,7 @@ export async function startBackgroundPinging() {
 }
 
 export async function refreshServers(isBackground = false) {
+  cancelServerModQueries();
   const previousGeneration = state.bgPing.generation;
   state.bgPing.generation++;
   const myGeneration = state.bgPing.generation;

@@ -10,7 +10,8 @@ const steamPaths = require("../steamPaths");
 
 let cachedProtonVersions = null;
 
-async function scanProtonVersions() {
+async function scanProtonVersions(refresh = false) {
+  if (refresh) cachedProtonVersions = null;
   if (cachedProtonVersions !== null) {
     return [...cachedProtonVersions];
   }
@@ -42,9 +43,12 @@ async function scanProtonVersions() {
       "common",
     ),
     "/usr/share/steam/compatibilitytools.d",
+    ...(await steamPaths.getSteamLibraryPathsAsync()).map(
+      library => path.join(library, "steamapps", "common"),
+    ),
   ];
 
-  for (const sp of searchPaths) {
+  for (const sp of new Set(searchPaths)) {
     const exists = await fs.promises
       .access(sp)
       .then(() => true)

@@ -103,6 +103,7 @@ describe("launchProton", () => {
     }));
     jest.doMock("../../src/main/steamPaths", () => ({
       findDayzSteamappsFolderAsync: mockFindDayzSteamapps,
+      getSteamLibraryPathsAsync: jest.fn().mockResolvedValue([]),
     }));
     jest.doMock("../../src/main/game/prepareEnv", () => ({
       buildEnvironment: mockBuildEnvironment,
@@ -120,6 +121,20 @@ describe("launchProton", () => {
   });
 
   describe("scanProtonVersions", () => {
+    test("discovers secondary-library Proton and refreshes a cached scan", async () => {
+      const steamPaths = require("../../src/main/steamPaths");
+      steamPaths.getSteamLibraryPathsAsync.mockResolvedValue(["/mnt/games/Steam"]);
+      const commonDir = "/mnt/games/Steam/steamapps/common";
+      const protonExe = `${commonDir}/Proton Experimental/proton`;
+      expect(await launchProton.scanProtonVersions()).toEqual([]);
+      mockAccess.mockImplementation(p => p === commonDir || p === protonExe
+        ? Promise.resolve() : Promise.reject(new Error("ENOENT")));
+      mockReaddir.mockResolvedValue(["Proton Experimental"]);
+      expect(await launchProton.scanProtonVersions()).toEqual([]);
+      expect(await launchProton.scanProtonVersions(true)).toEqual([
+        { name: "Proton Experimental", path: protonExe },
+      ]);
+    });
     test("returns empty array when no search paths exist", async () => {
       const versions = await launchProton.scanProtonVersions();
 

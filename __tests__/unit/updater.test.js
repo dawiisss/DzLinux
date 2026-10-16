@@ -207,43 +207,10 @@ describe("setupAutoUpdater", () => {
     };
   });
 
-  test("forwards update-available event with array release notes", () => {
+  test("does not forward the premature update-available event", () => {
     setupAutoUpdater(mockMainWindow);
-    expect(listeners["update-available"]).toBeDefined();
-
-    listeners["update-available"]({
-      version: "2.0.0",
-      releaseNotes: [{ note: "Fix A" }, { note: "Fix B" }],
-      releaseDate: "2023-01-01",
-    });
-
-    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
-      "update-available",
-      {
-        version: "2.0.0",
-        releaseNotes: "Fix A\nFix B",
-        releaseDate: "2023-01-01",
-      },
-    );
-  });
-
-  test("forwards update-available event with string release notes", () => {
-    setupAutoUpdater(mockMainWindow);
-
-    listeners["update-available"]({
-      version: "2.0.0",
-      releaseNotes: "Some release notes string",
-      releaseDate: "2023-01-01",
-    });
-
-    expect(mockMainWindow.webContents.send).toHaveBeenCalledWith(
-      "update-available",
-      {
-        version: "2.0.0",
-        releaseNotes: "Some release notes string",
-        releaseDate: "2023-01-01",
-      },
-    );
+    expect(listeners["update-available"]).toBeUndefined();
+    expect(mockMainWindow.webContents.send).not.toHaveBeenCalled();
   });
 
   test("forwards update-not-available event", () => {
@@ -343,13 +310,49 @@ describe("checkForUpdates", () => {
   const electron = require("electron");
   const axios = require("axios");
   const { checkForUpdates } = require("../../src/main/updater");
+  const { autoUpdater } = require("electron-updater");
+  const originalAppImage = process.env.APPIMAGE;
 
   beforeEach(() => {
     jest.clearAllMocks();
+    delete process.env.APPIMAGE;
+    autoUpdater.checkForUpdates.mockResolvedValue({ updateInfo: { version: "2.0.0" } });
   });
 
   afterEach(() => {
     jest.restoreAllMocks();
+    if (originalAppImage === undefined) delete process.env.APPIMAGE;
+    else process.env.APPIMAGE = originalAppImage;
+  });
+
+  test("waits for metadata and returns the updater's version and release notes", async () => {
+    process.env.APPIMAGE = "/tmp/DzLinux.AppImage";
+    jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0" } });
+    electron.app.getVersion.mockReturnValue("1.0.0");
+    let finishMetadata;
+    autoUpdater.checkForUpdates.mockImplementation(() => new Promise(resolve => { finishMetadata = resolve; }));
+    let settled = false;
+    const check = checkForUpdates().then(result => { settled = true; return result; });
+    await Promise.resolve();
+    expect(settled).toBe(false);
+    finishMetadata({ updateInfo: { version: "2.0.1", releaseNotes: [{ note: "Fix A" }, { note: "Fix B" }] } });
+    expect(await check).toMatchObject({ kind: "available", updateInfo: { version: "2.0.1", releaseNotes: "Fix A\nFix B" } });
+  });
+
+  test("metadata failure reports an error instead of offering a download", async () => {
+    process.env.APPIMAGE = "/tmp/DzLinux.AppImage";
+    jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0" } });
+    electron.app.getVersion.mockReturnValue("1.0.0");
+    autoUpdater.checkForUpdates.mockRejectedValue(new Error("Metadata unavailable"));
+    expect(await checkForUpdates()).toMatchObject({ kind: "error", message: "Metadata unavailable" });
+  });
+
+  test("does not offer an update absent from updater metadata", async () => {
+    process.env.APPIMAGE = "/tmp/DzLinux.AppImage";
+    jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0" } });
+    electron.app.getVersion.mockReturnValue("1.0.0");
+    autoUpdater.checkForUpdates.mockResolvedValue({ updateInfo: { version: "1.0.0" } });
+    expect(await checkForUpdates()).toMatchObject({ kind: "not-available" });
   });
 
   test("returns available when new version exists", async () => {

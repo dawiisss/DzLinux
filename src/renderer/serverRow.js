@@ -11,6 +11,34 @@ import {
 } from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
 import { calculateTrustScore } from "./trustScore.js";
+import { getServerModCount, loadServerMods, rememberServerMods } from "./serverMods.js";
+import { createModSizeLabel } from "./modDownloadSize.js";
+
+function updateVisibleModRows(server) {
+  for (const isFavoritesView of [false, true]) {
+    const prefix = isFavoritesView ? "fav-" : "";
+    const row = document.getElementById(`${prefix}row-${server.id}`);
+    if (row) {
+      const expandable = Boolean(server.mods?.length || server.modded);
+      row.classList.toggle("has-mods", expandable);
+      row.classList.toggle("no-mods", !expandable);
+    }
+    const count = row?.querySelector(".server-mod-count");
+    if (count) count.textContent = getServerModCount(server);
+
+    if (state.expandedServerId !== server.id) continue;
+    const detail = document.getElementById(`${prefix}detail-${server.id}`);
+    if (!detail) continue;
+    const scrollTop = detail.scrollTop;
+    const replacement = buildDetailRow(server, isFavoritesView);
+    detail.replaceWith(replacement);
+    replacement.scrollTop = scrollTop;
+  }
+}
+
+document.addEventListener("dzlinux:server-mods-updated", event => {
+  updateVisibleModRows(event.detail.server);
+});
 
 // Helper to resolve callbacks to avoid circular dependencies
 export function buildDetailRow(server, isFavoritesView = false) {
@@ -33,6 +61,11 @@ export function buildDetailRow(server, isFavoritesView = false) {
     Mods (${server.mods ? server.mods.length : 0})
   `;
 
+  const headerActions = document.createElement("div");
+  headerActions.className = "detail-header-actions";
+  headerActions.appendChild(createModSizeLabel(server));
+  headerDiv.appendChild(headerActions);
+
   const refreshModsBtn = document.createElement("button");
   refreshModsBtn.className = "btn-refresh-mods";
   refreshModsBtn.title =
@@ -43,6 +76,8 @@ export function buildDetailRow(server, isFavoritesView = false) {
   `;
   refreshModsBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
+    const queryGeneration = server.modQueryGeneration = (server.modQueryGeneration || 0) + 1;
+    server.isQueryingMods = true;
     refreshModsBtn.disabled = true;
     refreshModsBtn.innerHTML = `
       <app-icon name="loader" style="width: 0.8rem; height: 0.8rem;"></app-icon>
@@ -54,6 +89,10 @@ export function buildDetailRow(server, isFavoritesView = false) {
         server.port,
         server.queryPort,
       );
+      if (server.modQueryGeneration !== queryGeneration) return;
+      if (freshMods === null) throw new Error("Server is unreachable");
+      rememberServerMods(server, freshMods || []);
+      server.modQueryFailed = false;
       if (freshMods && freshMods.length > 0) {
         server.mods = freshMods;
         server.hasQueriedMods = true;
@@ -70,12 +109,17 @@ export function buildDetailRow(server, isFavoritesView = false) {
         showToast("No mods found for this server", "#ff9f1c", "alert");
       }
     } catch {
+      if (server.modQueryGeneration !== queryGeneration) return;
+      server.isQueryingMods = false;
+      server.hasQueriedMods = true;
+      server.modQueryFailed = true;
       refreshModsBtn.disabled = false;
       refreshModsBtn.innerHTML = `
         <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
         Refresh
       `;
       showToast("Failed to refresh mods", "#ff5a5f", "alert");
+      updateVisibleModRows(server);
       return;
     }
     refreshModsBtn.disabled = false;
@@ -83,30 +127,12 @@ export function buildDetailRow(server, isFavoritesView = false) {
       <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
       Refresh
     `;
-    if (state.expandedServerId === server.id) {
-      const detailRowId = isFavoritesView
-        ? `fav-detail-${server.id}`
-        : `detail-${server.id}`;
-      const oldDetail = document.getElementById(detailRowId);
-      if (oldDetail) {
-        const savedScrollTop = oldDetail.scrollTop || 0;
-        const newDetail = buildDetailRow(server, isFavoritesView);
-        oldDetail.replaceWith(newDetail);
-        newDetail.scrollTop = savedScrollTop;
-      }
-      if (!isFavoritesView) {
-        const favTab = document.getElementById("favorites");
-        if (favTab && favTab.classList.contains("active")) {
-          document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
-        }
-      }
-    }
+    updateVisibleModRows(server);
   });
-  headerDiv.appendChild(refreshModsBtn);
+  headerActions.appendChild(refreshModsBtn);
 
   const subscribeAllBtn = document.createElement("button");
   subscribeAllBtn.className = "btn-refresh-mods";
-  subscribeAllBtn.style.marginLeft = "8px";
   subscribeAllBtn.title = "Subscribe to all missing mods";
   subscribeAllBtn.innerHTML = `
     <app-icon name="download" style="width: 0.8rem; height: 0.8rem;"></app-icon>
@@ -141,7 +167,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
     server.mods &&
     server.mods.some((mod) => !state.localModsSet.has(mod.id))
   ) {
-    headerDiv.appendChild(subscribeAllBtn);
+    headerActions.appendChild(subscribeAllBtn);
   }
 
   detailDiv.appendChild(headerDiv);
@@ -152,35 +178,11 @@ export function buildDetailRow(server, isFavoritesView = false) {
       loadingDiv.style.color = "var(--accent)";
       loadingDiv.style.fontSize = "0.85rem";
       loadingDiv.style.fontFamily = "'Share Tech Mono', monospace";
-      loadingDiv.textContent = "Querying Server for Mod list...";
+      loadingDiv.textContent = "Querying server for mod list...";
       detailDiv.appendChild(loadingDiv);
 
-      if (!server.isQueryingMods) {
-        server.isQueryingMods = true;
-        window.api.servers
-          .queryMods(server.ip, server.port, server.queryPort)
-          .then(async (queriedMods) => {
-            server.mods = queriedMods || [];
-            server.isQueryingMods = false;
-            server.hasQueriedMods = true;
-            if (state.expandedServerId === server.id) {
-              if (isFavoritesView) {
-                document.dispatchEvent(
-                  new CustomEvent("dzlinux:render-favorites"),
-                );
-              } else {
-                document.dispatchEvent(
-                  new CustomEvent("dzlinux:render-servers"),
-                );
-              }
-            }
-          })
-          .catch(() => {
-            server.isQueryingMods = false;
-            server.hasQueriedMods = false;
-          });
-      }
-    } else if (server.modded && server.hasQueriedMods) {
+      void loadServerMods(server);
+    } else if (server.modQueryFailed) {
       const errorDiv = document.createElement("div");
       errorDiv.style.color = "#ff5a5f";
       errorDiv.style.fontSize = "0.85rem";
@@ -278,7 +280,7 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
     ) {
       return;
     }
-    if (!canExpand) return;
+    if (!canExpand && !server.mods?.length && !server.modded) return;
 
     if (isFavoritesView) {
       state.expandedServerId = isExpanded ? null : server.id;
@@ -390,6 +392,7 @@ function buildPingCell(server, isFavoritesView, pingCellId, metaCellId) {
           server.isPinging = false;
           applyPingResult(server, statusObj);
           if (statusObj !== null) {
+            void loadServerMods(server);
             if (statusObj.name) {
               const favRowEl = document.getElementById(`fav-row-${server.id}`);
               if (favRowEl) {
@@ -476,6 +479,7 @@ function buildActionCell(server, pingCellId, metaCellId) {
         server.queryPort,
       );
       applyPingResult(server, statusObj);
+      if (statusObj !== null) void loadServerMods(server);
     } catch {
       applyPingResult(server, null);
     }
@@ -572,9 +576,10 @@ export function buildServerRow(server, isFavoritesView = false) {
 
   // Mods
   const tdMods = document.createElement("td");
+  tdMods.className = "server-mod-count";
   tdMods.style.textAlign = "center";
   tdMods.style.fontFamily = "'Share Tech Mono', monospace";
-  tdMods.textContent = server.mods ? server.mods.length : "0";
+  tdMods.textContent = getServerModCount(server);
 
   // Ping
   const tdPing = buildPingCell(server, isFavoritesView, pingCellId, metaCellId);
@@ -617,6 +622,9 @@ export function buildServerRow(server, isFavoritesView = false) {
   tr.appendChild(tdMetadata);
   tr.appendChild(tdIp);
   tr.appendChild(tdAction);
+
+  if (server.realPing >= 0 && !server.failedPing) void loadServerMods(server);
+  tdMods.textContent = getServerModCount(server);
 
   return tr;
 }

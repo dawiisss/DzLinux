@@ -3,6 +3,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 const { writeJsonAtomically } = require("./fileUtils");
+const { createQueryLimiter } = require("./queryLimiter");
+const queryLimiter = createQueryLimiter();
 
 let userDataPath;
 try {
@@ -113,7 +115,9 @@ function deleteQueryPortCacheEntry(cacheKey) {
 }
 
 module.exports = {
-  pingServer: queryServerGameDig,
+  // Population/ping sweeps do not need the player roster or Workshop rules.
+  pingServer: (ip, port, queryPort, signal) =>
+    queryServerGameDig(ip, port, queryPort, signal, true),
   queryServerGameDig,
   getCacheWriteQueue: () => {
     if (writeTimeout) {
@@ -129,8 +133,14 @@ module.exports = {
 // offsets +1/+2/+3, then Steam query fallback 27016. On success the working port
 // is atomically persisted; on cached-port failure the stale entry is evicted.
 // Uses a module-level singleton cache to survive parallel batch pinging.
-async function queryServerGameDig(ip, port, queryPort) {
+async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false) {
+  if (signal?.aborted) return null;
+  const settings = await require("./settings").loadSettingsAsync();
+  const concurrency = settings.queryConcurrency;
+  queryLimiter.setLimit(Number.isInteger(concurrency)
+    ? Math.min(500, Math.max(10, concurrency)) : 150);
   await ensureQueryPortCacheLoaded();
+  if (signal?.aborted) return null;
   const p = parseInt(port, 10);
   const cacheKey = `${ip}:${p}`;
 
@@ -138,55 +148,52 @@ async function queryServerGameDig(ip, port, queryPort) {
   const cached = queryPortCache.get(cacheKey);
   const cachedPort = cached ? cached.port : null;
 
-  // Build port list: queryPort (from hosted list) first, then cached port
+  // A recovered cached port is preferable to a potentially stale hosted port
+  // during bulk sweeps. Detailed queries still discover all fallback ports.
   const queryPorts = [];
-  if (queryPort && queryPort > 0 && queryPort <= 65535) {
-    queryPorts.push(queryPort);
-  }
-  if (
-    cachedPort !== null &&
-    cachedPort > 0 &&
-    cachedPort <= 65535 &&
-    !queryPorts.includes(cachedPort)
-  ) {
-    queryPorts.push(cachedPort);
+  const preferredPorts = infoOnly ? [cachedPort, queryPort] : [queryPort, cachedPort];
+  for (const candidate of preferredPorts) {
+    const qp = Number(candidate);
+    if (Number.isInteger(qp) && qp > 0 && qp <= 65535 && !queryPorts.includes(qp)) {
+      queryPorts.push(qp);
+    }
   }
 
-  // If we don't have a known working port (no CDN port and no cached port),
-  // only then do we fall back to scanning the game port and its offsets.
-  if (queryPorts.length === 0) {
-    if (p > 0 && p <= 65535) {
-      queryPorts.push(p);
-    }
-    for (const candidate of [p + 1, p + 2, p + 3, 27016]) {
-      if (
-        candidate > 0 &&
-        candidate <= 65535 &&
-        !queryPorts.includes(candidate)
-      ) {
-        queryPorts.push(candidate);
-      }
+  // Do not scan five extra ports for every offline entry in a 15,000-server
+  // sweep. Unlisted addresses and explicit mod queries retain discovery.
+  const discoverPorts = !infoOnly || queryPorts.length === 0;
+  for (const candidate of discoverPorts ? [p, p + 1, p + 2, p + 3, 27016] : []) {
+    if (
+      candidate > 0 &&
+      candidate <= 65535 &&
+      !queryPorts.includes(candidate)
+    ) {
+      queryPorts.push(candidate);
     }
   }
 
   for (const qp of queryPorts) {
+    if (signal?.aborted) return null;
     try {
-      const state = await GameDig.query({
+      const state = await queryLimiter.run(() => GameDig.query({
         type: "dayz",
         host: ip,
         port: qp,
-        maxAttempts: 1,
-        socketTimeout: 2000,
-        attemptTimeout: 10000,
+        maxRetries: 1,
+        socketTimeout: infoOnly ? 1000 : 2000,
+        attemptTimeout: infoOnly ? 2000 : 10000,
         givenPortOnly: true,
-        requestRules: true,
-      });
+        requestPlayers: false,
+        requestRules: !infoOnly,
+      }), signal);
+      if (signal?.aborted || !state) return null;
 
-      const players = state.players
-        ? state.players.length
-        : state.raw && state.raw.numplayers
+      // A2S_INFO includes population even when the player roster is omitted.
+      const players = Number.isInteger(state.numplayers)
+        ? state.numplayers
+        : Number.isInteger(state.raw?.numplayers)
           ? state.raw.numplayers
-          : 0;
+          : state.players?.length || 0;
       const raw = state.raw || {};
 
       let mods = null;
@@ -197,6 +204,10 @@ async function queryServerGameDig(ip, port, queryPort) {
             id: String(m.workshopId),
             name: m.title || `Mod ${m.workshopId}`,
           }));
+      } else if (raw.dayzMods && typeof raw.dayzMods === "object" &&
+                 Object.keys(raw.dayzMods).length === 0) {
+        // GameDig uses an empty object for an empty, successfully read payload.
+        mods = [];
       }
 
       let time = "";
@@ -210,7 +221,7 @@ async function queryServerGameDig(ip, port, queryPort) {
       }
 
       const thirdPerson = !tagValues.includes("no3rd");
-      const modded = tagValues.includes("mod") || (mods && mods.length > 0);
+      const modded = tagValues.includes("mod") || Boolean(mods?.length);
       const map = state.map || raw.rules?.island || "";
 
       // Cache the working query port if it differs from what's already stored.
@@ -235,6 +246,7 @@ async function queryServerGameDig(ip, port, queryPort) {
         rawTags: raw.tags || null,
       };
     } catch {
+      if (signal?.aborted) return null;
       // Cached port failed — the query port likely changed, evict the stale entry.
       // Uses atomic read-merge-write so parallel saves aren't clobbered.
       // Subsequent iterations will scan the regular port offsets and cache the

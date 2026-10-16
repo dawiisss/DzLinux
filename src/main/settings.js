@@ -259,10 +259,25 @@ function sanitizeSettings(settings) {
   return safeSettings;
 }
 
-async function saveSettings(settings) {
+let settingsSaveQueue = Promise.resolve();
+
+function saveSettings(settings) {
+  let snapshot;
+  try {
+    snapshot = structuredClone(sanitizeSettings(settings));
+  } catch (error) {
+    console.error("Failed to save settings", error);
+    return Promise.resolve(false);
+  }
+  // Include auto-discovery in the queue so a slow older save cannot finish last.
+  const result = settingsSaveQueue.then(() => persistSettings(snapshot));
+  settingsSaveQueue = result.catch(() => false);
+  return result;
+}
+
+async function persistSettings(safeSettings) {
   try {
     // Prevent storing password if it inadvertently gets passed
-    const safeSettings = sanitizeSettings(settings);
     delete safeSettings.steamPassword;
 
     // Auto-discover if empty
@@ -271,11 +286,9 @@ async function saveSettings(settings) {
       safeSettings.modDirectory = await steamPaths.findDayzWorkshopFolderAsync();
     }
 
-    // Update cache immediately
-    cachedSettings = { ...safeSettings };
-
     // Write to disk and await
     await writeJsonAtomically(settingsPath, safeSettings);
+    cachedSettings = { ...safeSettings };
     return true;
   } catch (e) {
     console.error("Failed to save settings", e);

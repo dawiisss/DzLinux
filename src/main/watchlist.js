@@ -22,20 +22,19 @@ let cachedWatchlist = null;
 
 async function loadWatchlist() {
   if (cachedWatchlist !== null) {
-    return [...cachedWatchlist];
+    return cachedWatchlist.map(item => ({ ...item }));
   }
   try {
     const exists = await fs.promises.access(WATCHLIST_FILE).then(() => true).catch(() => false);
     if (exists) {
       const content = await fs.promises.readFile(WATCHLIST_FILE, "utf8");
       cachedWatchlist = JSON.parse(content) || [];
-      return [...cachedWatchlist];
+      return cachedWatchlist.map(item => ({ ...item }));
     }
     // Migration check
     const settings = await settingsManager.loadSettingsAsync();
     if (settings.watchlist && settings.watchlist.length > 0) {
       const watchlist = settings.watchlist;
-      cachedWatchlist = [...watchlist];
       await saveWatchlist(watchlist);
       // Clean up from settings to avoid future confusion
       delete settings.watchlist;
@@ -61,8 +60,9 @@ async function loadWatchlist() {
 async function saveWatchlist(watchlist) {
   try {
     if (!validateWatchlist(watchlist)) return false;
-    cachedWatchlist = [...watchlist];
-    await writeJsonAtomically(WATCHLIST_FILE, watchlist);
+    const snapshot = watchlist.map(item => ({ ...item }));
+    await writeJsonAtomically(WATCHLIST_FILE, snapshot);
+    cachedWatchlist = snapshot;
     return true;
   } catch (e) {
     console.error("Failed to save watchlist:", e.message);
