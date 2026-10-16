@@ -66,27 +66,9 @@
     "country": "NL"
   },
   {
-    "ip": "185.207.214.16",
-    "port": 2302,
-    "queryPort": 2305,
-    "country": "RU"
-  },
-  {
     "ip": "195.18.27.177",
     "port": 2302,
     "queryPort": 2305,
-    "country": "RU"
-  },
-  {
-    "ip": "185.207.214.106",
-    "port": 2302,
-    "queryPort": 2305,
-    "country": "RU"
-  },
-  {
-    "ip": "195.18.27.183",
-    "port": 2502,
-    "queryPort": 2505,
     "country": "RU"
   },
   {
@@ -117,12 +99,6 @@
     "ip": "80.242.59.105",
     "port": 2302,
     "queryPort": 2303,
-    "country": "RU"
-  },
-  {
-    "ip": "80.242.59.60",
-    "port": 2302,
-    "queryPort": 2305,
     "country": "RU"
   },
   {
@@ -190,12 +166,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "NL"
-  },
-  {
-    "ip": "80.242.59.60",
-    "port": 2402,
-    "queryPort": 2405,
-    "country": "RU"
   },
   {
     "ip": "80.242.59.91",
@@ -310,12 +280,6 @@
     "port": 2302,
     "queryPort": 2303,
     "country": "NL"
-  },
-  {
-    "ip": "5.226.142.37",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "GB"
   },
   {
     "ip": "195.82.158.80",
@@ -552,12 +516,6 @@
     "country": "RU"
   },
   {
-    "ip": "185.207.214.80",
-    "port": 2309,
-    "queryPort": 2310,
-    "country": "RU"
-  },
-  {
     "ip": "172.111.51.192",
     "port": 2302,
     "queryPort": 2303,
@@ -714,12 +672,6 @@
     "country": "BR"
   },
   {
-    "ip": "195.18.27.232",
-    "port": 2402,
-    "queryPort": 2405,
-    "country": "RU"
-  },
-  {
     "ip": "188.255.171.148",
     "port": 2402,
     "queryPort": 27017,
@@ -777,12 +729,6 @@
     "ip": "185.189.255.211",
     "port": 2302,
     "queryPort": 27016,
-    "country": "RU"
-  },
-  {
-    "ip": "185.207.214.106",
-    "port": 2502,
-    "queryPort": 2507,
     "country": "RU"
   },
   {
@@ -1740,12 +1686,6 @@
     "country": "US"
   },
   {
-    "ip": "185.207.214.16",
-    "port": 2402,
-    "queryPort": 2405,
-    "country": "RU"
-  },
-  {
     "ip": "149.56.195.120",
     "port": 2517,
     "queryPort": 2518,
@@ -2110,12 +2050,6 @@
     "port": 2342,
     "queryPort": 2343,
     "country": "ZA"
-  },
-  {
-    "ip": "81.163.182.93",
-    "port": 2302,
-    "queryPort": 27019,
-    "country": "RU"
   },
   {
     "ip": "103.193.81.15",
@@ -4206,12 +4140,6 @@
     "country": "DE"
   },
   {
-    "ip": "193.135.10.162",
-    "port": 20157,
-    "queryPort": 20158,
-    "country": "DE"
-  },
-  {
     "ip": "185.207.214.39",
     "port": 2302,
     "queryPort": 2303,
@@ -4432,12 +4360,6 @@
     "port": 2702,
     "queryPort": 2703,
     "country": "FI"
-  },
-  {
-    "ip": "80.242.59.129",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "RU"
   },
   {
     "ip": "185.125.205.109",
@@ -5812,12 +5734,6 @@
     "port": 2680,
     "queryPort": 2681,
     "country": "GB"
-  },
-  {
-    "ip": "85.190.160.84",
-    "port": 10900,
-    "queryPort": 10901,
-    "country": "DE"
   },
   {
     "ip": "135.181.177.26",
@@ -9070,12 +8986,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "FR"
-  },
-  {
-    "ip": "195.18.27.183",
-    "port": 2302,
-    "queryPort": 2305,
-    "country": "RU"
   },
   {
     "ip": "151.242.127.134",
@@ -13680,12 +13590,6 @@
     "country": "RU"
   },
   {
-    "ip": "185.189.255.139",
-    "port": 2309,
-    "queryPort": 2310,
-    "country": "RU"
-  },
-  {
     "ip": "109.95.32.127",
     "port": 2402,
     "queryPort": 27026,
@@ -15216,12 +15120,6 @@
     "country": "US"
   },
   {
-    "ip": "172.93.101.72",
-    "port": 27800,
-    "queryPort": 27801,
-    "country": "US"
-  },
-  {
     "ip": "217.29.23.124",
     "port": 2302,
     "queryPort": 27016,
@@ -15669,12 +15567,6 @@
     "ip": "173.201.37.136",
     "port": 33001,
     "queryPort": 33002,
-    "country": "US"
-  },
-  {
-    "ip": "192.169.92.42",
-    "port": 2302,
-    "queryPort": 2303,
     "country": "US"
   },
   {
@@ -16548,24 +16440,6 @@
     "country": "DE"
   },
   {
-    "ip": "198.244.177.109",
-    "port": 2502,
-    "queryPort": 2503,
-    "country": "GB"
-  },
-  {
-    "ip": "198.244.177.109",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "GB"
-  },
-  {
-    "ip": "198.244.177.109",
-    "port": 2702,
-    "queryPort": 2703,
-    "country": "GB"
-  },
-  {
     "ip": "5.83.170.40",
     "port": 11900,
     "queryPort": 11901,
@@ -17428,12 +17302,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "FR"
-  },
-  {
-    "ip": "185.216.144.83",
-    "port": 2491,
-    "queryPort": 2492,
-    "country": "GB"
   },
   {
     "ip": "89.34.97.23",
@@ -18852,12 +18720,6 @@
     "country": "AU"
   },
   {
-    "ip": "38.180.25.250",
-    "port": 2055,
-    "queryPort": 4055,
-    "country": "US"
-  },
-  {
     "ip": "188.240.63.110",
     "port": 2680,
     "queryPort": 2681,
@@ -18904,12 +18766,6 @@
     "port": 33001,
     "queryPort": 33002,
     "country": "FR"
-  },
-  {
-    "ip": "192.169.85.101",
-    "port": 33021,
-    "queryPort": 33022,
-    "country": "US"
   },
   {
     "ip": "78.29.54.54",
@@ -19126,12 +18982,6 @@
     "port": 11100,
     "queryPort": 11101,
     "country": "GB"
-  },
-  {
-    "ip": "38.180.25.250",
-    "port": 2062,
-    "queryPort": 4062,
-    "country": "US"
   },
   {
     "ip": "162.220.13.76",
@@ -19546,12 +19396,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "TR"
-  },
-  {
-    "ip": "49.12.121.161",
-    "port": 29195,
-    "queryPort": 29196,
-    "country": "DE"
   },
   {
     "ip": "185.207.214.209",
@@ -20756,7 +20600,7 @@
   {
     "ip": "121.98.71.16",
     "port": 2602,
-    "queryPort": 27020,
+    "queryPort": 27019,
     "country": "NZ"
   },
   {
@@ -21006,12 +20850,6 @@
     "country": "US"
   },
   {
-    "ip": "85.10.246.34",
-    "port": 25573,
-    "queryPort": 25577,
-    "country": "DE"
-  },
-  {
     "ip": "37.10.125.240",
     "port": 10700,
     "queryPort": 10701,
@@ -21174,12 +21012,6 @@
     "country": "AU"
   },
   {
-    "ip": "208.115.206.20",
-    "port": 33021,
-    "queryPort": 33022,
-    "country": "DE"
-  },
-  {
     "ip": "37.193.24.3",
     "port": 2302,
     "queryPort": 27016,
@@ -21280,12 +21112,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "NL"
-  },
-  {
-    "ip": "5.231.59.52",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "DE"
   },
   {
     "ip": "177.87.28.217",
@@ -23286,24 +23112,6 @@
     "country": "GB"
   },
   {
-    "ip": "72.56.111.93",
-    "port": 27032,
-    "queryPort": 27032,
-    "country": "DE"
-  },
-  {
-    "ip": "77.105.130.79",
-    "port": 2012,
-    "queryPort": 4012,
-    "country": "FI"
-  },
-  {
-    "ip": "194.55.236.98",
-    "port": 2075,
-    "queryPort": 4075,
-    "country": "RU"
-  },
-  {
     "ip": "194.55.236.91",
     "port": 2075,
     "queryPort": 4075,
@@ -24348,12 +24156,6 @@
     "country": "PL"
   },
   {
-    "ip": "191.191.95.56",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "BR"
-  },
-  {
     "ip": "88.89.134.34",
     "port": 2502,
     "queryPort": 2503,
@@ -24502,12 +24304,6 @@
     "port": 2402,
     "queryPort": 27116,
     "country": "SE"
-  },
-  {
-    "ip": "159.203.40.1",
-    "port": 4194,
-    "queryPort": 4194,
-    "country": "CA"
   },
   {
     "ip": "89.34.97.20",
@@ -25986,12 +25782,6 @@
     "country": "US"
   },
   {
-    "ip": "141.95.35.24",
-    "port": 4003,
-    "queryPort": 4004,
-    "country": "DE"
-  },
-  {
     "ip": "64.31.4.116",
     "port": 2302,
     "queryPort": 2303,
@@ -26130,12 +25920,6 @@
     "country": "US"
   },
   {
-    "ip": "141.95.35.24",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "DE"
-  },
-  {
     "ip": "24.52.62.199",
     "port": 2302,
     "queryPort": 27016,
@@ -26272,12 +26056,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "US"
-  },
-  {
-    "ip": "141.95.35.24",
-    "port": 2680,
-    "queryPort": 2681,
-    "country": "DE"
   },
   {
     "ip": "194.50.234.132",
@@ -28050,12 +27828,6 @@
     "country": "US"
   },
   {
-    "ip": "217.196.148.212",
-    "port": 4302,
-    "queryPort": 47016,
-    "country": "AT"
-  },
-  {
     "ip": "213.239.201.48",
     "port": 2307,
     "queryPort": 2308,
@@ -28560,18 +28332,6 @@
     "country": "AU"
   },
   {
-    "ip": "85.190.160.244",
-    "port": 11900,
-    "queryPort": 11901,
-    "country": "DE"
-  },
-  {
-    "ip": "85.190.160.244",
-    "port": 12300,
-    "queryPort": 12301,
-    "country": "DE"
-  },
-  {
     "ip": "85.190.162.225",
     "port": 10400,
     "queryPort": 10401,
@@ -28750,12 +28510,6 @@
     "port": 11000,
     "queryPort": 11001,
     "country": "US"
-  },
-  {
-    "ip": "85.190.160.244",
-    "port": 11100,
-    "queryPort": 11101,
-    "country": "DE"
   },
   {
     "ip": "212.22.93.42",
@@ -30102,12 +29856,6 @@
     "country": "DE"
   },
   {
-    "ip": "217.196.148.212",
-    "port": 7302,
-    "queryPort": 7716,
-    "country": "AT"
-  },
-  {
     "ip": "80.133.153.60",
     "port": 2306,
     "queryPort": 27016,
@@ -30822,24 +30570,6 @@
     "country": "US"
   },
   {
-    "ip": "116.202.197.169",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "DE"
-  },
-  {
-    "ip": "116.202.197.169",
-    "port": 3402,
-    "queryPort": 27027,
-    "country": "DE"
-  },
-  {
-    "ip": "116.202.197.169",
-    "port": 3102,
-    "queryPort": 27024,
-    "country": "DE"
-  },
-  {
     "ip": "109.248.4.42",
     "port": 2320,
     "queryPort": 2321,
@@ -31000,12 +30730,6 @@
     "port": 2308,
     "queryPort": 27014,
     "country": "RU"
-  },
-  {
-    "ip": "172.111.51.3",
-    "port": 2602,
-    "queryPort": 2603,
-    "country": "US"
   },
   {
     "ip": "206.72.194.78",
@@ -31908,18 +31632,6 @@
     "country": "EE"
   },
   {
-    "ip": "77.105.130.79",
-    "port": 2018,
-    "queryPort": 4018,
-    "country": "FI"
-  },
-  {
-    "ip": "77.105.130.79",
-    "port": 2015,
-    "queryPort": 4015,
-    "country": "FI"
-  },
-  {
     "ip": "5.53.242.26",
     "port": 2301,
     "queryPort": 2305,
@@ -32020,12 +31732,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "DE"
-  },
-  {
-    "ip": "38.242.158.193",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "FR"
   },
   {
     "ip": "45.170.26.39",
@@ -32152,12 +31858,6 @@
     "port": 10200,
     "queryPort": 10201,
     "country": "DE"
-  },
-  {
-    "ip": "212.22.93.198",
-    "port": 2372,
-    "queryPort": 2375,
-    "country": "RU"
   },
   {
     "ip": "90.3.171.211",
@@ -32856,12 +32556,6 @@
     "country": "US"
   },
   {
-    "ip": "217.196.148.212",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "AT"
-  },
-  {
     "ip": "46.251.234.100",
     "port": 11200,
     "queryPort": 11201,
@@ -32982,12 +32676,6 @@
     "country": "US"
   },
   {
-    "ip": "104.238.220.124",
-    "port": 7015,
-    "queryPort": 7018,
-    "country": "US"
-  },
-  {
     "ip": "144.48.104.106",
     "port": 2332,
     "queryPort": 2333,
@@ -33045,12 +32733,6 @@
     "ip": "24.255.168.107",
     "port": 2302,
     "queryPort": 2305,
-    "country": "US"
-  },
-  {
-    "ip": "104.238.220.124",
-    "port": 7115,
-    "queryPort": 7118,
     "country": "US"
   },
   {
@@ -33426,18 +33108,6 @@
     "country": "HK"
   },
   {
-    "ip": "167.235.177.236",
-    "port": 2312,
-    "queryPort": 2313,
-    "country": "DE"
-  },
-  {
-    "ip": "167.235.177.236",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "DE"
-  },
-  {
     "ip": "74.215.185.231",
     "port": 2500,
     "queryPort": 27040,
@@ -33454,12 +33124,6 @@
     "port": 10500,
     "queryPort": 10501,
     "country": "GB"
-  },
-  {
-    "ip": "167.235.177.236",
-    "port": 2352,
-    "queryPort": 2353,
-    "country": "DE"
   },
   {
     "ip": "176.9.116.6",
@@ -33550,12 +33214,6 @@
     "port": 11100,
     "queryPort": 11101,
     "country": "DE"
-  },
-  {
-    "ip": "185.189.255.203",
-    "port": 2312,
-    "queryPort": 2315,
-    "country": "RU"
   },
   {
     "ip": "212.22.93.117",
@@ -35274,12 +34932,6 @@
     "country": "DE"
   },
   {
-    "ip": "142.132.251.171",
-    "port": 4002,
-    "queryPort": 27033,
-    "country": "DE"
-  },
-  {
     "ip": "92.180.22.173",
     "port": 2314,
     "queryPort": 27019,
@@ -35736,12 +35388,6 @@
     "country": "US"
   },
   {
-    "ip": "172.111.51.3",
-    "port": 2402,
-    "queryPort": 2403,
-    "country": "US"
-  },
-  {
     "ip": "140.228.67.123",
     "port": 2802,
     "queryPort": 27022,
@@ -36132,12 +35778,6 @@
     "country": "DE"
   },
   {
-    "ip": "51.195.55.211",
-    "port": 2402,
-    "queryPort": 2403,
-    "country": "GB"
-  },
-  {
     "ip": "200.124.64.67",
     "port": 2302,
     "queryPort": 2303,
@@ -36250,24 +35890,6 @@
     "port": 2702,
     "queryPort": 2706,
     "country": "RU"
-  },
-  {
-    "ip": "88.198.18.146",
-    "port": 3202,
-    "queryPort": 3203,
-    "country": "DE"
-  },
-  {
-    "ip": "88.198.18.146",
-    "port": 3302,
-    "queryPort": 3303,
-    "country": "DE"
-  },
-  {
-    "ip": "88.198.18.146",
-    "port": 3602,
-    "queryPort": 3603,
-    "country": "DE"
   },
   {
     "ip": "80.151.187.57",
@@ -36756,18 +36378,6 @@
     "country": "DE"
   },
   {
-    "ip": "77.105.130.78",
-    "port": 2018,
-    "queryPort": 4018,
-    "country": "FI"
-  },
-  {
-    "ip": "77.105.130.78",
-    "port": 2017,
-    "queryPort": 4017,
-    "country": "FI"
-  },
-  {
     "ip": "205.209.101.173",
     "port": 2302,
     "queryPort": 2303,
@@ -36976,12 +36586,6 @@
     "port": 11300,
     "queryPort": 11301,
     "country": "GB"
-  },
-  {
-    "ip": "37.10.127.206",
-    "port": 10800,
-    "queryPort": 10801,
-    "country": "US"
   },
   {
     "ip": "85.190.149.116",
@@ -38334,12 +37938,6 @@
     "country": "RU"
   },
   {
-    "ip": "68.187.88.195",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "US"
-  },
-  {
     "ip": "109.248.4.119",
     "port": 2302,
     "queryPort": 2303,
@@ -38362,12 +37960,6 @@
     "port": 2316,
     "queryPort": 2317,
     "country": "PL"
-  },
-  {
-    "ip": "89.34.97.19",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "GB"
   },
   {
     "ip": "51.161.218.250",
@@ -38404,12 +37996,6 @@
     "port": 2326,
     "queryPort": 2327,
     "country": "RU"
-  },
-  {
-    "ip": "5.252.101.139",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "DE"
   },
   {
     "ip": "89.186.140.189",
@@ -38670,12 +38256,6 @@
     "country": "CA"
   },
   {
-    "ip": "54.38.93.220",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "FR"
-  },
-  {
     "ip": "185.207.214.101",
     "port": 2602,
     "queryPort": 26026,
@@ -38698,12 +38278,6 @@
     "port": 2502,
     "queryPort": 2506,
     "country": "RU"
-  },
-  {
-    "ip": "46.4.74.52",
-    "port": 2402,
-    "queryPort": 2403,
-    "country": "DE"
   },
   {
     "ip": "54.36.175.128",
@@ -38823,12 +38397,6 @@
     "ip": "5.226.142.55",
     "port": 2680,
     "queryPort": 2681,
-    "country": "GB"
-  },
-  {
-    "ip": "89.34.97.202",
-    "port": 2491,
-    "queryPort": 2492,
     "country": "GB"
   },
   {
@@ -39024,12 +38592,6 @@
     "country": "DE"
   },
   {
-    "ip": "193.135.10.187",
-    "port": 20051,
-    "queryPort": 20052,
-    "country": "DE"
-  },
-  {
     "ip": "90.62.48.17",
     "port": 2302,
     "queryPort": 27016,
@@ -39046,12 +38608,6 @@
     "port": 11400,
     "queryPort": 11401,
     "country": "GB"
-  },
-  {
-    "ip": "90.188.49.4",
-    "port": 2308,
-    "queryPort": 27018,
-    "country": "RU"
   },
   {
     "ip": "89.76.254.89",
@@ -39082,12 +38638,6 @@
     "port": 2302,
     "queryPort": 27016,
     "country": "UA"
-  },
-  {
-    "ip": "95.223.111.106",
-    "port": 2314,
-    "queryPort": 27019,
-    "country": "DE"
   },
   {
     "ip": "134.255.251.170",
@@ -39168,12 +38718,6 @@
     "country": "US"
   },
   {
-    "ip": "213.133.100.181",
-    "port": 2680,
-    "queryPort": 2681,
-    "country": "DE"
-  },
-  {
     "ip": "212.192.28.171",
     "port": 27017,
     "queryPort": 27018,
@@ -39216,12 +38760,6 @@
     "country": "GB"
   },
   {
-    "ip": "104.249.63.102",
-    "port": 2302,
-    "queryPort": 2303,
-    "country": "US"
-  },
-  {
     "ip": "217.146.80.188",
     "port": 2302,
     "queryPort": 2303,
@@ -39246,12 +38784,6 @@
     "country": "UA"
   },
   {
-    "ip": "81.170.148.169",
-    "port": 2402,
-    "queryPort": 2405,
-    "country": "SE"
-  },
-  {
     "ip": "93.164.129.16",
     "port": 2302,
     "queryPort": 27017,
@@ -39270,12 +38802,6 @@
     "country": "US"
   },
   {
-    "ip": "83.29.127.184",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "PL"
-  },
-  {
     "ip": "163.245.194.35",
     "port": 2491,
     "queryPort": 2492,
@@ -39292,12 +38818,6 @@
     "port": 2322,
     "queryPort": 2323,
     "country": "US"
-  },
-  {
-    "ip": "91.59.31.140",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "DE"
   },
   {
     "ip": "173.201.21.10",
@@ -39522,24 +39042,6 @@
     "country": "RU"
   },
   {
-    "ip": "5.196.92.18",
-    "port": 2702,
-    "queryPort": 2703,
-    "country": "FR"
-  },
-  {
-    "ip": "5.196.92.18",
-    "port": 2802,
-    "queryPort": 2803,
-    "country": "FR"
-  },
-  {
-    "ip": "5.196.92.18",
-    "port": 2602,
-    "queryPort": 2603,
-    "country": "FR"
-  },
-  {
     "ip": "5.231.59.52",
     "port": 2402,
     "queryPort": 2403,
@@ -39660,22 +39162,10 @@
     "country": "RU"
   },
   {
-    "ip": "188.255.171.137",
-    "port": 2402,
-    "queryPort": 27004,
-    "country": "BR"
-  },
-  {
     "ip": "51.195.18.200",
     "port": 2302,
     "queryPort": 27016,
     "country": "DE"
-  },
-  {
-    "ip": "109.149.246.200",
-    "port": 2305,
-    "queryPort": 27016,
-    "country": "GB"
   },
   {
     "ip": "82.33.33.137",
@@ -39702,21 +39192,9 @@
     "country": "JE"
   },
   {
-    "ip": "95.31.219.220",
-    "port": 2302,
-    "queryPort": 27016,
-    "country": "RU"
-  },
-  {
     "ip": "188.244.3.136",
     "port": 2302,
     "queryPort": 27016,
-    "country": "RU"
-  },
-  {
-    "ip": "212.22.93.119",
-    "port": 2312,
-    "queryPort": 2315,
     "country": "RU"
   },
   {
@@ -40116,12 +39594,6 @@
     "country": "RU"
   },
   {
-    "ip": "82.66.152.25",
-    "port": 2302,
-    "queryPort": 27017,
-    "country": "FR"
-  },
-  {
     "ip": "109.236.57.106",
     "port": 2502,
     "queryPort": 29016,
@@ -40452,24 +39924,6 @@
     "country": "RU"
   },
   {
-    "ip": "194.55.236.214",
-    "port": 2070,
-    "queryPort": 4070,
-    "country": "RU"
-  },
-  {
-    "ip": "194.55.236.214",
-    "port": 2087,
-    "queryPort": 4087,
-    "country": "RU"
-  },
-  {
-    "ip": "212.22.90.155",
-    "port": 2014,
-    "queryPort": 4014,
-    "country": "RU"
-  },
-  {
     "ip": "181.214.221.188",
     "port": 2302,
     "queryPort": 2303,
@@ -40486,5 +39940,1115 @@
     "port": 18000,
     "queryPort": 18001,
     "country": "US"
+  },
+  {
+    "ip": "5.226.142.36",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "GB"
+  },
+  {
+    "ip": "195.18.27.15",
+    "port": 2402,
+    "queryPort": 2900,
+    "country": "RU"
+  },
+  {
+    "ip": "45.146.120.185",
+    "port": 13863,
+    "queryPort": 13858,
+    "country": "NL"
+  },
+  {
+    "ip": "5.253.246.209",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "NL"
+  },
+  {
+    "ip": "103.193.81.86",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "AU"
+  },
+  {
+    "ip": "147.189.175.188",
+    "port": 2502,
+    "queryPort": 2503,
+    "country": "DE"
+  },
+  {
+    "ip": "90.18.209.127",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "FR"
+  },
+  {
+    "ip": "210.246.215.115",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "TH"
+  },
+  {
+    "ip": "5.83.171.37",
+    "port": 11300,
+    "queryPort": 11301,
+    "country": "DE"
+  },
+  {
+    "ip": "95.156.213.142",
+    "port": 11200,
+    "queryPort": 11201,
+    "country": "US"
+  },
+  {
+    "ip": "82.71.58.218",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "GB"
+  },
+  {
+    "ip": "195.18.27.165",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "46.142.113.185",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "DE"
+  },
+  {
+    "ip": "85.14.210.19",
+    "port": 20800,
+    "queryPort": 20810,
+    "country": "DE"
+  },
+  {
+    "ip": "37.156.35.100",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "NL"
+  },
+  {
+    "ip": "62.113.194.214",
+    "port": 12936,
+    "queryPort": 12218,
+    "country": "DE"
+  },
+  {
+    "ip": "51.195.190.147",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "GB"
+  },
+  {
+    "ip": "95.156.250.147",
+    "port": 10100,
+    "queryPort": 10101,
+    "country": "GB"
+  },
+  {
+    "ip": "185.216.147.176",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "GB"
+  },
+  {
+    "ip": "185.207.214.149",
+    "port": 2302,
+    "queryPort": 2702,
+    "country": "RU"
+  },
+  {
+    "ip": "193.135.10.92",
+    "port": 20364,
+    "queryPort": 20365,
+    "country": "DE"
+  },
+  {
+    "ip": "95.189.108.175",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "185.189.255.225",
+    "port": 2309,
+    "queryPort": 2310,
+    "country": "RU"
+  },
+  {
+    "ip": "212.22.93.4",
+    "port": 2332,
+    "queryPort": 2335,
+    "country": "RU"
+  },
+  {
+    "ip": "87.106.76.126",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "GB"
+  },
+  {
+    "ip": "80.246.76.6",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "41.76.213.221",
+    "port": 2415,
+    "queryPort": 2419,
+    "country": "ZA"
+  },
+  {
+    "ip": "195.18.27.77",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "178.32.101.41",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "FR"
+  },
+  {
+    "ip": "37.235.126.166",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "GB"
+  },
+  {
+    "ip": "195.18.27.217",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "37.156.35.32",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "NL"
+  },
+  {
+    "ip": "80.234.91.217",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "193.135.10.98",
+    "port": 20372,
+    "queryPort": 20373,
+    "country": "DE"
+  },
+  {
+    "ip": "23.109.63.157",
+    "port": 2491,
+    "queryPort": 2492,
+    "country": "NL"
+  },
+  {
+    "ip": "152.53.180.113",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "DE"
+  },
+  {
+    "ip": "88.98.99.200",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "ES"
+  },
+  {
+    "ip": "194.242.10.194",
+    "port": 2352,
+    "queryPort": 2353,
+    "country": "NO"
+  },
+  {
+    "ip": "109.248.4.67",
+    "port": 2200,
+    "queryPort": 2201,
+    "country": "RU"
+  },
+  {
+    "ip": "109.248.4.59",
+    "port": 2398,
+    "queryPort": 2399,
+    "country": "RU"
+  },
+  {
+    "ip": "103.62.51.131",
+    "port": 5302,
+    "queryPort": 5303,
+    "country": "AU"
+  },
+  {
+    "ip": "54.37.206.29",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "109.248.4.183",
+    "port": 2326,
+    "queryPort": 2327,
+    "country": "RU"
+  },
+  {
+    "ip": "195.18.27.60",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "RU"
+  },
+  {
+    "ip": "167.114.211.45",
+    "port": 2491,
+    "queryPort": 2492,
+    "country": "CA"
+  },
+  {
+    "ip": "109.87.254.252",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "UA"
+  },
+  {
+    "ip": "104.234.252.167",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "185.125.205.124",
+    "port": 2680,
+    "queryPort": 2681,
+    "country": "GB"
+  },
+  {
+    "ip": "172.96.161.35",
+    "port": 27800,
+    "queryPort": 27801,
+    "country": "US"
+  },
+  {
+    "ip": "185.207.214.140",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "82.66.152.25",
+    "port": 2301,
+    "queryPort": 27016,
+    "country": "FR"
+  },
+  {
+    "ip": "185.254.96.35",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "DE"
+  },
+  {
+    "ip": "37.10.124.48",
+    "port": 10200,
+    "queryPort": 10201,
+    "country": "US"
+  },
+  {
+    "ip": "143.255.21.250",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "BR"
+  },
+  {
+    "ip": "23.88.20.140",
+    "port": 2502,
+    "queryPort": 2503,
+    "country": "DE"
+  },
+  {
+    "ip": "144.31.167.192",
+    "port": 2502,
+    "queryPort": 27018,
+    "country": "DE"
+  },
+  {
+    "ip": "104.234.252.167",
+    "port": 2352,
+    "queryPort": 2353,
+    "country": "DE"
+  },
+  {
+    "ip": "51.210.86.142",
+    "port": 2680,
+    "queryPort": 2681,
+    "country": "FR"
+  },
+  {
+    "ip": "185.207.214.41",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "RU"
+  },
+  {
+    "ip": "174.23.231.252",
+    "port": 2302,
+    "queryPort": 27017,
+    "country": "US"
+  },
+  {
+    "ip": "104.234.252.167",
+    "port": 2322,
+    "queryPort": 2323,
+    "country": "DE"
+  },
+  {
+    "ip": "37.10.124.48",
+    "port": 10400,
+    "queryPort": 10401,
+    "country": "US"
+  },
+  {
+    "ip": "77.90.30.147",
+    "port": 2702,
+    "queryPort": 27019,
+    "country": "DE"
+  },
+  {
+    "ip": "77.90.30.147",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "DE"
+  },
+  {
+    "ip": "77.90.30.147",
+    "port": 2502,
+    "queryPort": 27018,
+    "country": "DE"
+  },
+  {
+    "ip": "37.10.124.48",
+    "port": 10700,
+    "queryPort": 10701,
+    "country": "US"
+  },
+  {
+    "ip": "136.243.69.186",
+    "port": 2322,
+    "queryPort": 2323,
+    "country": "DE"
+  },
+  {
+    "ip": "194.50.234.86",
+    "port": 2869,
+    "queryPort": 2870,
+    "country": "GB"
+  },
+  {
+    "ip": "51.161.13.181",
+    "port": 2602,
+    "queryPort": 27019,
+    "country": "CA"
+  },
+  {
+    "ip": "86.178.130.63",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "GB"
+  },
+  {
+    "ip": "84.152.176.88",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "DE"
+  },
+  {
+    "ip": "85.190.149.21",
+    "port": 11400,
+    "queryPort": 11401,
+    "country": "GB"
+  },
+  {
+    "ip": "81.38.34.228",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "ES"
+  },
+  {
+    "ip": "172.111.51.172",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "US"
+  },
+  {
+    "ip": "85.175.4.14",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "124.168.153.163",
+    "port": 2402,
+    "queryPort": 2405,
+    "country": "AU"
+  },
+  {
+    "ip": "167.114.211.45",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "CA"
+  },
+  {
+    "ip": "31.131.251.181",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "RU"
+  },
+  {
+    "ip": "212.22.93.196",
+    "port": 2342,
+    "queryPort": 2345,
+    "country": "RU"
+  },
+  {
+    "ip": "93.89.129.194",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "GB"
+  },
+  {
+    "ip": "90.189.151.66",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "93.190.110.24",
+    "port": 2400,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "135.148.150.131",
+    "port": 60450,
+    "queryPort": 60456,
+    "country": "US"
+  },
+  {
+    "ip": "95.156.198.138",
+    "port": 10200,
+    "queryPort": 10201,
+    "country": "US"
+  },
+  {
+    "ip": "96.70.127.38",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "US"
+  },
+  {
+    "ip": "51.77.65.113",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "DE"
+  },
+  {
+    "ip": "213.133.100.181",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "51.38.168.138",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "FR"
+  },
+  {
+    "ip": "45.92.36.172",
+    "port": 2305,
+    "queryPort": 2306,
+    "country": "GB"
+  },
+  {
+    "ip": "5.83.171.45",
+    "port": 10700,
+    "queryPort": 10701,
+    "country": "DE"
+  },
+  {
+    "ip": "51.68.193.245",
+    "port": 2680,
+    "queryPort": 2681,
+    "country": "GB"
+  },
+  {
+    "ip": "78.157.226.233",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "95.156.213.145",
+    "port": 10600,
+    "queryPort": 10601,
+    "country": "US"
+  },
+  {
+    "ip": "189.91.248.253",
+    "port": 2502,
+    "queryPort": 2505,
+    "country": "BR"
+  },
+  {
+    "ip": "188.255.171.143",
+    "port": 2502,
+    "queryPort": 27016,
+    "country": "BR"
+  },
+  {
+    "ip": "195.60.166.238",
+    "port": 2402,
+    "queryPort": 27017,
+    "country": "GB"
+  },
+  {
+    "ip": "222.103.154.62",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "KR"
+  },
+  {
+    "ip": "145.239.139.225",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "188.40.124.111",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "5.83.171.45",
+    "port": 10600,
+    "queryPort": 10601,
+    "country": "DE"
+  },
+  {
+    "ip": "146.66.12.4",
+    "port": 2402,
+    "queryPort": 27017,
+    "country": "RU"
+  },
+  {
+    "ip": "86.31.19.242",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "GB"
+  },
+  {
+    "ip": "51.195.74.63",
+    "port": 2491,
+    "queryPort": 2492,
+    "country": "DE"
+  },
+  {
+    "ip": "23.111.240.213",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "NL"
+  },
+  {
+    "ip": "63.143.62.108",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "US"
+  },
+  {
+    "ip": "213.246.45.191",
+    "port": 2402,
+    "queryPort": 27116,
+    "country": "FR"
+  },
+  {
+    "ip": "92.185.3.38",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "ES"
+  },
+  {
+    "ip": "5.62.127.138",
+    "port": 11200,
+    "queryPort": 11201,
+    "country": "GB"
+  },
+  {
+    "ip": "57.128.189.25",
+    "port": 2302,
+    "queryPort": 2307,
+    "country": "GB"
+  },
+  {
+    "ip": "185.207.214.179",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "86.147.90.246",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "GB"
+  },
+  {
+    "ip": "37.18.21.189",
+    "port": 2902,
+    "queryPort": 2903,
+    "country": "RU"
+  },
+  {
+    "ip": "134.255.218.148",
+    "port": 2368,
+    "queryPort": 2369,
+    "country": "DE"
+  },
+  {
+    "ip": "87.98.129.61",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "FR"
+  },
+  {
+    "ip": "177.33.14.198",
+    "port": 2302,
+    "queryPort": 27017,
+    "country": "BR"
+  },
+  {
+    "ip": "185.189.255.203",
+    "port": 2402,
+    "queryPort": 2405,
+    "country": "RU"
+  },
+  {
+    "ip": "188.113.140.160",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "5.83.165.27",
+    "port": 10600,
+    "queryPort": 10601,
+    "country": "DE"
+  },
+  {
+    "ip": "85.88.181.157",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "RU"
+  },
+  {
+    "ip": "94.16.31.101",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "AT"
+  },
+  {
+    "ip": "185.207.214.101",
+    "port": 2302,
+    "queryPort": 23023,
+    "country": "RU"
+  },
+  {
+    "ip": "93.127.102.187",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "UA"
+  },
+  {
+    "ip": "23.106.231.71",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "JP"
+  },
+  {
+    "ip": "109.76.213.244",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "IE"
+  },
+  {
+    "ip": "5.42.211.62",
+    "port": 2302,
+    "queryPort": 2306,
+    "country": "RU"
+  },
+  {
+    "ip": "54.36.176.116",
+    "port": 2888,
+    "queryPort": 2883,
+    "country": "FR"
+  },
+  {
+    "ip": "172.111.51.208",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "US"
+  },
+  {
+    "ip": "46.174.49.168",
+    "port": 2502,
+    "queryPort": 2503,
+    "country": "RU"
+  },
+  {
+    "ip": "46.174.49.168",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "RU"
+  },
+  {
+    "ip": "46.174.49.168",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "RU"
+  },
+  {
+    "ip": "65.26.244.41",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "US"
+  },
+  {
+    "ip": "185.189.255.118",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "RU"
+  },
+  {
+    "ip": "213.239.205.85",
+    "port": 2602,
+    "queryPort": 2603,
+    "country": "DE"
+  },
+  {
+    "ip": "95.165.9.82",
+    "port": 2602,
+    "queryPort": 27319,
+    "country": "RU"
+  },
+  {
+    "ip": "116.202.233.190",
+    "port": 2402,
+    "queryPort": 27017,
+    "country": "DE"
+  },
+  {
+    "ip": "195.18.27.35",
+    "port": 2602,
+    "queryPort": 2607,
+    "country": "RU"
+  },
+  {
+    "ip": "137.74.201.205",
+    "port": 2702,
+    "queryPort": 2703,
+    "country": "FR"
+  },
+  {
+    "ip": "185.207.214.239",
+    "port": 2802,
+    "queryPort": 2803,
+    "country": "RU"
+  },
+  {
+    "ip": "216.173.119.234",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "US"
+  },
+  {
+    "ip": "57.128.211.187",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "PL"
+  },
+  {
+    "ip": "116.202.174.104",
+    "port": 2802,
+    "queryPort": 2803,
+    "country": "DE"
+  },
+  {
+    "ip": "109.248.4.212",
+    "port": 2218,
+    "queryPort": 2219,
+    "country": "RU"
+  },
+  {
+    "ip": "109.248.4.212",
+    "port": 2212,
+    "queryPort": 2213,
+    "country": "RU"
+  },
+  {
+    "ip": "109.248.4.212",
+    "port": 2200,
+    "queryPort": 2201,
+    "country": "RU"
+  },
+  {
+    "ip": "217.24.173.176",
+    "port": 2402,
+    "queryPort": 27018,
+    "country": "UA"
+  },
+  {
+    "ip": "45.92.39.111",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "US"
+  },
+  {
+    "ip": "146.59.53.80",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "PL"
+  },
+  {
+    "ip": "189.19.134.4",
+    "port": 2306,
+    "queryPort": 27017,
+    "country": "BR"
+  },
+  {
+    "ip": "185.189.255.153",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "172.83.152.62",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "US"
+  },
+  {
+    "ip": "66.66.145.250",
+    "port": 3602,
+    "queryPort": 3603,
+    "country": "US"
+  },
+  {
+    "ip": "45.155.173.131",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "185.207.214.17",
+    "port": 2602,
+    "queryPort": 2719,
+    "country": "RU"
+  },
+  {
+    "ip": "193.25.252.54",
+    "port": 3302,
+    "queryPort": 3303,
+    "country": "NL"
+  },
+  {
+    "ip": "45.142.89.248",
+    "port": 2320,
+    "queryPort": 2321,
+    "country": "UA"
+  },
+  {
+    "ip": "5.249.162.99",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "170.82.111.237",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "BR"
+  },
+  {
+    "ip": "90.250.9.148",
+    "port": 2369,
+    "queryPort": 2370,
+    "country": "GB"
+  },
+  {
+    "ip": "15.204.215.104",
+    "port": 2802,
+    "queryPort": 2803,
+    "country": "US"
+  },
+  {
+    "ip": "186.50.206.73",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "UY"
+  },
+  {
+    "ip": "46.4.98.58",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "DE"
+  },
+  {
+    "ip": "188.255.171.167",
+    "port": 2312,
+    "queryPort": 27017,
+    "country": "BR"
+  },
+  {
+    "ip": "88.99.92.184",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "79.205.189.77",
+    "port": 2602,
+    "queryPort": 2603,
+    "country": "DE"
+  },
+  {
+    "ip": "172.111.51.75",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "US"
+  },
+  {
+    "ip": "94.16.31.101",
+    "port": 2502,
+    "queryPort": 2503,
+    "country": "AT"
+  },
+  {
+    "ip": "37.187.226.138",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "FR"
+  },
+  {
+    "ip": "82.43.129.11",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "GB"
+  },
+  {
+    "ip": "194.50.234.71",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "GB"
+  },
+  {
+    "ip": "194.50.234.178",
+    "port": 2491,
+    "queryPort": 2492,
+    "country": "GB"
+  },
+  {
+    "ip": "104.234.251.165",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "GB"
+  },
+  {
+    "ip": "212.22.93.17",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "212.22.92.2",
+    "port": 2312,
+    "queryPort": 2315,
+    "country": "RU"
+  },
+  {
+    "ip": "213.234.197.140",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "RU"
+  },
+  {
+    "ip": "188.191.80.93",
+    "port": 2502,
+    "queryPort": 2505,
+    "country": "RU"
+  },
+  {
+    "ip": "62.84.181.3",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "FR"
+  },
+  {
+    "ip": "142.132.134.45",
+    "port": 2306,
+    "queryPort": 2309,
+    "country": "DE"
+  },
+  {
+    "ip": "82.88.201.221",
+    "port": 2302,
+    "queryPort": 27016,
+    "country": "IT"
+  },
+  {
+    "ip": "51.75.61.220",
+    "port": 2402,
+    "queryPort": 2403,
+    "country": "PL"
+  },
+  {
+    "ip": "80.242.59.122",
+    "port": 2302,
+    "queryPort": 2305,
+    "country": "RU"
+  },
+  {
+    "ip": "85.190.153.194",
+    "port": 11100,
+    "queryPort": 11101,
+    "country": "US"
+  },
+  {
+    "ip": "45.7.120.136",
+    "port": 2305,
+    "queryPort": 27016,
+    "country": "BR"
+  },
+  {
+    "ip": "193.135.10.184",
+    "port": 20365,
+    "queryPort": 20366,
+    "country": "DE"
+  },
+  {
+    "ip": "208.115.251.67",
+    "port": 2302,
+    "queryPort": 2303,
+    "country": "DE"
+  },
+  {
+    "ip": "178.136.101.250",
+    "port": 24842,
+    "queryPort": 24843,
+    "country": "UA"
   }
 ]
