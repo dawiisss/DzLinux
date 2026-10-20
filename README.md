@@ -69,8 +69,6 @@ This command can also be used to update the version if you are using .deb / .rpm
 ### Favorites
 - **Find and Organize Servers**: Search saved servers by label, name, address or map; sort by saved order, name, fresh ping/population, or retained last use. Pin favorites above other matching results and organize them into optional groups. Long lists and expanded mod details remain scrollable.
 - **Add by Address**: Paste IPv4/hostname addresses or bracketed IPv6, check a lightweight server preview, and save it. Unreachable servers can be saved explicitly with unknown measurements. Personal labels stay separate from the actual server name.
-- **Honest Refresh Feedback**: Refresh all favorites or one server, see progress, cancel a batch, and keep clearly marked last-known values after failures. Unknown measurements are shown as unknown; Favorites has no periodic polling.
-- **Shared Server Tools**: Keep expandable Workshop mod details, download totals and subscription controls. Manual mod refreshes stay synchronized across Favorites and Server Browser, with newer requests superseding older queries. Connect uses fresh mod requirements and checks cancellation immediately before launching. Failed mod queries remain marked unavailable. Watchlist status and Create/Edit watch actions use the existing Watchlist editor.
 - **Safe Storage**: Favorites stay in settings.json with targeted main-process mutations. Migration preserves saved order, names and query ports, backs up only the old Favorites payload, and keeps previous saved names available for reuse as labels. Preference resets preserve favorites/groups; invalid collections are reported rather than silently emptied.
 
 ### Watchlist and Auto-Join System
@@ -79,16 +77,12 @@ This command can also be used to update the version if you are using .deb / .rpm
 - **Alert Controls**: New watches alert once and pause. Keep watching rearms after a new qualifying episode with a 1-, 5-, or 15-minute cooldown; continuously matching conditions do not produce periodic reminders. Use Watch again, Snooze 15 minutes, or Wake now explicitly. Connect and its action menu stay aligned, with Watch again on a separate line.
 - **Predictable Auto-Join**: Opt in per server and set priority (1 highest). One five-second countdown runs at a time, followed by a fresh condition check, fresh server mod requirements, and the existing installed/missing-mod workflow. Manual connections take precedence. A successful launch request suspends further automatic offers until Resume auto-join is selected; notifications continue.
 - **Background Monitoring**: Main-process polling continues across tab changes and minimized windows while DzLinux runs. Automatic polling can be disabled separately; Refresh still evaluates eligible watches. Closing the application stops monitoring. Sleep/resume resets outage continuity and expires old countdowns.
-- **Safe Migration**: Existing fixed player thresholds retain their exact semantics, including “at most N players”; they are not converted using guessed capacity. Migration saves the original array in watchlist.json.v1-backup. Failed/corrupt-file loads are surfaced without replacing the original with an empty watchlist.
-- **Availability Limits**: Reported free slots do not reserve a place or expose game queue positions. “Unreachable” is a failed query from this client, not proof of server downtime. Desktop/in-app alerts are best effort; a crash between saving an alert latch and delivery can lose an alert.
 
 ### History and Recorded Activity
 - **Recent Servers**: Find previously used servers with readable map names, relative dates, search, Most recent/Most used sorting, and last-use filters.
 - **Join Again**: Requery the server's current mod requirements, check installed mods, and use the existing missing-mod sync flow before launching. A failed query stops the join rather than using stale requirements.
 - **Expandable Activity**: Inspect timestamped connection attempts, recorded ping and population, and statistics for 24-hour, 7-day, and 30-day periods. These are observations recorded around Connect requests, not confirmed gameplay sessions or continuous monitoring.
-- **Secondary Actions**: Add favorites, copy server addresses, or remove history through labeled action menus. Destructive actions require confirmation.
 - **Local Retention**: History is stored in history.json with a 30-day policy, a 500-server cap, and up to 200 recent observations per server. Aggregate counts may exceed the retained observations. Pending History writes are completed during graceful shutdown.
-- **Notes Removed**: Notes are no longer shown, searched, or editable. Existing stored note text is preserved during migration.
 
 ### Performance Tuning and Game Optimization
 - Inject optimal launch arguments with simple toggles: `-nosplash`, `-noPause`, `-limitFPS`, etc.
