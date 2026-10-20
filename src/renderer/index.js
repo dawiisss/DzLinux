@@ -5,7 +5,7 @@ import { initTheme } from "./theme.js";
 import { initSettings } from "./settings.js";
 import { initModManager, refreshLocalModsCache } from "./modManager.js";
 import { initFavorites } from "./favorites.js";
-import { initWatchlist, startWatchlistPoll } from "./watchlist.js";
+import { initWatchlist } from "./watchlist.js";
 import { initContextMenu } from "./contextMenu.js";
 import { initServerBrowser, refreshServers } from "./serverBrowser.js";
 import { initUpdater } from "./updater.js";
@@ -13,7 +13,6 @@ import { initCrashDiagnostic } from "./crashDiagnostic.js";
 import { initSteamProfile } from "./steamProfile.js";
 import { initUIBehavior, applyTabVisibility } from "./ui-behavior.js";
 import { initHistoryManager, loadAndRenderHistory } from "./history.js";
-import { initHistoryChartModal } from "./historyChartModal.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Version
@@ -47,7 +46,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await safeInit("Favorites", initFavorites);
   await safeInit("Watchlist", initWatchlist);
   await safeInit("History", initHistoryManager);
-  await safeInit("HistoryChartModal", initHistoryChartModal);
   await safeInit("ContextMenu", initContextMenu);
   await safeInit("ServerBrowser", initServerBrowser);
   await safeInit("Updater", initUpdater);
@@ -62,10 +60,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     refreshServers();
   } catch (e) {
     console.error("Failed to run initial refreshServers:", e);
-  }
-  try {
-    startWatchlistPoll();
-  } catch (e) {
-    console.error("Failed to run initial startWatchlistPoll:", e);
   }
 });

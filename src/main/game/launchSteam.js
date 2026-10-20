@@ -2,7 +2,7 @@ const { execFile } = require("node:child_process");
 const steamworksManager = require("../steamworksManager");
 const { sanitizeArg } = require("./prepareEnv");
 
-async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) {
+async function launchViaSteam(ip, port, modString, extraParams, handleGameExit, assertCurrent = () => {}) {
   const steamArgs = ["-applaunch", "221100", "-noLauncher"];
   if (ip) {
     const portStr = port !== undefined && port !== null ? String(port) : "2302";
@@ -19,6 +19,12 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit) 
   console.log(`Launching DayZ via steam with args: ${steamArgs.join(" ")}`);
 
   await steamworksManager.lockAndDelayForLaunch();
+  try {
+    assertCurrent();
+  } catch (error) {
+    steamworksManager.unlockForLaunch();
+    throw error;
+  }
 
   return new Promise((resolve, reject) => {
     const child = execFile("steam", steamArgs, (error, _stdout, _stderr) => {

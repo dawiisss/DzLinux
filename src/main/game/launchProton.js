@@ -93,7 +93,7 @@ async function scanProtonVersions(refresh = false) {
   return unique;
 }
 
-async function launchViaProton(args, settings, handleGameExit) {
+async function launchViaProton(args, settings, handleGameExit, assertCurrent = () => {}) {
   if (!settings.protonPath || typeof settings.protonPath !== "string") {
     throw new Error(
       "No Proton path configured. Set a custom Proton version in Settings.",
@@ -209,6 +209,12 @@ async function launchViaProton(args, settings, handleGameExit) {
 
     const cmd = execArgs[0];
     const argsList = execArgs.slice(1);
+    try {
+      assertCurrent();
+    } catch (error) {
+      steamworksManager.unlockForLaunch();
+      throw error;
+    }
 
     return new Promise((resolve, reject) => {
       const child = spawn(cmd, argsList, { env, stdio: "ignore" });
@@ -233,6 +239,12 @@ async function launchViaProton(args, settings, handleGameExit) {
     console.log(`Executing: ${wrappedArgs.join(" ")}`);
 
     await steamworksManager.lockAndDelayForLaunch();
+    try {
+      assertCurrent();
+    } catch (error) {
+      steamworksManager.unlockForLaunch();
+      throw error;
+    }
 
     return new Promise((resolve, reject) => {
       const child = spawn(wrappedArgs[0], wrappedArgs.slice(1), {

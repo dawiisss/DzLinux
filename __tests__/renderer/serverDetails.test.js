@@ -7,7 +7,6 @@ jest.mock("../../src/renderer/modManager.js", () => ({
 
 const { state } = require("../../src/renderer/state.js");
 const { renderServers } = require("../../src/renderer/serverBrowser/serverBrowserTable.js");
-const { renderFavoritesManager } = require("../../src/renderer/favorites.js");
 const { cancelServerModQueries } = require("../../src/renderer/serverMods.js");
 
 let server;
@@ -53,8 +52,7 @@ async function settleQuery() {
   await Promise.resolve();
 }
 
-test("completed mods replace the preserved loader in both views without another click", async () => {
-  renderFavoritesManager();
+test("completed mods replace the preserved browser loader without another click", async () => {
   const mainRow = document.getElementById("row-test-server");
   const detail = document.getElementById("detail-test-server");
   detail.scrollTop = 42;
@@ -66,14 +64,12 @@ test("completed mods replace the preserved loader in both views without another 
   resolveQuery([{ id: "123", name: "CF" }, { id: "456", name: "Community tools" }]);
   await settleQuery();
 
-  for (const prefix of ["", "fav-"]) {
-    const visible = document.getElementById(`${prefix}detail-test-server`);
-    expect(visible.textContent).toContain("CF");
-    expect(visible.textContent).toContain("Community tools");
-    expect(visible.textContent).toContain("Mods (2)");
-    expect(visible.textContent).not.toContain("Querying server");
-    expect(document.getElementById(`${prefix}row-test-server`).querySelector(".server-mod-count").textContent).toBe("2");
-  }
+  const visible = document.getElementById("detail-test-server");
+  expect(visible.textContent).toContain("CF");
+  expect(visible.textContent).toContain("Community tools");
+  expect(visible.textContent).toContain("Mods (2)");
+  expect(visible.textContent).not.toContain("Querying server");
+  expect(document.getElementById("row-test-server").querySelector(".server-mod-count").textContent).toBe("2");
   expect(document.getElementById("detail-test-server").scrollTop).toBe(42);
   expect(document.getElementById("row-test-server")).toBe(mainRow);
   expect(window.api.servers.queryMods).toHaveBeenCalledTimes(1);

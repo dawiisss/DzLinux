@@ -1,577 +1,116 @@
-import { state } from "./state.js";
-import { showToast, copyToClipboard } from "./feedback.js";
-import { getPlayerBadgeClass } from "./utils.js";
+import { showToast, showConfirmModal, copyToClipboard } from "./feedback.js";
+import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
+import { createWatchlistView, relativeTime } from "./watchlist/watchlistView.js";
+import { openWatchEditor } from "./watchlist/watchlistEditor.js";
+import { createAutoJoinController } from "./watchlist/autoJoinController.js";
 
-export function startWatchlistPoll() {
-  if (state.watchlist.pollInterval) clearInterval(state.watchlist.pollInterval);
-  state.watchlist.pollInterval = null;
+let current = null;
+let view = null;
+let autoJoin = null;
+let initialized = false;
+let visible = false;
+let relativeTimer = null;
+const subscriptions = [];
+const api = () => window.api.watchlist;
+const fail = (error) => showToast(error.message || "Watchlist request failed", "var(--accent-red)", "alert");
 
-  // Respect user setting: skip starting background poll if watchlist or polling is disabled
-  if (
-    state.settings.watchlistRefreshEnabled === false ||
-    state.settings.showWatchlistTab === false ||
-    state.settings.enableWatchlist === false
-  ) {
-    return;
-  }
-
-  const pollSeconds = parseInt(state.settings.watchlistRefreshTime, 10) || 10;
-
-  let pollInProgress = false;
-
-  const poll = async () => {
-    if (pollInProgress) return;
-    pollInProgress = true;
-    try {
-      const watchlist = await window.api.watchlist.load();
-      const activeItems = watchlist.filter((item) => item.active);
-      if (activeItems.length === 0) {
-        pollInProgress = false;
-        return;
-      }
-
-      const dirtyItems = [];
-
-      const serverMap = new Map();
-      for (const s of state.allServers) {
-        serverMap.set(`${s.ip}:${s.port}`, s);
-      }
-
-      const results = await Promise.allSettled(
-        activeItems.map((item) => {
-          const allServersMatch = serverMap.get(`${item.ip}:${item.port}`);
-          const masterQueryPort = allServersMatch?.queryPort;
-          if (masterQueryPort && masterQueryPort !== item.queryPort) {
-            item.queryPort = masterQueryPort;
-            dirtyItems.push(item);
-          }
-          const queryPort = item.queryPort || masterQueryPort || null;
-          return window.api.servers
-            .ping(item.ip, item.port, queryPort)
-            .then((result) => {
-              if (result === null) return null;
-              if (allServersMatch) {
-                allServersMatch.realPing = result.ping;
-                if (result.status) allServersMatch.status = result.status;
-                if (result.players !== null)
-                  allServersMatch.players = result.players;
-                if (result.maxPlayers !== null)
-                  allServersMatch.maxPlayers = result.maxPlayers;
-                if (result.name && allServersMatch.name === "Unknown Server")
-                  allServersMatch.name = result.name;
-                allServersMatch.failedPing = false;
-              }
-              return {
-                ip: item.ip,
-                port: item.port,
-                name: item.name,
-                status: result.status,
-                players: result.players !== null ? result.players : 0,
-                maxPlayers: result.maxPlayers || 60,
-              };
-            });
-        }),
-      );
-
-      if (dirtyItems.length > 0) {
-        await window.api.watchlist
-          .save(watchlist)
-          .catch((err) =>
-            console.error("[Watchlist] Failed to sync queryPort:", err),
-          );
-      }
-
-      const serverStates = results
-        .filter((r) => r.status === "fulfilled" && r.value !== null)
-        .map((r) => r.value);
-
-      if (serverStates.length > 0) {
-        window.api.watchlist
-          .checkThresholds(serverStates)
-          .catch((err) =>
-            console.error("[Watchlist] Threshold check error:", err),
-          );
-      }
-
-      renderWatchlist();
-    } catch (err) {
-      console.error("[Watchlist] Poll failed:", err);
-    } finally {
-      pollInProgress = false;
-    }
-  };
-
-  state.watchlist.pollInterval = setInterval(poll, pollSeconds * 1000);
+function accept(snapshot) {
+  if (current && snapshot.revision < current.revision) return;
+  current = snapshot;
+  update();
+  autoJoin?.update(snapshot);
 }
-
+function update() {
+  if (!current || !view) return;
+  if (visible) view.render(current);
+  const refresh = document.getElementById("refreshWatchlistBtn");
+  refresh.disabled = current.refreshing || !current.enabled || !current.entries.length;
+  refresh.querySelector("span").textContent = current.refreshing ? "Refreshing…" : "Refresh";
+  const status = document.getElementById("watchlistMonitoring");
+  status.textContent = !current.enabled ? "Watchlist is disabled in Settings" : current.polling ? "Monitoring while DzLinux is running" : "Automatic polling is disabled · Refresh checks active watches";
+  const last = document.getElementById("watchlistLastCheck");
+  last.textContent = current.refreshing ? "Checking watched servers…" : current.lastCheckedAt ? relativeTime(current.lastCheckedAt) : "No completed checks yet";
+  if (current.nextCheckAt && current.polling) last.textContent += " · Next check in " + Math.max(0, Math.ceil((current.nextCheckAt - Date.now()) / 1000)) + "s";
+  const banner = document.getElementById("watchlistError");
+  banner.hidden = !current.error;
+  banner.querySelector("span").textContent = current.error || "";
+  document.getElementById("resumeWatchlistAutoJoin").hidden = !current.autoJoin.suspended;
+  document.getElementById("watchlistAutoJoinStatus").hidden = !current.autoJoin.suspended;
+}
 export async function renderWatchlist() {
-  const tbody = document.getElementById("watchlistListBody");
-  if (!tbody) return;
-
-  tbody.replaceChildren();
-  const loadingTr = document.createElement("tr");
-  const loadingTd = document.createElement("td");
-  loadingTd.colSpan = 8;
-  loadingTd.className = "empty-state-msg";
-  loadingTd.textContent = "Loading watchlist...";
-  loadingTr.appendChild(loadingTd);
-  tbody.appendChild(loadingTr);
-
+  try { accept(await api().getSnapshot()); }
+  catch (error) {
+    const banner = document.getElementById("watchlistError");
+    if (banner) { banner.hidden = false; banner.querySelector("span").textContent = "Unable to load Watchlist: " + error.message; }
+  }
+}
+async function action(type, id) {
   try {
-    const watchlist = await window.api.watchlist.load();
-    tbody.replaceChildren();
-
-    if (watchlist.length === 0) {
-      const emptyTr = document.createElement("tr");
-      const emptyTd = document.createElement("td");
-      emptyTd.colSpan = 8;
-      emptyTd.className = "empty-state-msg";
-      emptyTd.textContent =
-        "Your watchlist is empty. Right-click a server to start watching.";
-      emptyTr.appendChild(emptyTd);
-      tbody.appendChild(emptyTr);
-      return;
+    if (type === "browse") { document.dispatchEvent(new CustomEvent("dzlinux:switch-tab", { detail: { tab: "browser" } })); return; }
+    const entry = current?.entries.find((item) => item.id === id);
+    if (!entry) return;
+    if (type === "edit") { openWatchEditor(entry, entry); return; }
+    if (type === "connect") { await connectToServer(entry.ip, entry.port, { serverContext: entry, forceModQuery: true }); return; }
+    if (type === "copy") { copyToClipboard(entry.ip + ":" + entry.port); return; }
+    if (type === "remove") {
+      if (!await showConfirmModal("Remove the watch for " + (entry.name || entry.ip) + "?")) return;
+      accept(await api().remove(id)); return;
     }
-
-    const serverMap = new Map();
-    for (const s of state.allServers) {
-      serverMap.set(`${s.ip}:${s.port}`, s);
-    }
-
-    watchlist.forEach((item) => {
-      const server = serverMap.get(`${item.ip}:${item.port}`);
-      const tr = document.createElement("tr");
-      tr.className = "server-row";
-
-      // Active toggle
-      const tdActive = document.createElement("td");
-      tdActive.style.textAlign = "center";
-      const label = document.createElement("label");
-      label.className = "switch";
-      const input = document.createElement("input");
-      input.type = "checkbox";
-      input.checked = item.active;
-      input.setAttribute(
-        "aria-label",
-        `Toggle Watchlist Active Status for ${item.name || "Unknown Server"}`,
-      );
-      input.title = "Toggle Watchlist Status";
-      input.addEventListener("change", async () => {
-        const currentList = await window.api.watchlist.load();
-        const target = currentList.find(
-          (w) => w.ip === item.ip && String(w.port) === String(item.port),
-        );
-        if (target) {
-          target.active = input.checked;
-          target.lastStatus = "idle";
-          await window.api.watchlist.save(currentList);
-        }
-        item.active = input.checked;
-        item.lastStatus = "idle";
-        await renderWatchlist();
-        showToast(
-          `Watchlist: ${item.name || "Unknown Server"} ${item.active ? "activated" : "deactivated"}`,
-          item.active ? "var(--accent-green)" : "var(--text-dim)",
-          "eye",
-        );
-      });
-      const span = document.createElement("span");
-      span.className = "slider";
-      label.appendChild(input);
-      label.appendChild(span);
-      tdActive.appendChild(label);
-
-      // Auto-Join toggle
-      const tdAutoJoin = document.createElement("td");
-      tdAutoJoin.style.textAlign = "center";
-      const autoJoinLabel = document.createElement("label");
-      autoJoinLabel.className = "switch";
-      const autoJoinInput = document.createElement("input");
-      autoJoinInput.type = "checkbox";
-      autoJoinInput.checked = !!item.autoJoin;
-      autoJoinInput.setAttribute(
-        "aria-label",
-        `Toggle Auto-Join on Notify for ${item.name || "Unknown Server"}`,
-      );
-      autoJoinInput.title = "Auto-Join on Notify";
-      autoJoinInput.addEventListener("change", async () => {
-        const currentList = await window.api.watchlist.load();
-        const target = currentList.find(
-          (w) => w.ip === item.ip && String(w.port) === String(item.port),
-        );
-        if (target) {
-          target.autoJoin = autoJoinInput.checked;
-          await window.api.watchlist.save(currentList);
-        }
-        item.autoJoin = autoJoinInput.checked;
-        showToast(
-          `Auto-Join ${item.autoJoin ? "enabled" : "disabled"} for ${item.name || "Server"}`,
-          item.autoJoin ? "var(--accent-green)" : "var(--text-dim)",
-          "bell",
-        );
-      });
-      const autoJoinSpan = document.createElement("span");
-      autoJoinSpan.className = "slider";
-      autoJoinLabel.appendChild(autoJoinInput);
-      autoJoinLabel.appendChild(autoJoinSpan);
-      tdAutoJoin.appendChild(autoJoinLabel);
-
-      // Name
-      const tdName = document.createElement("td");
-      tdName.className = "server-name-cell";
-      tdName.textContent =
-        item.name || (server ? server.name : "Unknown Server");
-
-      // Players
-      const tdPlayers = document.createElement("td");
-      const playerBadge = document.createElement("span");
-      if (server && !server.failedPing && server.realPing !== -1) {
-        const bc = getPlayerBadgeClass(server.players, server.maxPlayers);
-        playerBadge.className = `player-badge ${bc}`;
-        playerBadge.textContent = `${server.players}/${server.maxPlayers}`;
-      } else {
-        playerBadge.className = "player-badge low";
-        playerBadge.style.opacity = "0.5";
-        playerBadge.textContent = "Offline";
-      }
-      tdPlayers.appendChild(playerBadge);
-
-      // Threshold slider
-      const tdThreshold = document.createElement("td");
-      const sliderContainer = document.createElement("div");
-      sliderContainer.className = "threshold-slider-container";
-      const slider = document.createElement("input");
-      slider.type = "range";
-      slider.className = "threshold-slider";
-      slider.setAttribute(
-        "aria-label",
-        `Player count threshold for ${item.name || "Unknown Server"}`,
-      );
-      slider.min = "0";
-      slider.max = "127";
-      slider.value = item.threshold || 50;
-      const readout = document.createElement("div");
-      readout.className = "threshold-readout";
-      const modeLabel = document.createElement("span");
-      modeLabel.setAttribute("role", "button");
-      modeLabel.setAttribute("tabindex", "0");
-      modeLabel.textContent =
-        (item.mode || "below") === "below"
-          ? "Notify when slots open (<=)"
-          : "Notify when target reached (>=)";
-      modeLabel.setAttribute(
-        "aria-label",
-        (item.mode || "below") === "below"
-          ? "Current mode: Notify when slots open. Click to toggle."
-          : "Current mode: Notify when target reached. Click to toggle.",
-      );
-      modeLabel.title = "Toggle Watchlist Notification Mode";
-      modeLabel.style.cursor = "pointer";
-
-      const toggleMode = async () => {
-        const currentList = await window.api.watchlist.load();
-        const target = currentList.find(
-          (w) => w.ip === item.ip && String(w.port) === String(item.port),
-        );
-        const nextMode = (item.mode || "below") === "below" ? "above" : "below";
-        if (target) {
-          target.mode = nextMode;
-          await window.api.watchlist.save(currentList);
-        }
-        item.mode = nextMode;
-        modeLabel.textContent =
-          item.mode === "below"
-            ? "Notify when slots open (<=)"
-            : "Notify when target reached (>=)";
-        modeLabel.setAttribute(
-          "aria-label",
-          item.mode === "below"
-            ? "Current mode: Notify when slots open. Click to toggle."
-            : "Current mode: Notify when target reached. Click to toggle.",
-        );
-      };
-
-      modeLabel.addEventListener("click", toggleMode);
-      modeLabel.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          toggleMode();
-        }
-      });
-
-      const valueReadout = document.createElement("span");
-      valueReadout.textContent = slider.value;
-      valueReadout.style.color = "var(--accent)";
-      valueReadout.style.fontWeight = "bold";
-
-      slider.addEventListener("input", () => {
-        valueReadout.textContent = slider.value;
-      });
-
-      slider.addEventListener("change", async () => {
-        const newThreshold = parseInt(slider.value, 10);
-        const currentList = await window.api.watchlist.load();
-        const target = currentList.find(
-          (w) => w.ip === item.ip && String(w.port) === String(item.port),
-        );
-        if (target) {
-          target.threshold = newThreshold;
-          await window.api.watchlist.save(currentList);
-        }
-        item.threshold = newThreshold;
-        showToast(
-          `Threshold updated to ${item.threshold} players`,
-          "var(--accent)",
-          "target",
-        );
-      });
-
-      readout.appendChild(modeLabel);
-      readout.appendChild(valueReadout);
-      sliderContainer.appendChild(slider);
-      sliderContainer.appendChild(readout);
-      tdThreshold.appendChild(sliderContainer);
-
-      // Last Status
-      const tdStatus = document.createElement("td");
-      const statusBadge = document.createElement("span");
-      statusBadge.className = "hud-badge";
-      statusBadge.style.fontSize = "0.7rem";
-      statusBadge.style.cursor = "pointer";
-      statusBadge.title = "Click to reset status to Monitoring";
-      statusBadge.setAttribute("role", "button");
-      statusBadge.setAttribute("tabindex", "0");
-      statusBadge.setAttribute(
-        "aria-label",
-        `Current status: ${item.lastStatus === "notified" ? "Notified" : "Monitoring"}. Click to reset to Monitoring.`,
-      );
-
-      if (item.lastStatus === "notified") {
-        statusBadge.textContent = "🔔 Notified";
-        statusBadge.className += " badge-approved";
-      } else {
-        statusBadge.textContent = "🛰️ Monitoring";
-        statusBadge.className += " badge-time";
-      }
-
-      const resetStatus = async () => {
-        if (item.lastStatus === "notified") {
-          const currentList = await window.api.watchlist.load();
-          const target = currentList.find(
-            (w) => w.ip === item.ip && String(w.port) === String(item.port),
-          );
-          if (target) {
-            target.lastStatus = "idle";
-            await window.api.watchlist.save(currentList);
-          }
-          item.lastStatus = "idle";
-          await renderWatchlist();
-          showToast(
-            `Status reset to Monitoring for ${item.name || "Server"}`,
-            "var(--accent)",
-            "rotate-ccw",
-          );
-        }
-      };
-
-      statusBadge.addEventListener("click", resetStatus);
-      statusBadge.addEventListener("keydown", (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          resetStatus();
-        }
-      });
-
-      tdStatus.appendChild(statusBadge);
-
-      // IP
-      const tdIp = document.createElement("td");
-      const ipSpan = document.createElement("span");
-      ipSpan.className = "ip-cell";
-      ipSpan.textContent = `${item.ip}:${item.port}`;
-      ipSpan.addEventListener("click", () =>
-        copyToClipboard(`${item.ip}:${item.port}`),
-      );
-      tdIp.appendChild(ipSpan);
-
-      // Actions
-      const tdAction = document.createElement("td");
-      tdAction.style.textAlign = "right";
-      tdAction.style.whiteSpace = "nowrap";
-      const connectBtn = document.createElement("button");
-      connectBtn.className = "btn-connect";
-      connectBtn.style.marginRight = "6px";
-      connectBtn.textContent = "Connect";
-      connectBtn.addEventListener("click", () => {
-        const target = server || { ip: item.ip, port: item.port };
-        document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server: target } }));
-      });
-      tdAction.appendChild(connectBtn);
-
-      const delBtn = document.createElement("button");
-      delBtn.className = "btn-ping";
-      delBtn.style.color = "var(--accent-red)";
-      delBtn.style.borderColor = "var(--accent-red)";
-      delBtn.innerHTML = `<app-icon name="trash" stroke-width="2.2" style="width: 1rem; height: 1rem;"></app-icon>`;
-      delBtn.title = "Remove from Watchlist";
-      delBtn.setAttribute("aria-label", "Remove from Watchlist");
-      delBtn.addEventListener("click", async () => {
-        const currentList = await window.api.watchlist.load();
-        const filteredList = currentList.filter(
-          (w) => !(w.ip === item.ip && String(w.port) === String(item.port)),
-        );
-        await window.api.watchlist.save(filteredList);
-        renderWatchlist();
-        showToast("Removed from watchlist", "var(--accent-red)", "trash");
-      });
-      tdAction.appendChild(delBtn);
-
-      tr.appendChild(tdActive);
-      tr.appendChild(tdAutoJoin);
-      tr.appendChild(tdName);
-      tr.appendChild(tdPlayers);
-      tr.appendChild(tdThreshold);
-      tr.appendChild(tdStatus);
-      tr.appendChild(tdIp);
-      tr.appendChild(tdAction);
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.error("Watchlist render fail", e);
-    const errorTr = document.createElement("tr");
-    const errorTd = document.createElement("td");
-    errorTd.colSpan = 8;
-    errorTd.className = "empty-state-msg text-red";
-    errorTd.textContent = "Failed to load watchlist.";
-    errorTr.appendChild(errorTd);
-    tbody.appendChild(errorTr);
-  }
+    if (type === "pause" || type === "resume") accept(await api().setEnabled(id, type === "resume"));
+    else if (["snooze", "wake", "rearm"].includes(type)) accept(await api()[type](id));
+  } catch (error) { fail(error); }
 }
-
-let autoJoinTimer = null;
-
-export function showAutoJoinModal(server, options = {}) {
-  if (!server || !server.ip || !server.port) return;
-  const modal = document.getElementById("autoJoinModal");
-  if (!modal) return;
-
-  const serverNameEl = document.getElementById("autoJoinServerName");
-  const serverIpEl = document.getElementById("autoJoinServerIp");
-  const circleEl = document.getElementById("autoJoinCountdownCircle");
-  const subtitleEl = document.getElementById("autoJoinSubtitle");
-
-  if (serverNameEl) serverNameEl.textContent = server.name || "Unknown Server";
-  if (serverIpEl) serverIpEl.textContent = `${server.ip}:${server.port}`;
-
-  if (autoJoinTimer) {
-    clearInterval(autoJoinTimer);
-    autoJoinTimer = null;
-  }
-
-  const useTimer = options.timer !== false;
-
-  const closeModal = () => {
-    if (autoJoinTimer) {
-      clearInterval(autoJoinTimer);
-      autoJoinTimer = null;
-    }
-    modal.style.display = "none";
-  };
-
-  const executeJoin = () => {
-    closeModal();
-    document.dispatchEvent(
-      new CustomEvent("dzlinux:connect-server", { detail: { server } }),
-    );
-  };
-
-  const handleCancel = () => {
-    closeModal();
-    showToast("Connection cancelled", "var(--text-dim)", "x-circle");
-  };
-
-  const cancelBtn = document.getElementById("btnAutoJoinCancel");
-  const nowBtn = document.getElementById("btnAutoJoinNow");
-
-  cancelBtn?.replaceWith(cancelBtn.cloneNode(true));
-  nowBtn?.replaceWith(nowBtn.cloneNode(true));
-
-  const freshCancelBtn = document.getElementById("btnAutoJoinCancel");
-  const freshNowBtn = document.getElementById("btnAutoJoinNow");
-
-  freshCancelBtn?.addEventListener("click", handleCancel);
-  freshNowBtn?.addEventListener("click", executeJoin);
-
-  if (useTimer) {
-    let countdown = 5;
-    if (circleEl) {
-      circleEl.style.display = "block";
-      circleEl.textContent = String(countdown);
-    }
-    if (subtitleEl) {
-      subtitleEl.textContent = "Auto-connecting in seconds...";
-    }
-    if (freshCancelBtn) {
-      freshCancelBtn.textContent = "Cancel Auto-Join";
-    }
-    autoJoinTimer = setInterval(() => {
-      countdown -= 1;
-      if (circleEl) circleEl.textContent = String(countdown);
-      if (countdown <= 0) {
-        executeJoin();
-      }
-    }, 1000);
-  } else {
-    if (circleEl) {
-      circleEl.style.display = "none";
-    }
-    if (subtitleEl) {
-      subtitleEl.textContent = "Would you like to connect to this server now?";
-    }
-    if (freshCancelBtn) {
-      freshCancelBtn.textContent = "Cancel";
-    }
-  }
-
-  modal.style.display = "flex";
+async function addWatch(server) {
+  try {
+    const snapshot = await api().getSnapshot(); accept(snapshot);
+    const entry = snapshot.entries.find((item) => item.ip.toLowerCase() === server.ip.toLowerCase() && Number(item.port) === Number(server.port));
+    const watchPriority = Math.min(1000, Math.max(0, ...snapshot.entries.map((item) => item.priority)) + 1);
+    openWatchEditor({ ...server, watchPriority }, entry);
+  } catch (error) { fail(error); }
 }
-
-export function initWatchlist() {
-  document
-    .getElementById("refreshWatchlistBtn")
-    ?.addEventListener("click", async (e) => {
-      const btn = e.currentTarget;
-      const originalHTML = btn.innerHTML;
-      btn.disabled = true;
-      btn.textContent = "⏳ Refreshing...";
-      try {
-        await renderWatchlist();
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
-      }
+export async function initWatchlist() {
+  if (initialized) return;
+  initialized = true;
+  view = createWatchlistView(document.getElementById("watchlistListBody"), (type, id) => { void action(type, id); });
+  autoJoin = createAutoJoinController();
+  subscriptions.push(api().onChanged(accept), api().onAlert((event) => {
+    showToast((event.server.name || event.server.ip) + ": " + event.condition, "var(--accent)", "bell", () => {
+      document.dispatchEvent(new CustomEvent("dzlinux:switch-tab", { detail: { tab: "watchlist" } }));
+      if (current?.autoJoin.offer?.eventId === event.eventId) void autoJoin.offer(event);
     });
-
-  window.api.watchlist.onNotify((notifications) => {
-    notifications.forEach((n) => {
-      const useTimer = !!n.autoJoin;
-      showToast(n.title, "var(--accent)", "bell", () => {
-        if (n.server) showAutoJoinModal(n.server, { timer: useTimer });
-      });
-      if (useTimer && n.server) {
-        showAutoJoinModal(n.server, { timer: true });
-      }
-    });
-  });
-
-  window.api.watchlist.onOpen(() => {
+  }), api().onAutoJoinOffer((offer) => { void autoJoin.offer(offer); }), api().onOpen((event) => {
     document.dispatchEvent(new CustomEvent("dzlinux:switch-tab", { detail: { tab: "watchlist" } }));
+    if (current?.autoJoin.offer?.eventId === event.eventId) void autoJoin.offer(event);
+  }));
+  document.getElementById("refreshWatchlistBtn").addEventListener("click", async () => {
+    const button = document.getElementById("refreshWatchlistBtn"); button.disabled = true;
+    try {
+      const result = await api().refresh();
+      document.getElementById("watchlistAnnouncement").textContent = "Checked " + result.checked + " servers" + (result.unreachable ? "; " + result.unreachable + " unreachable" : "");
+      if (result.unreachable) showToast(result.unreachable + " watched servers could not be reached", "var(--accent)", "alert");
+      await renderWatchlist();
+    } catch (error) { fail(error); }
+    finally { button.disabled = Boolean(current?.refreshing) || !current?.enabled || !current?.entries.length; }
   });
-
-  window.api.watchlist.onAutoJoin?.((server) => {
-    if (server && server.ip && server.port) {
-      const useTimer = !!server.autoJoin;
-      showAutoJoinModal(server, { timer: useTimer });
-    }
+  document.getElementById("retryWatchlistBtn").addEventListener("click", () => { void renderWatchlist(); });
+  document.getElementById("resumeWatchlistAutoJoin").addEventListener("click", () => { void api().resumeAutoJoin().catch(fail); });
+  document.addEventListener("dzlinux:edit-watch", async (event) => {
+    try {
+      const snapshot = await api().getSnapshot(); accept(snapshot);
+      const entry = snapshot.entries.find((item) => item.id === event.detail?.id);
+      if (entry) openWatchEditor(entry, entry);
+      else throw new Error("Watch no longer exists");
+    } catch (error) { fail(error); }
   });
+  document.addEventListener("dzlinux:watch-server", (event) => { if (event.detail?.server) void addWatch(event.detail.server); });
+  document.addEventListener("dzlinux:tab-changed", (event) => {
+    visible = event.detail?.tab === "watchlist";
+    clearInterval(relativeTimer); relativeTimer = null;
+    if (visible) { update(); relativeTimer = setInterval(update, 1000); }
+    else view.closeMenu();
+  });
+  window.addEventListener("beforeunload", () => { clearInterval(relativeTimer); view.destroy(); autoJoin.destroy(); for (const off of subscriptions) off(); }, { once: true });
+  await renderWatchlist();
+  // A fresh unclaimed offer may arrive before the renderer finished initializing.
+  if (current?.autoJoin.offer && current.autoJoin.offer.owner === null) void autoJoin.offer(current.autoJoin.offer);
 }

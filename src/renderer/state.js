@@ -1,3 +1,4 @@
+import { favoriteKey } from "./favoriteIdentity.js";
 // Central mutable state for the renderer process.
 // All feature modules import from here to ensure a single source of truth.
 
@@ -8,6 +9,9 @@ export const state = {
   // Favorites
   favorites: [],
   favoritesSet: new Set(),
+  favoriteGroups: [],
+  favoriteDataRevision: 0,
+  expandedFavoriteId: null,
 
   // Connection history
   history: [],
@@ -15,6 +19,7 @@ export const state = {
 
   // Server browser
   allServers: [],
+  serverDataRevision: 0,
   filters: {
     name: "",
     nameLower: "",
@@ -51,19 +56,11 @@ export const state = {
   },
   totalPingedCount: 0,
 
-  // Favorites pinging
-  favPingGeneration: 0,
-
   // Auto-refresh
   autoRefresh: {
     interval: null,
     countdownInterval: null,
     seconds: 360,
-  },
-
-  // Watchlist
-  watchlist: {
-    pollInterval: null,
   },
 
   // Active mod downloads
@@ -81,7 +78,34 @@ export const state = {
   currentModCheckInterval: null,
   currentModLaunchTimer: null,
   currentModCheckGeneration: 0,
+  currentModQueryRequestId: null,
 };
+
+export function markServerDataChanged() {
+  state.serverDataRevision++;
+  document.dispatchEvent(new CustomEvent("dzlinux:server-data-changed"));
+}
+
+export function setHistoryRecords(records) {
+  state.history = records.slice(0, 500).map((record) => ({
+    id: record.id || record.ip + ":" + record.port,
+    ip: record.ip, port: record.port, queryPort: record.queryPort || null,
+    name: record.name, map: record.map,
+    ping: record.lastPing ?? record.ping ?? null,
+    players: record.lastPlayers ?? record.players ?? null,
+    maxPlayers: record.maxPlayers ?? null,
+    lastJoined: record.lastJoined ?? null,
+    playCount: record.playCount ?? 0,
+  }));
+  state.historySet = new Set(state.history.map((record) => record.ip + ":" + record.port));
+  window.dispatchEvent(new CustomEvent("history-updated"));
+}
+
+export function upsertHistoryRecord(record) {
+  if (!record) return;
+  const id = record.ip + ":" + record.port;
+  setHistoryRecords([record, ...state.history.filter((entry) => entry.ip + ":" + entry.port !== id)]);
+}
 
 let favoritesQueue = Promise.resolve();
 
@@ -91,43 +115,37 @@ function queueFavoriteChange(change) {
   return result;
 }
 
+export function applyFavoritesSnapshot(snapshot) {
+  if (!snapshot || snapshot.dataRevision < state.favoriteDataRevision) return;
+  const before = [...state.favoritesSet].sort().join("|");
+  state.favorites = snapshot.entries.map((entry) => ({ ...entry }));
+  state.favoriteGroups = snapshot.groups.map((group) => ({ ...group }));
+  state.favoriteDataRevision = snapshot.dataRevision;
+  state.favoritesSet = new Set(state.favorites.map((entry) => favoriteKey(entry.ip, entry.port)));
+  if (state.settings) state.settings.favorites = state.favorites;
+  window.dispatchEvent(new CustomEvent("favorites-changed", { detail: snapshot }));
+  if (before !== [...state.favoritesSet].sort().join("|")) document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+}
+
 export function addFavorite(ip, port, queryPort, name) {
   return queueFavoriteChange(async () => {
-    const key = `${ip}:${port}`;
-    if (state.favoritesSet.has(key)) return;
-    await persistFavorites([
-      ...state.favorites,
-      { ip, port: parseInt(port, 10), queryPort: queryPort || null, name: name || "" },
-    ]);
+    if (state.favoritesSet.has(favoriteKey(ip, port))) return;
+    const snapshot = await window.api.favorites.add({ ip, port, queryPort: queryPort || null, fallbackName: (name || "").slice(0, 200) });
+    applyFavoritesSnapshot(snapshot);
   });
 }
 
 export function removeFavorite(ip, port) {
   return queueFavoriteChange(async () => {
-    const key = `${ip}:${port}`;
-    const nextFavorites = state.favorites.filter(f => `${f.ip}:${f.port}` !== key);
-    if (nextFavorites.length === state.favorites.length) return;
-    await persistFavorites(nextFavorites);
+    const entry = state.favorites.find((favorite) => favoriteKey(favorite.ip, favorite.port) === favoriteKey(ip, port));
+    if (!entry) return;
+    applyFavoritesSnapshot(await window.api.favorites.remove(entry.id));
   });
-}
-
-async function persistFavorites(nextFavorites) {
-  // Commit only after persistence succeeds, inside the mutation queue.
-  const saved = await window.api.settings.saveFavorites({
-    favorites: nextFavorites,
-  });
-  if (saved === false) throw new Error("Failed to persist favorites");
-
-  state.favorites = nextFavorites;
-  state.favoritesSet = new Set(nextFavorites.map(f => `${f.ip}:${f.port}`));
-  if (state.settings) {
-    state.settings.favorites = state.favorites;
-  }
 }
 
 export function setFavoritesFromSettings(settings) {
-  state.favorites = settings.favorites || [];
-  state.favoritesSet = new Set(state.favorites.map((f) => `${f.ip}:${f.port}`));
+  // Main-process Favorites snapshots are authoritative; legacy settings are
+  // left untouched until that repository has validated and migrated them.
   
   const rawHistory = settings.history || [];
   state.history = rawHistory.filter(

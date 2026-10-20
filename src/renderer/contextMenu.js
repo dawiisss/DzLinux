@@ -1,5 +1,6 @@
+import { favoriteKey } from "./favoriteIdentity.js";
 import { state, addFavorite, removeFavorite } from "./state.js";
-import { showToast, copyToClipboard } from "./feedback.js";
+import { showToast, copyToClipboard, showConfirmModal } from "./feedback.js";
 import { renderFavoritesManager, getPlaceholderServerById } from "./favorites.js";
 
 import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "./utils.js";
@@ -62,15 +63,16 @@ export function initContextMenu() {
     };
 
     addMenuItem("Quick Connect", PLUG_SVG, () => {
-      document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server } }));
+      document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server, options: { forceModQuery: Boolean(row.closest("#favorites")) } } }));
     });
 
-    const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
+    const isFav = state.favoritesSet.has(favoriteKey(server.ip, server.port));
     addMenuItem(
       isFav ? "Remove Favorite" : "Add Favorite",
       isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG,
       async () => {
         if (isFav) {
+          if (row.closest("#favorites") && !await showConfirmModal("Remove this favorite? History and Watchlist entries will remain.")) return;
           await removeFavorite(server.ip, server.port);
         } else {
           await addFavorite(
@@ -102,28 +104,8 @@ export function initContextMenu() {
     divider.className = "context-menu-divider";
     menu.appendChild(divider);
 
-    addMenuItem("Watch Server", EYE_SVG, async () => {
-      const watchlist = await window.api.watchlist.load();
-      if (
-        watchlist.some(
-          (item) => item.ip === server.ip && item.port === server.port,
-        )
-      ) {
-        showToast("Already on watchlist", "var(--accent)", "info");
-        return;
-      }
-      watchlist.push({
-        ip: server.ip,
-        port: server.port,
-        queryPort: server.queryPort || null,
-        name: server.name,
-        active: true,
-        threshold: 50,
-        mode: "below",
-        lastStatus: "idle",
-      });
-      await window.api.watchlist.save(watchlist);
-      showToast(`Watching: ${server.name}`, "var(--accent)", "eye");
+    addMenuItem("Watch server", EYE_SVG, () => {
+      document.dispatchEvent(new CustomEvent("dzlinux:watch-server", { detail: { server } }));
     });
 
     addMenuItem("Copy Address", COPY_SVG, () =>

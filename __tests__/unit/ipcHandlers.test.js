@@ -11,6 +11,7 @@ describe("ipcHandlers", () => {
   let mockSteamworks;
   let mockDepResolver;
   let mockWatchlist;
+  let mockFavoriteQueries;
   let mockSystemCheck;
   let mockRealpath;
   let mockFsAccess;
@@ -80,9 +81,12 @@ describe("ipcHandlers", () => {
       getModDownloadSizes: jest.fn().mockResolvedValue([{ id: "123", sizeBytes: 1000 }]),
     };
     mockWatchlist = {
-      loadWatchlist: jest.fn().mockResolvedValue([]),
-      saveWatchlist: jest.fn().mockResolvedValue(true),
-      processWatchlistChecks: jest.fn().mockResolvedValue([]),
+      events: new (require("node:events").EventEmitter)(),
+      getSnapshot: jest.fn().mockResolvedValue({ revision: 1, entries: [] }),
+      command: jest.fn().mockResolvedValue({ revision: 2, entries: [] }),
+      refresh: jest.fn().mockResolvedValue({ checked: 1, unreachable: 0 }),
+      configure: jest.fn().mockResolvedValue(), beginConnection: jest.fn(() => "connection-fixture"),
+      finishConnection: jest.fn(), assertConnection: jest.fn(), launched: jest.fn(), releaseOwner: jest.fn(),
     };
     mockSystemCheck = { runSystemCheck: jest.fn().mockResolvedValue([]) };
 
@@ -107,7 +111,7 @@ describe("ipcHandlers", () => {
           on: jest.fn((channel, fn) => listeners.set(channel, fn)),
         },
         shell: mockShell,
-        BrowserWindow: { getFocusedWindow: jest.fn(() => null) },
+        BrowserWindow: { getFocusedWindow: jest.fn(() => null), getAllWindows: jest.fn(() => event ? [{ isDestroyed: () => false, webContents: event.sender }] : []) },
       }),
       { virtual: true },
     );
@@ -127,7 +131,15 @@ describe("ipcHandlers", () => {
     jest.doMock("../../src/main/logParser", () => mockLogParser);
     jest.doMock("../../src/main/steamworksManager", () => mockSteamworks);
     jest.doMock("../../src/main/steamDependencyResolver", () => mockDepResolver);
-    jest.doMock("../../src/main/watchlist", () => mockWatchlist);
+    mockFavoriteQueries = {
+      events: new (require("node:events").EventEmitter)(),
+      add: jest.fn().mockResolvedValue({ revision: 2, entries: [], groups: [] }),
+      getSnapshot: jest.fn().mockResolvedValue({ revision: 1, entries: [], groups: [] }),
+      snapshot: jest.fn(() => ({ revision: 2, entries: [], groups: [] })),
+    };
+    jest.doMock("../../src/main/favorites", () => ({ update: jest.fn(), remove: jest.fn(), group: jest.fn() }));
+    jest.doMock("../../src/main/favoritesQueries", () => mockFavoriteQueries);
+    jest.doMock("../../src/main/watchlistMonitor", () => ({ monitor: mockWatchlist }));
     jest.doMock("../../src/main/systemCheck", () => mockSystemCheck);
     jest.doMock("../../src/main/logger", () => ({
       getLogFilePath: jest.fn(() => "/var/log/dzlinux.log"),
@@ -137,7 +149,7 @@ describe("ipcHandlers", () => {
     registerIpcHandlers();
 
     event = {
-      sender: { isDestroyed: jest.fn(() => false), send: jest.fn() },
+      sender: { id: 1, on: jest.fn(), once: jest.fn(), isDestroyed: jest.fn(() => false), send: jest.fn() },
     };
   });
 
@@ -180,23 +192,15 @@ describe("ipcHandlers", () => {
       });
     });
 
-    test("save-favorites rejects invalid favorites payloads", async () => {
-      await expect(
-        handlers.get("save-favorites")(event, {
-          favorites: [{ ip: "not an ip!!", port: 2302 }],
-        }),
-      ).rejects.toThrow("Invalid favorites payload");
+    test("favorite add propagates invalid payload errors", async () => {
+      mockFavoriteQueries.add.mockRejectedValueOnce(new Error("Invalid favorite configuration"));
+      await expect(handlers.get("favorites:add")(event, { ip: "bad!!" }, null)).rejects.toThrow("Invalid favorite configuration");
       expect(mockSettings.saveSettings).not.toHaveBeenCalled();
     });
-
-    test("save-favorites persists merged settings for valid payloads", async () => {
-      const favorites = [{ ip: "1.2.3.4", port: 2302 }];
-      await handlers.get("save-favorites")(event, { favorites });
-
-      expect(mockSettings.saveSettings).toHaveBeenCalledWith({
-        modDirectory: "/mod/dir",
-        favorites,
-      });
+    test("favorite add delegates a targeted command rather than a full settings snapshot", async () => {
+      const input = { ip: "1.2.3.4", port: 2302 };
+      await handlers.get("favorites:add")(event, input, null);
+      expect(mockFavoriteQueries.add).toHaveBeenCalledWith(event.sender.id, input, null);
     });
   });
 
@@ -375,12 +379,12 @@ describe("ipcHandlers", () => {
     test("launch-game delegates valid input", async () => {
       const mods = [{ id: "12345" }];
       await handlers.get("launch-game")(event, "1.2.3.4", 2302, mods);
-      expect(mockGame.launchDayZ).toHaveBeenCalledWith("1.2.3.4", 2302, mods);
+      expect(mockGame.launchDayZ).toHaveBeenCalledWith("1.2.3.4", 2302, mods, expect.any(Function));
     });
 
     test("launch-game without connect info still validates mods", async () => {
       await handlers.get("launch-game")(event, null, null, []);
-      expect(mockGame.launchDayZ).toHaveBeenCalledWith(null, null, []);
+      expect(mockGame.launchDayZ).toHaveBeenCalledWith(null, null, [], expect.any(Function));
     });
 
     test("check-mods treats non-array input as empty", async () => {
@@ -499,52 +503,28 @@ describe("ipcHandlers", () => {
   });
 
   describe("watchlist handlers", () => {
-    test("load-watchlist delegates", async () => {
-      await expect(handlers.get("load-watchlist")()).resolves.toEqual([]);
+    test("snapshot delegates to the main monitoring service", async () => {
+      await expect(handlers.get("watchlist:snapshot")(event)).resolves.toEqual({ revision: 1, entries: [] });
     });
-
-    test("save-watchlist rejects invalid payloads", async () => {
-      await expect(
-        handlers.get("save-watchlist")(event, [{ ip: "bad!!", active: true }]),
-      ).rejects.toThrow("Invalid watchlist payload");
-      expect(mockWatchlist.saveWatchlist).not.toHaveBeenCalled();
+    test("watch commands propagate invalid payload errors", async () => {
+      mockWatchlist.command.mockRejectedValueOnce(new Error("Invalid watch configuration"));
+      await expect(handlers.get("watchlist:command")(event, "add", [{ ip: "bad!!" }])).rejects.toThrow("Invalid watch configuration");
     });
-
-    test("save-watchlist persists valid payloads", async () => {
-      const watchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-      await handlers.get("save-watchlist")(event, watchlist);
-      expect(mockWatchlist.saveWatchlist).toHaveBeenCalledWith(watchlist);
+    test("watch commands delegate targeted configuration mutations", async () => {
+      const watch = { ip: "1.2.3.4", port: 2302, condition: { type: "free-slots", value: 1 } };
+      await handlers.get("watchlist:command")(event, "add", [watch]);
+      expect(mockWatchlist.command).toHaveBeenCalledWith("add", [watch]);
     });
-
-    test("check-watchlist-thresholds returns empty for invalid payloads", async () => {
-      const result = await handlers.get("check-watchlist-thresholds")(
-        event,
-        [{ ip: "bad!!", port: 2302 }],
-      );
-      expect(result).toEqual([]);
-      expect(mockWatchlist.processWatchlistChecks).not.toHaveBeenCalled();
+    test("refresh delegates without renderer-supplied server observations", async () => {
+      await expect(handlers.get("watchlist:refresh")(event)).resolves.toEqual({ checked: 1, unreachable: 0 });
+      expect(mockWatchlist.refresh).toHaveBeenCalledWith();
     });
-
-    test("check-watchlist-thresholds notifies the sender when triggered", async () => {
-      const servers = [
-        { ip: "1.2.3.4", port: 2302, status: "online", name: "Srv", players: 5 },
-      ];
-      const triggered = [{ ip: "1.2.3.4", port: 2302, players: 5 }];
-      mockWatchlist.processWatchlistChecks.mockResolvedValue(triggered);
-
-      const result = await handlers.get("check-watchlist-thresholds")(
-        event,
-        servers,
-      );
-
-      expect(result).toEqual(triggered);
-      expect(event.sender.send).toHaveBeenCalledWith(
-        "watchlist-notify",
-        triggered,
-      );
+    test("committed monitor snapshots are broadcast to a live renderer", () => {
+      const snapshot = { revision: 5, entries: [] };
+      mockWatchlist.events.emit("changed", snapshot);
+      expect(event.sender.send).toHaveBeenCalledWith("watchlist:changed", snapshot);
     });
   });
-
 
   describe("steamworks handlers", () => {
     test("steamworks mod endpoints reject invalid mod ids", async () => {

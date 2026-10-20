@@ -6,7 +6,6 @@ import { loadInstalledMods } from "./modManager.js";
 import { renderFavoritesManager } from "./favorites.js";
 import { renderWatchlist } from "./watchlist.js";
 import { loadDiagnostics } from "./diagnostics.js";
-import { loadAndRenderHistory } from "./history.js";
 import { state, saveFiltersToSettings } from "./state.js";
 import { debounce, countryToFlag, EU_COUNTRIES, isValidIpOrHost, isValidPort } from "./utils.js";
 import { hideContextMenu, setCurrentContextMenu } from "./contextMenu.js";
@@ -132,7 +131,7 @@ export function switchTab(tabId) {
   if (tabId === "mods") loadInstalledMods();
   if (tabId === "favorites") renderFavoritesManager();
   if (tabId === "watchlist") renderWatchlist();
-  if (tabId === "history") loadAndRenderHistory();
+  document.dispatchEvent(new CustomEvent("dzlinux:tab-changed", { detail: { tab: tabId } }));
   if (tabId === "diagnostics") loadDiagnostics();
 }
 

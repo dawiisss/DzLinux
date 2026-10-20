@@ -116,8 +116,8 @@ function deleteQueryPortCacheEntry(cacheKey) {
 
 module.exports = {
   // Population/ping sweeps do not need the player roster or Workshop rules.
-  pingServer: (ip, port, queryPort, signal) =>
-    queryServerGameDig(ip, port, queryPort, signal, true),
+  pingServer: (ip, port, queryPort, signal, discover = false) =>
+    queryServerGameDig(ip, port, queryPort, signal, true, discover),
   queryServerGameDig,
   getCacheWriteQueue: () => {
     if (writeTimeout) {
@@ -133,7 +133,7 @@ module.exports = {
 // offsets +1/+2/+3, then Steam query fallback 27016. On success the working port
 // is atomically persisted; on cached-port failure the stale entry is evicted.
 // Uses a module-level singleton cache to survive parallel batch pinging.
-async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false) {
+async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false, discover = false) {
   if (signal?.aborted) return null;
   const settings = await require("./settings").loadSettingsAsync();
   const concurrency = settings.queryConcurrency;
@@ -161,7 +161,7 @@ async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false)
 
   // Do not scan five extra ports for every offline entry in a 15,000-server
   // sweep. Unlisted addresses and explicit mod queries retain discovery.
-  const discoverPorts = !infoOnly || queryPorts.length === 0;
+  const discoverPorts = discover || !infoOnly || queryPorts.length === 0;
   for (const candidate of discoverPorts ? [p, p + 1, p + 2, p + 3, 27016] : []) {
     if (
       candidate > 0 &&
@@ -194,6 +194,11 @@ async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false)
         : Number.isInteger(state.raw?.numplayers)
           ? state.raw.numplayers
           : state.players?.length || 0;
+      // Watch conditions use reported values, never display fallbacks.
+      const reportedPlayers = Number.isInteger(state.numplayers) && state.numplayers >= 0
+        ? state.numplayers : Number.isInteger(state.raw?.numplayers) && state.raw.numplayers >= 0
+          ? state.raw.numplayers : null;
+      const reportedCapacity = Number.isInteger(state.maxplayers) && state.maxplayers > 0 ? state.maxplayers : null;
       const raw = state.raw || {};
 
       let mods = null;
@@ -234,6 +239,9 @@ async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false)
         ping: state.ping,
         players,
         maxPlayers: state.maxplayers || 60,
+        reportedPlayers,
+        reportedCapacity,
+        queryPort: qp,
         name: state.name,
         status: "online",
         mods,

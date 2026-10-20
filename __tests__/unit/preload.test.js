@@ -33,6 +33,7 @@ describe("preload", () => {
     const { contextBridge } = require("electron");
     expect(contextBridge.exposeInMainWorld).toHaveBeenCalledWith("api", expect.any(Object));
     expect(mockExposedApis.api).toBeDefined();
+    expect(mockExposedApis.api.history.saveNote).toBeUndefined();
   });
 
   test("app endpoints delegate to ipcRenderer", async () => {

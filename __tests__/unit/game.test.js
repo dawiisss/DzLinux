@@ -408,6 +408,7 @@ describe("game", () => {
         expect.arrayContaining(["-connect=1.2.3.4", "-port=2302", "-noLauncher"]),
         expect.objectContaining({ protonPath: "/protons/GE-Proton/proton" }),
         expect.any(Function),
+        expect.any(Function),
       );
     });
   });

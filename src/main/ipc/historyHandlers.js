@@ -3,26 +3,21 @@
 const { ipcMain } = require("electron");
 const historyManager = require("../history");
 const {
-  isValidIpOrHost,
-  isValidPort,
   isBoundedString,
+  sanitizeHistoryPayload,
 } = require("../validation");
 
 function registerHistoryHandlers() {
   ipcMain.handle("history:get", async () => {
-    return await historyManager.getHistoryRecords();
+    return await historyManager.getHistorySummaries();
   });
 
   ipcMain.handle("history:record", async (_event, server) => {
-    if (
-      !server ||
-      typeof server !== "object" ||
-      !isValidIpOrHost(server.ip) ||
-      !isValidPort(server.port)
-    ) {
+    const payload = sanitizeHistoryPayload(server);
+    if (!payload) {
       return Promise.reject(new Error("Invalid server payload for history"));
     }
-    return await historyManager.recordConnection(server);
+    return await historyManager.recordConnection(payload);
   });
 
   ipcMain.handle("history:delete", async (_event, id) => {
@@ -34,23 +29,6 @@ function registerHistoryHandlers() {
 
   ipcMain.handle("history:clear", async () => {
     return await historyManager.clearAllHistory();
-  });
-
-  ipcMain.handle("history:save-note", async (_event, payload) => {
-    if (
-      !payload ||
-      typeof payload !== "object" ||
-      !payload.serverId ||
-      typeof payload.serverId !== "string" ||
-      !isBoundedString(payload.serverId, 260) ||
-      (payload.note !== undefined && !isBoundedString(payload.note, 2000))
-    ) {
-      return Promise.reject(new Error("Invalid note payload"));
-    }
-    return await historyManager.saveServerNote(
-      payload.serverId,
-      payload.note || "",
-    );
   });
 
   ipcMain.handle("history:get-analytics", async (_event, serverId) => {

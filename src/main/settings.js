@@ -5,7 +5,6 @@ const steamPaths = require("./steamPaths");
 const { writeJsonAtomically } = require("./fileUtils");
 const {
   isBoundedString,
-  validateFavorites,
   validateWatchlist,
   MIN_QUERY_CONCURRENCY,
   MAX_QUERY_CONCURRENCY,
@@ -19,6 +18,13 @@ const defaultSettings = {
   steamUsername: "",
   modDirectory: "",
   favorites: [],
+  favoritesSchemaVersion: 1,
+  favoritesRevision: 0,
+  favoriteGroups: [],
+  favoriteNames: {},
+  favoritePorts: {},
+  favoritesViewSort: "saved",
+  favoritesViewGroupId: "all",
   history: [],
   theme: "tactical-dark",
   protonPath: "default",
@@ -70,32 +76,16 @@ const defaultSettings = {
 
 const SETTINGS_KEYS = new Set(Object.keys(defaultSettings));
 
-function parseFavKeyInline(favKey) {
-  if (typeof favKey !== "string") return null;
-  if (favKey.startsWith("[")) {
-    const closingBracket = favKey.indexOf("]");
-    if (closingBracket === -1) return null;
-    const ip = favKey.substring(1, closingBracket);
-    const portStr = favKey.substring(closingBracket + 1);
-    if (!portStr.startsWith(":")) return null;
-    const port = parseInt(portStr.substring(1), 10);
-    if (isNaN(port) || port <= 0 || port > 65535) return null;
-    return { ip, port };
-  }
-  const lastColon = favKey.lastIndexOf(":");
-  if (lastColon === -1) return null;
-  const ip = favKey.substring(0, lastColon);
-  const port = parseInt(favKey.substring(lastColon + 1), 10);
-  if (isNaN(port) || port <= 0 || port > 65535) return null;
-  return { ip, port };
-}
+const FAVORITE_FIELDS = ["favorites", "favoritesSchemaVersion", "favoritesRevision", "favoriteGroups", "favoriteNames", "favoritePorts"];
+const clone = (value) => JSON.parse(JSON.stringify(value));
+let settingsReadError = null;
 
 let cachedSettings = null;
 let settingsLoadPromise = null;
 
 async function loadSettingsAsync() {
-  if (cachedSettings !== null) {
-    return { ...cachedSettings };
+  if (cachedSettings !== null && !settingsReadError) {
+    return clone(cachedSettings);
   }
 
   if (settingsLoadPromise) return settingsLoadPromise;
@@ -111,13 +101,11 @@ async function loadSettingsAsync() {
 async function loadSettingsFromDisk() {
 
   const settings = { ...defaultSettings };
-  let legacyNames = {};
-  let legacyPorts = {};
+  settingsReadError = null;
   try {
     const data = await fs.promises.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(data);
-    legacyNames = parsed.favoriteNames || {};
-    legacyPorts = parsed.favoritePorts || {};
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid settings file");
     // Only merge known setting keys to prevent prototype pollution
     for (const key of Object.keys(parsed)) {
       if (SETTINGS_KEYS.has(key)) {
@@ -126,34 +114,9 @@ async function loadSettingsFromDisk() {
     }
   } catch (e) {
     if (e.code !== "ENOENT") {
+      settingsReadError = e;
       console.error("Failed to load settings", e);
     }
-  }
-
-  // Migrate old string-format favorites + parallel maps to unified object array
-  if (
-    Array.isArray(settings.favorites) &&
-    settings.favorites.length > 0 &&
-    typeof settings.favorites[0] === "string"
-  ) {
-    const names = legacyNames;
-    const ports = legacyPorts;
-    settings.favorites = settings.favorites
-      .map((key) => {
-        const parsed = parseFavKeyInline(key);
-        if (!parsed) return null;
-        return {
-          ip: parsed.ip,
-          port: parsed.port,
-          queryPort: ports[key] || null,
-          name: names[key] || "",
-        };
-      })
-      .filter(Boolean);
-    delete settings.favoriteNames;
-    delete settings.favoritePorts;
-    cachedSettings = { ...settings };
-    await saveSettings(settings);
   }
 
   // Auto-discover if empty
@@ -162,7 +125,7 @@ async function loadSettingsFromDisk() {
   }
 
   cachedSettings = sanitizeSettings(settings);
-  return { ...cachedSettings };
+  return clone(cachedSettings);
 }
 
 function sanitizeSettings(settings) {
@@ -213,7 +176,11 @@ function sanitizeSettings(settings) {
   if (!isBoundedString(safeSettings.protonPath)) safeSettings.protonPath = "default";
   if (!isBoundedString(safeSettings.mangoHudConfig, 1000)) safeSettings.mangoHudConfig = defaultSettings.mangoHudConfig;
   if (!isBoundedString(safeSettings.dxvkConfig, 10000)) safeSettings.dxvkConfig = "";
-  if (!validateFavorites(safeSettings.favorites)) safeSettings.favorites = [];
+  // Favorites are validated by their repository. Preserve raw invalid/legacy data
+  // during unrelated preference writes instead of silently erasing the collection.
+  if (safeSettings.favoritesSchemaVersion === 2) { delete safeSettings.favoriteNames; delete safeSettings.favoritePorts; }
+  if (!["saved", "name", "ping", "players", "lastUsed"].includes(safeSettings.favoritesViewSort)) safeSettings.favoritesViewSort = "saved";
+  if (!isBoundedString(safeSettings.favoritesViewGroupId, 100)) safeSettings.favoritesViewGroupId = "all";
   if (!validateWatchlist(safeSettings.watchlist)) safeSettings.watchlist = [];
   if (
     !Array.isArray(safeSettings.filterMaps) ||
@@ -261,17 +228,34 @@ function sanitizeSettings(settings) {
 
 let settingsSaveQueue = Promise.resolve();
 
+function updateSettings(transform) {
+  const result = settingsSaveQueue.then(async () => {
+    const current = clone(await loadSettingsAsync());
+    if (settingsReadError) throw new Error("Settings could not be read; original file preserved. Repair the file and Retry.");
+    await transform(current);
+    const candidate = sanitizeSettings(current);
+    if (!await persistSettings(candidate)) throw new Error("Could not save settings");
+    return clone(cachedSettings);
+  });
+  settingsSaveQueue = result.catch(() => {});
+  return result;
+}
+
 function saveSettings(settings) {
-  let snapshot;
-  try {
-    snapshot = structuredClone(sanitizeSettings(settings));
-  } catch (error) {
-    console.error("Failed to save settings", error);
-    return Promise.resolve(false);
-  }
-  // Include auto-discovery in the queue so a slow older save cannot finish last.
-  const result = settingsSaveQueue.then(() => persistSettings(snapshot));
-  settingsSaveQueue = result.catch(() => false);
+  let input;
+  try { input = clone(settings); }
+  catch { return Promise.resolve(false); }
+  if (!input || typeof input !== "object" || Array.isArray(input)) return Promise.resolve(false);
+  return updateSettings((current) => {
+    for (const key of SETTINGS_KEYS) {
+      if (!FAVORITE_FIELDS.includes(key) && Object.hasOwn(input, key)) current[key] = input[key];
+    }
+  }).then(() => true).catch((error) => { console.error("Failed to save settings", error); return false; });
+}
+
+function reloadSettings() {
+  const result = settingsSaveQueue.then(() => { cachedSettings = null; return loadSettingsAsync(); });
+  settingsSaveQueue = result.catch(() => {});
   return result;
 }
 
@@ -329,9 +313,13 @@ module.exports = {
   loadSettings,
   loadSettingsAsync,
   saveSettings,
+  updateSettings,
+  reloadSettings,
+  flushSettings: () => settingsSaveQueue,
   getDefaultSettings: () => ({ ...defaultSettings }),
   _clearCache: () => {
     cachedSettings = null;
     settingsLoadPromise = null;
+    settingsReadError = null;
   },
 };

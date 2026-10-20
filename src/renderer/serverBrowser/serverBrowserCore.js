@@ -1,3 +1,4 @@
+import { favoriteKey } from "../favoriteIdentity.js";
 import { state } from "../state.js";
 import { MAP_NORMALIZE, EU_COUNTRIES } from "../utils.js";
 
@@ -34,7 +35,7 @@ export function serverPassesFilters(server, excludeCountryFilter = false) {
     if (!matches && !isOther) return false;
   }
 
-  const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
+  const isFav = state.favoritesSet.has(favoriteKey(server.ip, server.port));
   if (state.flags.favoritesOnly && !isFav) return false;
   if (state.flags.hideFavorites && isFav) return false;
 

@@ -2,30 +2,24 @@
 
 const { app, ipcMain } = require("electron");
 const settingsManager = require("../settings");
-const { validateFavorites } = require("../validation");
 
 function registerSettingsHandlers() {
   ipcMain.handle("get-version", () => app.getVersion());
   ipcMain.handle("load-settings", () => settingsManager.loadSettingsAsync());
-  ipcMain.handle("save-settings", (_event, settings) => {
+  ipcMain.handle("save-settings", async (_event, settings) => {
     if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
       return Promise.reject(new Error("Invalid settings payload"));
     }
-    return settingsManager.saveSettings(settings);
+    const result = await settingsManager.saveSettings(settings);
+    if (result !== false) await require("../watchlistMonitor").monitor.configure(await settingsManager.loadSettingsAsync())
+      .catch((error) => console.error("Could not reconfigure Watchlist:", error));
+    return result;
   });
   ipcMain.handle("get-default-settings", () =>
     settingsManager.getDefaultSettings(),
   );
 
-  ipcMain.handle("save-favorites", async (_event, payload) => {
-    if (!payload || !validateFavorites(payload.favorites)) {
-      throw new Error("Invalid favorites payload");
-    }
-    const currentSettings = await settingsManager.loadSettingsAsync();
-    const { favorites } = payload;
-    currentSettings.favorites = favorites;
-    return settingsManager.saveSettings(currentSettings);
-  });
+
 }
 
 module.exports = {

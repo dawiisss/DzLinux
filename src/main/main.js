@@ -76,6 +76,8 @@ if (!gotTheLock) {
 
     const mainWindow = createWindow();
     setupAutoUpdater(mainWindow);
+    const { startWatchlist } = require("./ipc/watchlistHandlers");
+    await startWatchlist().catch((error) => console.error("Watchlist startup failed:", error));
 
     app.on("activate", () => {
       if (BrowserWindow.getAllWindows().length === 0) createWindow();
@@ -101,11 +103,18 @@ if (!gotTheLock) {
 
     const serverQuery = require("./serverQuery");
 
-    Promise.all([
+    Promise.allSettled([
+      require("./history").stop(),
+      require("./ipc/watchlistHandlers").stopWatchlist(),
+      Promise.resolve(require("./favoritesQueries").stop()),
+      settingsManager.flushSettings(),
       steamworksManager.shutdown(),
       serverQuery.getCacheWriteQueue(),
     ])
-      .then(async () => {
+      .then(async (results) => {
+        for (const result of results) {
+          if (result.status === "rejected") console.error("Shutdown task failed:", result.reason);
+        }
         await closeLogger();
         clearTimeout(shutdownTimeout);
         app.exit(0);

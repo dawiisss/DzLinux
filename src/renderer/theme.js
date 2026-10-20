@@ -1,3 +1,5 @@
+import { state } from "./state.js";
+
 export function applyTheme(themeName) {
   document.body.className.split(" ").forEach((cls) => {
     if (cls.startsWith("theme-")) {
@@ -57,15 +59,23 @@ export function initTheme(settings) {
     }
 
     toggleBtn.addEventListener("click", async () => {
+      const wasPinned = sidebar.classList.contains("pinned");
       sidebar.classList.toggle("pinned");
-      settings.sidebarPinned = sidebar.classList.contains("pinned");
+      const sidebarPinned = sidebar.classList.contains("pinned");
+      toggleBtn.disabled = true;
       if (window.api && window.api.settings && window.api.settings.save) {
         try {
-          await window.api.settings.save(settings);
+          if (await window.api.settings.save({ sidebarPinned }) === false) {
+            throw new Error("Could not save sidebar preference");
+          }
+          if (state.settings) state.settings.sidebarPinned = sidebarPinned;
         } catch (err) {
+          sidebar.classList.toggle("pinned", wasPinned);
           console.error("Failed to save sidebar preference:", err);
+        } finally {
+          toggleBtn.disabled = false;
         }
-      }
+      } else toggleBtn.disabled = false;
     });
   }
 }

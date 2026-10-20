@@ -115,3 +115,25 @@ test("paging away drops queued hidden rows instead of querying them", async () =
   expect(window.api.servers.queryMods).toHaveBeenCalledTimes(8);
   expect(values.slice(8).every(value => !value.isQueryingMods && !value.hasQueriedMods)).toBe(true);
 });
+
+test("a queued query still serves a mounted favorite after its browser row is removed", async () => {
+  const finish = [];
+  window.api.servers.queryMods.mockImplementation(() => new Promise(resolve => finish.push(resolve)));
+  const values = Array.from({ length: 9 }, (_, i) => server(i + 1));
+  values.forEach(show);
+  const requests = values.map(value => loadServerMods(value));
+  const favorite = { ...values[8], id: "favorite" };
+  const row = buildServerRow(favorite, true);
+  document.getElementById("rows").appendChild(row);
+  requests.push(loadServerMods(favorite));
+  document.getElementById("row-" + values[8].id).remove();
+  await Promise.resolve();
+  expect(window.api.servers.queryMods).toHaveBeenCalledTimes(8);
+  finish.forEach(resolve => resolve([]));
+  for (let i = 0; i < 8; i++) await Promise.resolve();
+  expect(window.api.servers.queryMods).toHaveBeenCalledTimes(9);
+  finish[8]([{ id: "123", name: "CF" }]);
+  await Promise.all(requests);
+  expect(row.querySelector(".server-mod-count").textContent).toBe("1");
+  expect(favorite.isQueryingMods).toBe(false);
+});

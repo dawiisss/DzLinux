@@ -312,48 +312,54 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
     return;
   }
 
+  // Reserve ownership before subscribing so rapid requests share one poller.
+  const entry = { modName, statusLabel, lastStatusText: "Subscribing...",
+    pollRetries: 0, pollInterval: null, pollInProgress: false };
+  state.activeDownloads.set(modId, entry);
+  const isCurrent = () => state.activeDownloads.get(modId) === entry;
+  const stop = () => {
+    clearInterval(entry.pollInterval);
+    if (isCurrent()) state.activeDownloads.delete(modId);
+  };
   try {
     const success = await window.api.steamworks.subscribe(modId);
+    if (!isCurrent()) { stop(); return; }
     if (!success) {
+      stop();
       window.api.mods.subscribe(modId).catch((err) => {
         showToast(`Failed to subscribe: ${err.message}`, "#ff5a5f", "alert");
       });
       showToast(`Opening Steam for ${modName}`, "#2ec4b6", "download");
-      if (statusLabel) {
-        statusLabel.textContent = "Subscribing...";
-        statusLabel.style.color = "var(--accent)";
+      if (entry.statusLabel) {
+        entry.statusLabel.textContent = "Subscribing...";
+        entry.statusLabel.style.color = "var(--accent)";
       }
       return;
     }
 
     showToast(`Syncing ${modName} via Steam protocol`, "#2ec4b6", "download");
 
-    const entry = {
-      modName,
-      statusLabel,
-      lastStatusText: "0% Syncing...",
-      pollRetries: 0,
-      pollInterval: null,
-    };
-    state.activeDownloads.set(modId, entry);
+    entry.lastStatusText = "0% Syncing...";
 
-    if (statusLabel) {
-      statusLabel.textContent = "0% Syncing...";
-      statusLabel.style.color = "var(--accent)";
+    if (entry.statusLabel) {
+      entry.statusLabel.textContent = "0% Syncing...";
+      entry.statusLabel.style.color = "var(--accent)";
     }
 
     const MAX_POLL_RETRIES = 300;
     entry.pollInProgress = false;
     entry.pollInterval = setInterval(() => {
+      if (!isCurrent()) { stop(); return; }
       if (entry.pollInProgress) return;
       entry.pollInProgress = true;
       void (async () => {
       try {
         const currentEntry = state.activeDownloads.get(modId);
-        if (!currentEntry) return; // already cleaned up
+        if (currentEntry !== entry) { stop(); return; }
 
         let pct = 0;
         const info = await window.api.steamworks.downloadInfo(modId);
+        if (!isCurrent()) { stop(); return; }
         if (info && info.total > 0) {
           pct = Math.floor(info.progress * 100);
         }
@@ -361,13 +367,13 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
         const { missingMods } = await window.api.game.checkRequired([
           { id: modId },
         ]);
+        if (!isCurrent()) { stop(); return; }
         const isPhysicallyReady = missingMods.length === 0;
 
         if (!isPhysicallyReady) {
           currentEntry.pollRetries++;
           if (currentEntry.pollRetries >= MAX_POLL_RETRIES) {
-            clearInterval(currentEntry.pollInterval);
-            state.activeDownloads.delete(modId);
+            stop();
             if (
               currentEntry.statusLabel &&
               currentEntry.statusLabel.isConnected
@@ -390,8 +396,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
             currentEntry.statusLabel.style.color = "var(--accent)";
           }
         } else {
-          clearInterval(currentEntry.pollInterval);
-          state.activeDownloads.delete(modId);
+          stop();
           if (
             currentEntry.statusLabel &&
             currentEntry.statusLabel.isConnected
@@ -420,11 +425,10 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
         }
       } catch (err) {
         const currentEntry = state.activeDownloads.get(modId);
-        if (!currentEntry) return;
+        if (currentEntry !== entry) { stop(); return; }
         currentEntry.pollRetries++;
         if (currentEntry.pollRetries >= MAX_POLL_RETRIES) {
-          clearInterval(currentEntry.pollInterval);
-          state.activeDownloads.delete(modId);
+          stop();
           console.error("Steam sync polling error:", err);
         }
       } finally {
@@ -434,10 +438,11 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
     }, 1000);
   } catch (err) {
     console.error(err);
-    state.activeDownloads.delete(modId);
-    if (statusLabel && statusLabel.isConnected) {
-      statusLabel.textContent = "Sync failed";
-      statusLabel.style.color = "#ff5a5f";
+    const owned = isCurrent();
+    stop();
+    if (owned && entry.statusLabel?.isConnected) {
+      entry.statusLabel.textContent = "Sync failed";
+      entry.statusLabel.style.color = "#ff5a5f";
     }
   }
 }

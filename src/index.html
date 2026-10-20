@@ -1136,147 +1136,83 @@
       </div>
 
       <!-- WATCHLIST TAB -->
-      <div
-        id="watchlist"
-        class="tab-content"
-        style="padding: 20px; overflow-y: auto"
-      >
-        <div
-          class="browser-toolbar"
-          style="
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 20px;
-          "
-        >
-          <h1
-            style="
-              font-size: 1.1rem;
-              margin: 0;
-              text-transform: uppercase;
-              letter-spacing: 1.5px;
-              color: var(--accent);
-              display: flex;
-              align-items: center;
-              gap: 8px;
-            "
-          >
-            <app-icon
-              name="eye"
-              style="width: 1.2rem; height: 1.2rem"
-              stroke-width="2"
-              fill="none"
-              stroke="currentColor"
-            ></app-icon>
-            Server Watchlist
-          </h1>
-          <button
-            id="refreshWatchlistBtn"
-            class="btn btn-outline"
-            style="
-              padding: 8px 15px;
-              font-size: 0.85rem;
-              display: inline-flex;
-              align-items: center;
-              gap: 6px;
-            "
-          >
-            <app-icon
-              name="refresh"
-              style="width: 1rem; height: 1rem"
-              stroke-width="2"
-              fill="none"
-              stroke="currentColor"
-            ></app-icon>
-            REFRESH
-          </button>
-        </div>
-
-        <div class="table-card">
-          <div class="table-scroll">
-            <table class="server-table">
-              <thead>
-                <tr>
-                  <th style="width: 70px; text-align: center">Active</th>
-                  <th style="width: 80px; text-align: center">Auto-Join</th>
-                  <th>Server Name</th>
-                  <th style="width: 100px">Players</th>
-                  <th style="width: 280px">Threshold / Mode</th>
-                  <th style="width: 150px">Last Status</th>
-                  <th style="width: 180px">IP Address</th>
-                  <th style="width: 100px; text-align: right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="watchlistListBody">
-                <!-- Rendered via JS -->
-              </tbody>
-            </table>
+      <div id="watchlist" class="tab-content watchlist-page">
+        <section class="card watchlist-toolbar" aria-labelledby="watchlistTitle">
+          <div>
+            <h2 id="watchlistTitle"><app-icon name="eye" aria-hidden="true"></app-icon> Watchlist</h2>
+            <p id="watchlistMonitoring" class="watch-help">Loading monitoring status…</p>
+            <p id="watchlistLastCheck" class="watch-help"></p>
+            <p id="watchlistAutoJoinStatus" class="watch-help" hidden>Auto-join is paused after a launch request. Alerts continue; select Resume auto-join to allow another automatic connection.</p>
           </div>
+          <div class="watchlist-toolbar-actions">
+            <button id="resumeWatchlistAutoJoin" class="btn btn-outline" hidden>Resume auto-join</button>
+            <button id="refreshWatchlistBtn" class="btn btn-outline"><app-icon name="refresh" aria-hidden="true"></app-icon><span>Refresh</span></button>
+          </div>
+        </section>
+        <div id="watchlistError" class="watch-error-banner" hidden><span></span><button id="retryWatchlistBtn" class="btn btn-outline">Retry</button></div>
+        <p class="watch-help">Choose when a server should alert you. Auto-join uses a five-second countdown and checks again before connecting.</p>
+        <div class="table-card watchlist-table-card">
+          <table class="server-table watchlist-table">
+            <thead><tr><th>Server</th><th>Condition</th><th>Monitoring</th><th>On match</th><th>Actions</th></tr></thead>
+            <tbody id="watchlistListBody"></tbody>
+          </table>
         </div>
+        <p class="watch-help watchlist-footnote">Free slots use reported capacity and population; they do not reserve a place or represent a queue position. Monitoring stops when DzLinux closes.</p>
+        <span id="watchlistAnnouncement" class="sr-only" role="status" aria-live="polite"></span>
       </div>
 
       <!-- HISTORY TAB -->
-      <div
-        id="history"
-        class="tab-content"
-        style="padding: 20px; overflow-y: auto"
-      >
-        <!-- History Toolbar Card -->
-        <div
-          class="card"
-          style="margin-bottom: 20px; border: 1px solid var(--border); background: var(--bg-card); border-radius: 6px; padding: 16px;"
-        >
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+      <div id="history" class="tab-content history-page">
+        <section class="card history-toolbar" aria-labelledby="historyTitle">
+          <div class="history-toolbar-heading">
             <div>
-              <h2 style="margin: 0 0 4px 0; font-size: 1.2rem; color: var(--text-bright); display: flex; align-items: center; gap: 8px;">
-                <app-icon name="history"></app-icon> Connection History & Analytics
-              </h2>
+              <h2 id="historyTitle"><app-icon name="history" aria-hidden="true"></app-icon> History</h2>
+              <p class="history-description">Find a server you used before and connect again.</p>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <div class="search-box" style="position: relative; width: 220px;">
-                <input
-                  type="text"
-                  id="historySearchInput"
-                  class="form-input"
-                  placeholder="Search history..."
-                  aria-label="Search server connection history"
-                />
-              </div>
-              <button
-                id="btnClearHistory"
-                class="btn btn-outline"
-                style="color: var(--accent-red); border-color: rgba(255, 90, 95, 0.3);"
-                title="Clear all server connection history"
-              >
-                <app-icon name="trash"></app-icon> Clear History
-              </button>
-            </div>
+            <button id="historyOptionsBtn" type="button" class="btn btn-outline history-options"
+              aria-label="History options" aria-expanded="false" aria-controls="history-action-popover">
+              <app-icon name="more-vertical" aria-hidden="true"></app-icon>
+              History options
+            </button>
           </div>
-        </div>
-
-        <!-- History Table -->
-        <div class="table-card">
-          <div class="table-scroll">
-            <table class="server-table">
-              <thead>
-                <tr>
-                  <th style="width: 90px;">Last Ping</th>
-                  <th>Server Name</th>
-                  <th style="width: 120px;">Map</th>
-                  <th style="width: 160px;">Last Connected</th>
-                  <th style="width: 90px; text-align: center;">Sessions</th>
-                  <th style="width: 220px;">Custom Note</th>
-                  <th style="width: 200px; text-align: right;">Action</th>
-                </tr>
-              </thead>
-              <tbody id="historyListBody">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
+          <div class="history-controls">
+            <label class="history-search">Search
+              <input id="historySearchInput" type="search" class="form-input"
+                placeholder="Search servers, addresses, or maps" autocomplete="off" />
+            </label>
+            <label>Sort
+              <select id="historySortSelect" class="form-input">
+                <option value="recent">Most recent</option>
+                <option value="used">Most used</option>
+              </select>
+            </label>
+            <label>Last used
+              <select id="historyDateSelect" class="form-input">
+                <option value="all">All retained history</option>
+                <option value="today">Today</option>
+                <option value="week">Past 7 days</option>
+              </select>
+            </label>
           </div>
+        </section>
+        <div class="history-results">
+          <span id="historyResultCount" role="status" aria-live="polite">Loading history…</span>
+          <button id="historyResetFilters" type="button" class="btn btn-outline btn-sm" hidden>Reset filters</button>
         </div>
+        <div class="history-table-wrap">
+          <table class="server-table history-table" aria-label="Recently used servers">
+            <thead>
+              <tr>
+                <th scope="col">Server</th>
+                <th scope="col">Last used</th>
+                <th scope="col">Attempts</th>
+                <th scope="col" class="history-actions-heading">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="historyListBody"></tbody>
+          </table>
+        </div>
+        <p class="history-help history-retention">Servers are kept for 30 days after their last use, with up to 200 recent activity entries per server. Counts represent connection attempts.</p>
       </div>
 
       <!-- DIAGNOSTICS TAB -->
@@ -1363,142 +1299,31 @@
       </div>
 
       <!-- FAVORITES TAB -->
-      <div
-        id="favorites"
-        class="tab-content"
-        style="padding: 20px; overflow-y: auto"
-      >
-        <div class="panel">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              margin-bottom: 20px;
-            "
-          >
-            <h2
-              style="
-                margin: 0;
-                color: var(--accent);
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-              "
-            >
-              <app-icon
-                name="star"
-                style="width: 1.2rem; height: 1.2rem; color: #ff9f1c"
-                stroke-width="2"
-                fill="currentColor"
-                stroke="currentColor"
-              ></app-icon>
-              Favorites Manager
-            </h2>
-            <div style="display: flex; gap: 10px; align-items: center">
-              <button
-                id="refreshFavPingsBtn"
-                class="btn btn-outline"
-                style="
-                  padding: 12px 15px;
-                  display: inline-flex;
-                  align-items: center;
-                  gap: 8px;
-                "
-              >
-                <app-icon
-                  name="refresh"
-                  style="width: 1rem; height: 1rem"
-                  stroke-width="2"
-                  fill="none"
-                  stroke="currentColor"
-                ></app-icon>
-                REFRESH
-              </button>
-              <div
-                class="direct-connect-wrapper"
-                style="margin: 0"
-              >
-                <input
-                  type="text"
-                  id="favNameInput"
-                  aria-label="Favorite Server Name"
-                  class="search-input"
-                  style="max-width: 200px; padding: 12px 15px"
-                  placeholder="Name (optional)..."
-                />
-                <input
-                  type="text"
-                  id="favIpInput"
-                  aria-label="Favorite Server IP"
-                  class="search-input"
-                  style="
-                    max-width: 200px;
-                    padding: 12px 15px;
-                    border-left: 1px solid var(--border);
-                  "
-                  placeholder="IP address..."
-                />
-                <input
-                  type="text"
-                  id="favPortInput"
-                  aria-label="Favorite Server Port"
-                  class="search-input"
-                  style="max-width: 100px; padding: 12px 15px"
-                  placeholder="Port..."
-                />
-                <button
-                  id="addFavBtn"
-                  class="btn"
-                  style="display: inline-flex; align-items: center; gap: 6px"
-                >
-                  <app-icon
-                    name="plus"
-                    style="width: 0.9rem; height: 0.9rem"
-                    stroke-width="2"
-                    fill="none"
-                    stroke="currentColor"
-                  ></app-icon>
-                  ADD
-                </button>
-              </div>
-            </div>
+      <div id="favorites" class="tab-content favorites-page">
+        <section class="card favorites-toolbar" aria-labelledby="favoritesTitle">
+          <div class="favorites-heading"><h2 id="favoritesTitle"><app-icon name="star" aria-hidden="true"></app-icon> Favorites</h2><p id="favoritesCount" class="watch-help">Loading favorites…</p></div>
+          <div class="favorites-toolbar-actions">
+            <button id="manageFavoriteGroups" class="btn btn-outline">Manage groups</button>
+            <button id="refreshFavPingsBtn" class="btn btn-outline"><app-icon name="refresh" aria-hidden="true"></app-icon> Refresh</button>
+            <button id="cancelFavoritesRefresh" class="btn btn-outline" hidden>Cancel refresh</button>
+            <button id="addFavBtn" class="btn"><app-icon name="plus" aria-hidden="true"></app-icon> Add server</button>
           </div>
-
-          <table class="server-table">
-            <thead>
-              <tr>
-                <th style="width: 50px; text-align: center">
-                  <app-icon
-                    name="star"
-                    style="
-                      width: 0.95rem;
-                      height: 0.95rem;
-                      vertical-align: middle;
-                      color: var(--text-muted);
-                    "
-                    stroke-width="2"
-                    fill="none"
-                    stroke="currentColor"
-                  ></app-icon>
-                </th>
-                <th class="col-security" style="width: 40px; text-align: center" title="Server Security & Trust Score">
-                  <app-icon name="shield" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--text-muted);"></app-icon>
-                </th>
-                <th>Server Name</th>
-                <th style="width: 110px">Players</th>
-                <th style="width: 80px; text-align: center">Mods</th>
-                <th style="width: 80px">Ping</th>
-                <th style="width: 250px">Metadata</th>
-                <th style="width: 220px">IP Address</th>
-                <th style="width: 170px; text-align: right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="favoritesListBody">
-              <!-- Rendered via JS -->
-            </tbody>
-          </table>
-        </div>
+          <div class="favorites-filters">
+            <label class="favorite-search-label">Search favorites<input id="favoritesSearch" class="search-input" type="search" placeholder="Name, label, address or map…" autocomplete="off" /></label>
+            <label>Sort<select id="favoritesSort" class="form-input"><option value="saved">Saved order</option><option value="name">Name</option><option value="ping">Lowest ping</option><option value="players">Most players</option><option value="lastUsed">Last used</option></select></label>
+            <label>Group<select id="favoritesGroup" class="form-input"><option value="all">All favorites</option><option value="ungrouped">Ungrouped</option></select></label>
+            <button id="resetFavoritesFilters" class="btn btn-outline" hidden>Reset filters</button>
+          </div>
+        </section>
+        <div id="favoritesError" class="favorite-error-banner" hidden><span></span><button id="retryFavoritesBtn" class="btn btn-outline">Retry</button></div>
+        <p id="favoritesHistoryStatus" class="watch-help" hidden><span></span> <button id="retryFavoriteHistory" class="btn btn-outline">Retry History</button></p>
+        <p id="favoritesRefreshStatus" class="watch-help">Refresh checks all favorites, including hidden search results. Favorites are checked on demand.</p>
+        <div class="table-card favorites-table-card"><table class="server-table favorites-table">
+          <thead><tr><th>Server</th><th>Players</th><th>Availability / ping</th><th>Details</th><th>Actions</th></tr></thead>
+          <tbody id="favoritesListBody"></tbody>
+        </table></div>
+        <p class="watch-help favorites-footnote">Pinned favorites stay first within your filters. Last used reflects retained connection attempts, not confirmed gameplay. Unreachable means the latest query failed.</p>
+        <span id="favoritesAnnouncement" class="sr-only" role="status" aria-live="polite"></span>
       </div>
 
       <div
@@ -2215,61 +2040,6 @@
       </div>
     </div>
 
-    <!-- Modal for Watchlist Auto-Join Countdown -->
-    <div id="autoJoinModal" class="modal-overlay" style="display: none">
-      <div
-        class="modal-box"
-        style="border-color: var(--accent); max-width: 480px; text-align: center;"
-      >
-        <div class="modal-header" style="background: rgba(var(--accent-rgb), 0.1); justify-content: center;">
-          <h2
-            style="
-              color: var(--accent);
-              display: inline-flex;
-              align-items: center;
-              gap: 8px;
-            "
-          >
-            <app-icon
-              name="bell"
-              style="width: 1.2rem; height: 1.2rem"
-              stroke-width="2"
-              fill="none"
-              stroke="currentColor"
-            ></app-icon>
-            Server Slot Available
-          </h2>
-        </div>
-        <div class="modal-body" style="padding: 20px 15px;">
-          <p id="autoJoinServerName" class="modal-description" style="font-weight: bold; font-size: 1.05rem; color: var(--text-bright); margin-bottom: 5px;">
-            Target Server Name
-          </p>
-          <p id="autoJoinServerIp" style="font-family: 'Share Tech Mono', monospace; color: var(--accent); font-size: 0.9rem; margin-bottom: 20px;">
-            127.0.0.1:2302
-          </p>
-          <div style="margin: 15px 0; display: flex; flex-direction: column; align-items: center;">
-            <div id="autoJoinCountdownCircle" style="font-size: 2.5rem; font-family: 'Share Tech Mono', monospace; font-weight: 700; color: var(--accent); text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.5);">
-              5
-            </div>
-            <span id="autoJoinSubtitle" style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px;">
-              Auto-connecting in seconds...
-            </span>
-          </div>
-        </div>
-        <div
-          class="modal-actions"
-          style="display: flex; justify-content: center; gap: 15px; margin-top: 10px;"
-        >
-          <button id="btnAutoJoinCancel" class="btn btn-outline" style="border-color: var(--accent-red); color: var(--accent-red);">
-            Cancel Auto-Join
-          </button>
-          <button id="btnAutoJoinNow" class="btn">
-            Join Now
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- Modal for Auto-Updater Alerts -->
     <div id="updateModal" class="modal-overlay" style="display: none">
       <div class="modal-box" style="border-color: var(--accent)">
@@ -2617,105 +2387,6 @@
             ></app-icon>
             Copy Log
           </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- HISTORY ANALYTICS & NOTES MODAL -->
-    <div id="historyAnalyticsModal" class="modal-overlay" style="display: none">
-      <div
-        class="modal-box modal-content"
-        style="
-          max-width: 820px;
-          width: 90%;
-          background: var(--bg-card);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-          padding: 24px;
-        "
-      >
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 16px;
-          "
-        >
-          <div>
-            <h3
-              id="analyticsModalTitle"
-              style="
-                margin: 0 0 4px 0;
-                color: var(--text-bright);
-                font-size: 1.3rem;
-                display: flex;
-                align-items: center;
-                gap: 8px;
-              "
-            >
-              <app-icon name="chart-line"></app-icon> Server Analytics
-            </h3>
-            <span
-              id="analyticsModalSubtitle"
-              style="font-size: 0.85rem; color: var(--text-muted)"
-            ></span>
-          </div>
-          <button
-            id="analyticsModalCloseBtn"
-            class="btn btn-outline"
-            style="padding: 4px 8px"
-            aria-label="Close Analytics Modal"
-          >
-            <app-icon name="x"></app-icon>
-          </button>
-        </div>
-
-        <div
-          style="
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            gap: 12px;
-            flex-wrap: wrap;
-          "
-        >
-          <div style="display: flex; gap: 8px" id="analyticsTimeframeBtns">
-            <button class="btn btn-outline active" data-timeframe="24h">24 Hours</button>
-            <button class="btn btn-outline" data-timeframe="7d">7 Days</button>
-            <button class="btn btn-outline" data-timeframe="30d">30 Days</button>
-          </div>
-
-          <div style="display: flex; gap: 16px; font-size: 0.85rem">
-            <div><strong style="color: var(--text-muted)">Sessions:</strong> <span id="analyticsTotalSessions" style="color: var(--text-bright)">-</span></div>
-            <div><strong style="color: var(--text-muted)">Avg Ping:</strong> <span id="analyticsAvgPing" style="color: var(--text-bright)">-</span></div>
-            <div><strong style="color: var(--text-muted)">Peak Population:</strong> <span id="analyticsPeakPlayers" style="color: var(--text-bright)">-</span></div>
-          </div>
-        </div>
-
-        <!-- Chart Container -->
-        <div style="position: relative; width: 100%; height: 320px; background: rgba(0,0,0,0.2); border-radius: 6px; padding: 12px; margin-bottom: 16px;">
-          <canvas id="historyChartCanvas"></canvas>
-        </div>
-
-        <!-- Custom Note Editor -->
-        <div style="border-top: 1px solid var(--border); padding-top: 16px;">
-          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-bright); display: block; margin-bottom: 6px;">
-            <app-icon name="sticky-note"></app-icon> Custom Server Note
-          </label>
-          <div style="display: flex; gap: 8px;">
-            <input
-              type="text"
-              id="analyticsCustomNoteInput"
-              class="form-input"
-              placeholder="Add notes about server rules, favorite locations, or admins..."
-              maxlength="500"
-            />
-            <button id="analyticsSaveNoteBtn" class="btn btn-primary" style="white-space: nowrap;">
-              <app-icon name="save"></app-icon> Save Note
-            </button>
-          </div>
         </div>
       </div>
     </div>

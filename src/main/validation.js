@@ -98,6 +98,47 @@ function validateCurrentServers(value) {
   );
 }
 
+function isValidActivityId(value) {
+  return typeof value === "string" &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+function sanitizeHistoryPayload(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value) ||
+      !validateServerAddress(value)) return null;
+  if (!["string", "number"].includes(typeof value.port) ||
+      (value.queryPort != null && !["string", "number"].includes(typeof value.queryPort))) return null;
+  const result = { ip: value.ip, port: Number(value.port) };
+  for (const [key, limit] of [["name", 200], ["map", 100]]) {
+    if (value[key] !== undefined) {
+      if (!isBoundedString(value[key], limit)) return null;
+      result[key] = value[key];
+    }
+  }
+  if (value.queryPort !== undefined) {
+    result.queryPort = value.queryPort === null ? null : Number(value.queryPort);
+  }
+  for (const [key, limit] of [["ping", 60000], ["players", 10000], ["maxPlayers", 10000]]) {
+    const number = value[key];
+    if (number !== undefined) {
+      if (number !== null && (typeof number !== "number" ||
+          !Number.isFinite(number) || number < 0 || number > limit ||
+          (key !== "ping" && !Number.isInteger(number)))) return null;
+      result[key] = number;
+    }
+  }
+  if (value.updateOnly !== undefined) {
+    if (typeof value.updateOnly !== "boolean") return null;
+    result.updateOnly = value.updateOnly;
+  }
+  if (value.activityId !== undefined) {
+    if (!isValidActivityId(value.activityId)) return null;
+    result.activityId = value.activityId;
+  }
+  if (result.updateOnly && !result.activityId) return null;
+  return result;
+}
+
 module.exports = {
   isValidIpOrHost,
   isValidPort,
@@ -109,6 +150,8 @@ module.exports = {
   validateWatchlistItem,
   validateWatchlist,
   validateCurrentServers,
+  isValidActivityId,
+  sanitizeHistoryPayload,
   MAX_NAME_LENGTH,
   MAX_TEXT_LENGTH,
   MIN_QUERY_CONCURRENCY,

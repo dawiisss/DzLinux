@@ -1,5 +1,6 @@
-import { state } from "../state.js";
-import { escapeHtml, isValidIpOrHost, isValidPort } from "../utils.js";
+import { favoriteKey } from "../favoriteIdentity.js";
+import { state, upsertHistoryRecord } from "../state.js";
+import { escapeHtml, isValidIpOrHost, isValidPort, getReportedPopulation } from "../utils.js";
 import { showToast } from "../feedback.js";
 import { triggerSteamworksSync, refreshLocalModsCache } from "../modManager.js";
 import { buildServerRow, buildDetailRow } from "../serverRow.js";
@@ -51,8 +52,8 @@ export function renderServers() {
       state.favorites.map((f) => `${f.ip}:${f.port}`)
     );
     filtered.sort((a, b) => {
-      const isFavA = favoritesSet.has(`${a.ip}:${a.port}`) ? 1 : 0;
-      const isFavB = favoritesSet.has(`${b.ip}:${b.port}`) ? 1 : 0;
+      const isFavA = favoritesSet.has(favoriteKey(a.ip, a.port)) ? 1 : 0;
+      const isFavB = favoritesSet.has(favoriteKey(b.ip, b.port)) ? 1 : 0;
       if (isFavA !== isFavB) return isFavB - isFavA;
 
       let cmp = 0;
@@ -204,7 +205,7 @@ export function renderServers() {
       if (modCount) modCount.textContent = getServerModCount(server);
       const starBtn = tr.querySelector(".star-btn");
       if (starBtn) {
-        const isFav = state.favoritesSet.has(`${server.ip}:${server.port}`);
+        const isFav = state.favoritesSet.has(favoriteKey(server.ip, server.port));
         const currentlyActive = starBtn.classList.contains("active");
         if (isFav !== currentlyActive) {
           starBtn.innerHTML = isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG;
@@ -273,12 +274,68 @@ export function renderServers() {
   }
 }
 
-export async function connectToServer(ip, port) {
+let activeConnectionId = null;
+let connectionStarting = false;
+let unsubscribeConnectionCancelled = null;
+function finishConnection(id, launched = false) {
+  if (activeConnectionId === id) activeConnectionId = null;
+  if (id) void window.api.connection?.finish(id, launched).catch((error) => console.error("Connection cleanup failed:", error));
+}
+
+export function cancelPendingConnection() {
+  finishConnection(activeConnectionId);
+
+  state.currentModCheckGeneration++;
+  if (state.currentModQueryRequestId) {
+    window.api.servers.cancelPingRequest?.(state.currentModQueryRequestId);
+    state.currentModQueryRequestId = null;
+  }
+  if (state.currentModCheckInterval) clearInterval(state.currentModCheckInterval);
+  if (state.currentModLaunchTimer) clearTimeout(state.currentModLaunchTimer);
+  state.currentModCheckInterval = null;
+  state.currentModLaunchTimer = null;
+  const modal = document.getElementById("modModal");
+  if (modal) modal.style.display = "none";
+}
+
+export async function connectToServer(ip, port, options = {}) {
   if (!isValidIpOrHost(ip) || !isValidPort(port)) {
     showToast("Invalid server address or port", "#ef233c", "alert");
     return;
   }
-  const checkGeneration = ++state.currentModCheckGeneration;
+  if (options.automaticConnectionId && (activeConnectionId || connectionStarting)) {
+    finishConnection(options.automaticConnectionId);
+    return;
+  }
+  cancelPendingConnection();
+  const checkGeneration = state.currentModCheckGeneration;
+  let connectionId = options.automaticConnectionId || null;
+  connectionStarting = true;
+  try {
+    if (!connectionId && window.api.connection) connectionId = await window.api.connection.begin();
+    if (checkGeneration !== state.currentModCheckGeneration) { finishConnection(connectionId); return; }
+    activeConnectionId = connectionId;
+  } catch (error) {
+    showToast("Could not start connection: " + error.message, "var(--accent-red)", "alert");
+    return;
+  } finally { connectionStarting = false; }
+
+  const live = state.allServers.find(
+    (server) => server.ip === ip && String(server.port) === String(port)
+  );
+  const provided = options.serverContext;
+  const historical = provided?.ip === ip && String(provided.port) === String(port) ? provided : null;
+  const source = live || historical;
+  const serverObj = source ? {
+    ...live,
+    name: live?.name || historical?.name,
+    map: live?.map || historical?.map,
+    queryPort: live?.queryPort || historical?.queryPort,
+    reportedPlayers: source.reportedPlayers,
+    reportedCapacity: source.reportedCapacity,
+    realPing: source.realPing,
+    failedPing: source.failedPing,
+  } : null;
   try {
   if (state.currentModCheckInterval) {
     clearInterval(state.currentModCheckInterval);
@@ -291,29 +348,34 @@ export async function connectToServer(ip, port) {
   const previousModal = document.getElementById("modModal");
   if (previousModal) previousModal.style.display = "none";
     console.log(`Connecting to ${ip}:${port}... verifying mods`);
-    await addToHistory(ip, port);
+    await addToHistory(ip, port, serverObj);
     if (checkGeneration !== state.currentModCheckGeneration) return;
 
-  const serverObj = state.allServers.find(
-    (s) => s.ip === ip && s.port.toString() === port.toString()
-  );
   let requiredMods = [];
+  const launchGame = () => connectionId
+    ? window.api.game.launch(ip, port, requiredMods, connectionId)
+    : window.api.game.launch(ip, port, requiredMods);
 
-  if (serverObj && serverObj.mods && serverObj.mods.length > 0) {
+  if (!options.forceModQuery && serverObj && serverObj.mods && serverObj.mods.length > 0) {
     requiredMods = serverObj.mods;
   } else {
     console.log("Querying server for detailed rules via GameDig...");
     showToast("Querying server for detailed rules...", "#ff9f1c", "signal");
-    requiredMods = await window.api.servers.queryMods(
-      ip,
-      port,
-      serverObj?.queryPort
-    );
+    const requestId = options.forceModQuery ? "connection-" + checkGeneration : null;
+    if (requestId) state.currentModQueryRequestId = requestId;
+    try {
+      requiredMods = requestId
+        ? await window.api.servers.queryMods(ip, port, serverObj?.queryPort, requestId)
+        : await window.api.servers.queryMods(ip, port, serverObj?.queryPort);
+    } finally {
+      if (state.currentModQueryRequestId === requestId) state.currentModQueryRequestId = null;
+    }
   }
 
   if (checkGeneration !== state.currentModCheckGeneration) return;
-  if (requiredMods === null) {
+  if (!Array.isArray(requiredMods)) {
     showToast("Server appears to be offline or unreachable", "#ef233c", "alert");
+    finishConnection(connectionId);
     return;
   }
 
@@ -323,7 +385,7 @@ export async function connectToServer(ip, port) {
 
   if (hasAllMods) {
     showToast("All mods synced! Launching DayZ client...", "#2ec4b6", "play");
-    const launched = await window.api.game.launch(ip, port, requiredMods)
+    const launched = await launchGame()
       .then(() => true)
       .catch((err) => {
         if (checkGeneration === state.currentModCheckGeneration) {
@@ -331,6 +393,7 @@ export async function connectToServer(ip, port) {
         }
         return false;
       });
+    finishConnection(connectionId, launched);
     if (!launched || checkGeneration !== state.currentModCheckGeneration) return;
     if (state.settings.enableGameMode && state.settings.protonPath &&
         state.settings.protonPath !== "default") {
@@ -425,7 +488,10 @@ export async function connectToServer(ip, port) {
     if (state.currentModCheckInterval) {
       clearInterval(state.currentModCheckInterval);
     }
+    let modCheckInProgress = false;
     state.currentModCheckInterval = setInterval(() => {
+      if (modCheckInProgress) return;
+      modCheckInProgress = true;
       void window.api.game.checkRequired(requiredMods)
         .then(({ missingMods: updatedMissing, hasAllMods: nowHasAll }) => {
           if (checkGeneration !== state.currentModCheckGeneration) return;
@@ -438,15 +504,21 @@ export async function connectToServer(ip, port) {
             statusText.style.color = "var(--accent-green)";
             state.currentModLaunchTimer = setTimeout(async () => {
               state.currentModLaunchTimer = null;
+              try {
               if (checkGeneration !== state.currentModCheckGeneration) return;
               modal.style.display = "none";
               statusText.style.color = "var(--accent)";
               await refreshLocalModsCache();
               if (checkGeneration !== state.currentModCheckGeneration) return;
               renderServers();
-              window.api.game.launch(ip, port, requiredMods).catch((err) => {
-                showToast(`Launch failed: ${err.message}`, "#ef233c", "alert");
-              });
+              await launchGame();
+              finishConnection(connectionId, true);
+              } catch (error) {
+                if (checkGeneration === state.currentModCheckGeneration) {
+                  finishConnection(connectionId);
+                  showToast("Launch preparation failed: " + error.message, "#ef233c", "alert");
+                }
+              }
             }, 2000);
           }
         })
@@ -454,110 +526,71 @@ export async function connectToServer(ip, port) {
           if (checkGeneration !== state.currentModCheckGeneration) return;
           console.error("Mod verification failed:", err);
           showToast(`Mod verification failed: ${err.message}`, "#ef233c", "alert");
-        });
+        })
+        .finally(() => { modCheckInProgress = false; });
     }, 2500);
 
     const cancelBtn = document.getElementById("modalCancelBtn");
     const newCancelBtn = cancelBtn.cloneNode(true);
     cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
     newCancelBtn.addEventListener("click", () => {
-      state.currentModCheckGeneration++;
-      if (state.currentModCheckInterval) {
-        clearInterval(state.currentModCheckInterval);
-        state.currentModCheckInterval = null;
-      }
-      if (state.currentModLaunchTimer) {
-        clearTimeout(state.currentModLaunchTimer);
-        state.currentModLaunchTimer = null;
-      }
-      modal.style.display = "none";
+      cancelPendingConnection();
+
     });
   }
   } catch (err) {
     if (checkGeneration !== state.currentModCheckGeneration) return;
+    finishConnection(connectionId);
     console.error(`Failed to connect to ${ip}:${port}:`, err);
     showToast(`Failed to connect: ${err.message || "Unknown error"}`, "#ef233c", "alert");
   }
 }
 
-async function addToHistory(ip, port) {
-  // Respect user setting: skip recording connection history if tracking or history tab is disabled
-  if (state.settings && (state.settings.enableHistory === false || state.settings.showHistoryTab === false)) {
+async function addToHistory(ip, port, serverObj) {
+  if (state.settings && (state.settings.enableHistory === false || state.settings.showHistoryTab === false)) return;
+  if (!window.api?.history) return;
+  const observedPing = serverObj?.realPing ?? serverObj?.ping;
+  const payload = {
+    ip, port: Number(port),
+    name: serverObj?.name || ip + ":" + port,
+    map: serverObj?.map || "",
+    queryPort: serverObj?.queryPort || null,
+    ping: !serverObj?.failedPing && Number.isFinite(observedPing) && observedPing > 0 ? observedPing : null,
+    ...getReportedPopulation(serverObj),
+  };
+  const publish = (record) => {
+    if (!record) return;
+    upsertHistoryRecord(record);
+    window.dispatchEvent(new CustomEvent("history-changed", { detail: { serverId: record.id } }));
+  };
+  let record;
+  try {
+    record = await window.api.history.record(payload);
+    publish(record);
+  } catch (error) {
+    console.error("Failed to record connection attempt:", error);
     return;
   }
-
-  const portStr = String(port);
-  const portNum = parseInt(port, 10);
-  const serverObj = state.allServers.find(
-    (s) => s.ip === ip && String(s.port) === portStr
-  );
-
-  let realPingVal = 0;
-  if (serverObj) {
-    if (typeof serverObj.realPing === "number" && serverObj.realPing > 0) {
-      realPingVal = serverObj.realPing;
-    } else if (typeof serverObj.ping === "number" && serverObj.ping > 0) {
-      realPingVal = serverObj.ping;
-    }
+  if (payload.ping === null && record?.lastActivityId && window.api.servers?.ping) {
+    window.api.servers.ping(ip, Number(port), payload.queryPort).then(async (result) => {
+      if (!result) return;
+      publish(await window.api.history.record({
+        ...payload, name: result.name || payload.name,
+        map: result.map || payload.map,
+        ping: Number.isFinite(result.ping) && result.ping > 0 ? result.ping : null,
+        ...getReportedPopulation(result),
+        updateOnly: true, activityId: record.lastActivityId,
+      }));
+    }).catch((error) => console.warn("History metadata update failed:", error.message));
   }
-
-  const name = serverObj && serverObj.name ? serverObj.name : `${ip}:${portStr}`;
-  const map = serverObj && serverObj.map ? serverObj.map : "Chernarus";
-  const players = serverObj && typeof serverObj.players === "number" ? serverObj.players : 0;
-  const maxPlayers = serverObj && typeof serverObj.maxPlayers === "number" ? serverObj.maxPlayers : 60;
-
-  const payload = {
-    ip,
-    port: portNum,
-    name,
-    map,
-    ping: realPingVal,
-    players,
-    maxPlayers,
-  };
-
-  if (window.api && window.api.history) {
-    try {
-      await window.api.history.record(payload);
-    } catch (e) {
-      console.error("Failed to record server history payload:", e);
-    }
-  }
-
-  // If initial ping value was zero, ping server in background and update history record once response returns
-  if (realPingVal === 0 && window.api && window.api.servers && window.api.servers.ping) {
-    window.api.servers.ping(ip, portNum, serverObj?.queryPort).then((statusObj) => {
-      if (statusObj && typeof statusObj.ping === "number" && statusObj.ping > 0 && window.api.history) {
-        window.api.history.record({
-          ip,
-          port: portNum,
-          name: statusObj.name || name,
-          map: statusObj.map || map,
-          ping: statusObj.ping,
-          players: typeof statusObj.players === "number" ? statusObj.players : players,
-          maxPlayers: typeof statusObj.maxPlayers === "number" ? statusObj.maxPlayers : maxPlayers,
-          updateOnly: true,
-        }).then(() => {
-          const existingH = state.history.find((h) => h.ip === ip && String(h.port) === portStr);
-          if (existingH) {
-            existingH.ping = statusObj.ping;
-          }
-          window.dispatchEvent(new CustomEvent("history-note-updated"));
-        }).catch(() => {});
-      }
-    }).catch(() => {});
-  }
-
-  state.history = state.history.filter(
-    (h) => !(h.ip === ip && String(h.port) === portStr)
-  );
-  state.history.unshift({ ip, port: portNum, name, map, ping: realPingVal, players, maxPlayers, timestamp: Date.now() });
-  if (state.history.length > 500) state.history = state.history.slice(0, 500);
-
-  state.historySet = new Set(state.history.map((h) => `${h.ip}:${h.port}`));
 }
 
 export function initServerBrowser() {
+  unsubscribeConnectionCancelled?.();
+  unsubscribeConnectionCancelled = window.api?.connection?.onCancelled((connection) => {
+    if (connection.id === activeConnectionId) cancelPendingConnection();
+  }) || null;
+
   const prevBtn = document.getElementById("prevPageBtn");
   if (prevBtn) {
     prevBtn.addEventListener("click", () => {
@@ -627,7 +660,7 @@ document.addEventListener("dzlinux:render-servers", () => {
 document.addEventListener("dzlinux:connect-server", (e) => {
   const s = e.detail?.server;
   if (s && s.ip && s.port) {
-    connectToServer(s.ip, s.port);
+    connectToServer(s.ip, s.port, { serverContext: s, ...e.detail?.options });
   }
 });
 

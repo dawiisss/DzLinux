@@ -10,6 +10,57 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [2.1.0] - 2026-10-20
+
+### Added
+
+- **Favorites Organization:** Added local search, stable sorting, pinned favorites, personal labels, optional groups, an address-preview Add server dialog, and visible Watchlist status with Create/Edit watch shortcuts.
+
+- **Watchlist Conditions and Controls:** Added explicit free-slot, population, and back-online watches; alert-once/repeat behavior, cooldowns, snooze/wake, Watch again, priority settings, and monitoring freshness feedback.
+
+- **History Activity Details:** Expand recent servers to inspect retained connection attempts and period-specific ping/population statistics, with search, sorting, date filters, and keyboard-accessible action menus.
+
+### Changed
+
+- **Favorites Management:** Moved favorite changes into targeted main-process settings transactions, retained existing order and names during migration, and preserved favorites/groups during ordinary preference saves and resets. Favorites Connect uses the existing launch flow with current mod requirements; shared mod details and download controls remain available.
+
+- **Watchlist Monitoring and Auto-Join:** Moved monitoring to the main process with bounded queries and cancellation. One countdown is selected by priority; the condition and mod requirements are queried again before connecting. Manual joins take precedence, and successful launch requests pause further automatic offers until explicitly resumed. Existing threshold rules migrate without changing their meaning.
+
+- **History Reconnects:** Join again now queries current server mod requirements before verifying files and launching. Historical server identity and query-port context are retained when the server is absent from the browser.
+- **History Notes:** Removed the note column, editor, search behavior, and save API. Existing stored text is preserved during the versioned migration.
+
+### Fixed
+
+- **Shared Mod Refreshes:** Synchronized explicit mod refreshes across Favorites and Server Browser, superseded older automatic/manual requests by server address, and preserved an explicit Favorites refresh during a server-list reload. Updated existing and replacement server objects together so both views show the latest result.
+
+- **Launch Cancellation:** Serialized launch preparation and rechecked connection ownership immediately before Steam/custom Proton process creation. Cancelled requests release the launch lock, and completion only updates the matching connection.
+
+- **Sidebar Preferences:** Pinning the sidebar now saves only its own setting, preserving newer preferences and Watchlist configuration.
+
+- **Watchlist Outage Continuity:** Kept consecutive failures across long query cycles while resetting outage continuity after missed schedules, monitoring changes, sleep/resume, or long manual-check gaps.
+
+- **Favorites Metadata:** Invalidated browser lookups when batches add or replace servers, retained placeholder provenance through a versioned cache, and preserved failed mod-query state instead of showing a false vanilla result. Older server-list caches are rebuilt once.
+
+- **Mod Download Ownership:** Reserved each download before awaiting subscription, prevented duplicate pollers, and cleaned up intervals when ownership changes or a download completes/fails/times out.
+
+- **History Shutdown:** Stopped accepting new History operations during shutdown, drained queued writes, and waited for all shutdown tasks even if another task fails.
+
+- **Watch Again Button Layout:** Kept Connect and the action menu together on the first line, with Watch again spanning a dedicated second line so alerted watches retain consistent button alignment.
+
+- **Favorite Group Dialog Alignment:** Matched input and button heights, spaced and right-aligned the Done and confirmation actions, and wrapped group controls in narrow windows.
+
+- **Watchlist and Favorites Scrolling:** Prevented table containers from shrinking and clipping additional servers. Both pages now scroll through the full list, expanded favorite details, and footer in smaller windows.
+
+- **Favorites Refresh and Availability:** Added bounded on-demand refresh with progress/cancellation, retained last-known data, distinguished unknown/stale/unreachable results, and prevented late replies from restoring removed entries or replacing organizational metadata. Coalesced refresh snapshots to reduce repeated full-table updates.
+
+- **Watchlist Action Alignment:** Centered row actions vertically and horizontally, with consistent button heights and spacing for Connect, Watch again, and the action menu.
+
+- **Watchlist Dialog Positioning:** Centered the edit-watch and auto-join dialogs horizontally and vertically, overriding the global margin reset while preserving scrolling in smaller windows.
+
+- **Watchlist Refresh and Persistence:** Refresh now queries servers rather than only redrawing rows. Watch results no longer depend on the server-browser cache, unknown counts/capacities cannot trigger alerts, and targeted serialized writes prevent stale full-list saves from losing edits.
+
+- **History Persistence and Statistics:** Prevented delayed metadata updates from restoring cleared or removed entries, serialized history mutations, preserved unknown measurements, and stopped empty chart periods from displaying invented data.
+
 ## [2.0.1] - 2026-10-16
 
 ### Added

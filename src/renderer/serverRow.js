@@ -1,3 +1,4 @@
+import { favoriteKey } from "./favoriteIdentity.js";
 import { state, addFavorite, removeFavorite } from "./state.js";
 import { showToast, copyToClipboard } from "./feedback.js";
 import {
@@ -11,7 +12,7 @@ import {
 } from "./utils.js";
 import { triggerSteamworksSync } from "./modManager.js";
 import { calculateTrustScore } from "./trustScore.js";
-import { getServerModCount, loadServerMods, rememberServerMods } from "./serverMods.js";
+import { getServerModCount, loadServerMods, beginServerModRefresh } from "./serverMods.js";
 import { createModSizeLabel } from "./modDownloadSize.js";
 
 function updateVisibleModRows(server) {
@@ -76,8 +77,7 @@ export function buildDetailRow(server, isFavoritesView = false) {
   `;
   refreshModsBtn.addEventListener("click", async (e) => {
     e.stopPropagation();
-    const queryGeneration = server.modQueryGeneration = (server.modQueryGeneration || 0) + 1;
-    server.isQueryingMods = true;
+    const request = beginServerModRefresh(server);
     refreshModsBtn.disabled = true;
     refreshModsBtn.innerHTML = `
       <app-icon name="loader" style="width: 0.8rem; height: 0.8rem;"></app-icon>
@@ -89,9 +89,8 @@ export function buildDetailRow(server, isFavoritesView = false) {
         server.port,
         server.queryPort,
       );
-      if (server.modQueryGeneration !== queryGeneration) return;
+      if (!request.isCurrent()) return;
       if (freshMods === null) throw new Error("Server is unreachable");
-      rememberServerMods(server, freshMods || []);
       server.modQueryFailed = false;
       if (freshMods && freshMods.length > 0) {
         server.mods = freshMods;
@@ -108,18 +107,19 @@ export function buildDetailRow(server, isFavoritesView = false) {
         server.isQueryingMods = false;
         showToast("No mods found for this server", "#ff9f1c", "alert");
       }
+      request.finish();
     } catch {
-      if (server.modQueryGeneration !== queryGeneration) return;
+      if (!request.isCurrent()) return;
       server.isQueryingMods = false;
       server.hasQueriedMods = true;
       server.modQueryFailed = true;
+      request.finish();
       refreshModsBtn.disabled = false;
       refreshModsBtn.innerHTML = `
         <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
         Refresh
       `;
       showToast("Failed to refresh mods", "#ff5a5f", "alert");
-      updateVisibleModRows(server);
       return;
     }
     refreshModsBtn.disabled = false;
@@ -127,7 +127,6 @@ export function buildDetailRow(server, isFavoritesView = false) {
       <app-icon name="refresh" style="width: 0.8rem; height: 0.8rem;"></app-icon>
       Refresh
     `;
-    updateVisibleModRows(server);
   });
   headerActions.appendChild(refreshModsBtn);
 
@@ -523,7 +522,7 @@ function buildActionCell(server, pingCellId, metaCellId) {
 }
 
 export function buildServerRow(server, isFavoritesView = false) {
-  const serverKey = `${server.ip}:${server.port}`;
+  const serverKey = favoriteKey(server.ip, server.port);
   const isFav = state.favoritesSet.has(serverKey);
   const metaCellId = isFavoritesView
     ? `fav-meta-cell-${server.id}`

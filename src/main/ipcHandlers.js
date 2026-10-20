@@ -1,6 +1,7 @@
 // IPC registration facade — domain handlers live in ./ipc/*.js and are
 // composed here so main.js keeps a single entry point.
 
+const { registerFavoritesHandlers } = require("./ipc/favoritesHandlers");
 const { registerSettingsHandlers } = require("./ipc/settingsHandlers");
 const { registerServerHandlers } = require("./ipc/serverHandlers");
 const { registerGameHandlers } = require("./ipc/gameHandlers");
@@ -12,6 +13,7 @@ const { registerHistoryHandlers } = require("./ipc/historyHandlers");
 
 function registerIpcHandlers() {
   registerSettingsHandlers();
+  registerFavoritesHandlers();
   registerServerHandlers();
   registerGameHandlers();
   registerModHandlers();

@@ -96,6 +96,13 @@ describe("IPC handler registration", () => {
     jest.doMock("../../src/main/servers", () => ({
       fetchDayZServers: jest.fn(() => Promise.resolve([])),
     }));
+    jest.doMock("../../src/main/favorites", () => ({}));
+    jest.doMock("../../src/main/favoritesQueries", () => ({ events: new (require("node:events").EventEmitter)() }));
+    jest.doMock("../../src/main/watchlistMonitor", () => ({ monitor: {
+      events: new (require("node:events").EventEmitter)(),
+      beginConnection: jest.fn(() => "connection-fixture"), assertConnection: jest.fn(),
+      finishConnection: jest.fn(), launched: jest.fn(), configure: jest.fn().mockResolvedValue(),
+    } }));
     jest.doMock("../../src/main/game", () => ({
       checkMods: jest.fn(() =>
         Promise.resolve({ missingMods: [], hasAllMods: true }),
@@ -161,6 +168,11 @@ describe("IPC handler registration", () => {
     const expectedHandlers = [
       "load-settings",
       "save-settings",
+      "favorites:snapshot",
+      "favorites:add",
+      "favorites:update",
+      "favorites:refresh",
+      "favorites:group",
       "fetch-servers",
       "query-mods",
       "refresh-mod-cache",
@@ -191,9 +203,13 @@ describe("IPC handler registration", () => {
       "resolve-mod-dependencies",
       "resolve-mod-dependencies-batch",
       "get-disk-space",
-      "load-watchlist",
-      "save-watchlist",
-      "check-watchlist-thresholds",
+      "watchlist:snapshot",
+      "watchlist:command",
+      "watchlist:refresh",
+      "watchlist:claim",
+      "watchlist:confirm",
+      "connection:begin",
+      "connection:finish",
     ];
 
     for (const handler of expectedHandlers) {
@@ -209,24 +225,24 @@ describe("IPC handler registration", () => {
     const mockGame = require("../../src/main/game");
     mockGame.launchDayZ.mockResolvedValueOnce(true);
     await expect(
-      launchGameHandler(null, "1.1.1.1", 2302, [{ id: "12345" }]),
+      launchGameHandler({ sender: { id: 1 } }, "1.1.1.1", 2302, [{ id: "12345" }]),
     ).resolves.toBe(true);
-    expect(mockGame.launchDayZ).toHaveBeenCalledWith("1.1.1.1", 2302, [{ id: "12345" }]);
+    expect(mockGame.launchDayZ).toHaveBeenCalledWith("1.1.1.1", 2302, [{ id: "12345" }], expect.any(Function));
 
     // 2. Should accept empty connection details for Quick Launch
     mockGame.launchDayZ.mockResolvedValueOnce(true);
     await expect(
-      launchGameHandler(null, "", "", [{ id: 12345 }, "67890"]),
+      launchGameHandler({ sender: { id: 1 } }, "", "", [{ id: 12345 }, "67890"]),
     ).resolves.toBe(true);
 
     // 3. Should reject invalid connection details when provided
     await expect(
-      launchGameHandler(null, "invalid_ip@host", 2302, []),
+      launchGameHandler({ sender: { id: 1 } }, "invalid_ip@host", 2302, []),
     ).rejects.toThrow("Invalid arguments");
 
     // 4. Should reject invalid mod IDs
     await expect(
-      launchGameHandler(null, "", "", [{ id: "invalid_id" }]),
+      launchGameHandler({ sender: { id: 1 } }, "", "", [{ id: "invalid_id" }]),
     ).rejects.toThrow("Invalid mod IDs");
   });
 });

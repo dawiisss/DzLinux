@@ -3,7 +3,6 @@ import { showToast, showConfirmModal } from "./feedback.js";
 import { applyServerListMode, applyLayoutMode } from "./theme.js";
 import { applyTabVisibility } from "./ui-behavior.js";
 import { startCountdown } from "./serverBrowser.js";
-import { startWatchlistPoll } from "./watchlist.js";
 import { updateLaunchOptionAvailability } from "./launchOptions.js";
 
 export async function initSettings() {
@@ -259,7 +258,7 @@ export async function initSettings() {
       applyTabVisibility(newSettings);
       applyLayoutMode(newSettings.layoutMode);
 
-      // Restart countdown and watchlist polling only if relevant settings changed
+      // Restart server-browser countdown only if relevant settings changed
       const refreshKeysChanged =
         newSettings.autoRefreshEnabled !== prev.autoRefreshEnabled ||
         newSettings.autoRefreshTime !== prev.autoRefreshTime;
@@ -267,14 +266,6 @@ export async function initSettings() {
         startCountdown();
       }
 
-      const watchlistPollKeysChanged =
-        newSettings.watchlistRefreshEnabled !== prev.watchlistRefreshEnabled ||
-        newSettings.watchlistRefreshTime !== prev.watchlistRefreshTime ||
-        newSettings.enableWatchlist !== prev.enableWatchlist ||
-        newSettings.showWatchlistTab !== prev.showWatchlistTab;
-      if (watchlistPollKeysChanged) {
-        startWatchlistPoll();
-      }
       document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       if (!silent)
         showToast("Settings committed to local storage", "#ff9f1c", "save");

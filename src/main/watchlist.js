@@ -1,233 +1,133 @@
-const { Notification: ElectronNotification, BrowserWindow, app } = require("electron");
+const { app } = require("electron");
 const path = require("node:path");
-const fs = require("node:fs");
-const settingsManager = require("./settings");
+const fs = require("node:fs/promises");
+const { randomUUID } = require("node:crypto");
 const { writeJsonAtomically } = require("./fileUtils");
-const { validateCurrentServers, validateWatchlist } = require("./validation");
+const settingsManager = require("./settings");
+const { validateWatchlist, isValidActivityId } = require("./validation");
+const { sanitizeConfig, identity } = require("./watchlistModel");
 
-const WATCHLIST_FILE = path.join(app.getPath("userData"), "watchlist.json");
-const activeNotifications = new Set();
+const file = path.join(app.getPath("userData"), "watchlist.json");
+let cached = null;
+let loading = null;
+let writes = Promise.resolve();
+const clone = (value) => JSON.parse(JSON.stringify(value));
 
-/**
- * Loads the watchlist from persistent settings.
- *
- * @remarks
- * The watchlist is stored in a standalone `watchlist.json` file.
- * If the file does not exist, it checks the legacy `settings.watchlist` for migration,
- * and defaults to an empty array to prevent undefined errors.
- *
- * @returns {Array<{ip: string, port: number, name: string, active: boolean, threshold: number, mode: string, lastStatus: string}>} The current watchlist array.
- */
-let cachedWatchlist = null;
-
-async function loadWatchlist() {
-  if (cachedWatchlist !== null) {
-    return cachedWatchlist.map(item => ({ ...item }));
+function validateDocument(document) {
+  if (!document || document.schemaVersion !== 2 || !Number.isSafeInteger(document.revision) || document.revision < 1 ||
+      !Array.isArray(document.entries) || document.entries.length > 1000) throw new Error("Unsupported or invalid watchlist file");
+  const ids = new Set();
+  const addresses = new Set();
+  for (const entry of document.entries) {
+    const config = Object.fromEntries(["ip", "port", "queryPort", "name", "condition", "alertPolicy", "cooldownSeconds", "autoJoin", "priority"].map((key) => [key, entry[key]]));
+    sanitizeConfig(config);
+    if (!isValidActivityId(entry.id) || ids.has(entry.id) || addresses.has(identity(entry)) ||
+        typeof entry.enabled !== "boolean" || !Number.isSafeInteger(entry.configRevision) || entry.configRevision < 1 ||
+        ![null, "user", "alerted"].includes(entry.pausedReason) ||
+        (entry.enabled ? entry.pausedReason !== null : entry.pausedReason === null) ||
+        typeof entry.episodeLatched !== "boolean" || typeof entry.pendingEpisode !== "boolean" ||
+        ![entry.snoozedUntil, entry.lastAlertAt].every((v) => v === null || (Number.isSafeInteger(v) && v > 0 && v <= 8640000000000000)) ||
+        !(entry.lastEventId === null || isValidActivityId(entry.lastEventId))) throw new Error("Invalid watchlist entry; original file preserved");
+    ids.add(entry.id);
+    addresses.add(identity(entry));
   }
-  try {
-    const exists = await fs.promises.access(WATCHLIST_FILE).then(() => true).catch(() => false);
-    if (exists) {
-      const content = await fs.promises.readFile(WATCHLIST_FILE, "utf8");
-      cachedWatchlist = JSON.parse(content) || [];
-      return cachedWatchlist.map(item => ({ ...item }));
-    }
-    // Migration check
-    const settings = await settingsManager.loadSettingsAsync();
-    if (settings.watchlist && settings.watchlist.length > 0) {
-      const watchlist = settings.watchlist;
-      await saveWatchlist(watchlist);
-      // Clean up from settings to avoid future confusion
-      delete settings.watchlist;
-      await settingsManager.saveSettings(settings);
-      return watchlist;
-    }
-  } catch (e) {
-    console.error("Failed to load watchlist:", e.message);
-  }
-  cachedWatchlist = [];
-  return [];
+  return document;
 }
 
-/**
- * Saves the watchlist to persistent settings.
- *
- * @remarks
- * This function persists the entire watchlist array back to a standalone file.
- *
- * @param {Array<{ip: string, port: number, name: string, active: boolean, threshold: number, mode: string, lastStatus: string}>} watchlist - The updated watchlist array.
- * @returns {boolean} True if the settings were successfully saved to disk, false otherwise.
- */
-async function saveWatchlist(watchlist) {
-  try {
-    if (!validateWatchlist(watchlist)) return false;
-    const snapshot = watchlist.map(item => ({ ...item }));
-    await writeJsonAtomically(WATCHLIST_FILE, snapshot);
-    cachedWatchlist = snapshot;
-    return true;
-  } catch (e) {
-    console.error("Failed to save watchlist:", e.message);
-    return false;
-  }
+function createEntry(config, priority = 1) {
+  return {
+    id: randomUUID(), ip: config.ip, port: config.port, queryPort: null, name: "",
+    condition: { type: "free-slots", value: 1 }, alertPolicy: "once", cooldownSeconds: 300,
+    autoJoin: false, priority, ...config, enabled: true, configRevision: 1,
+    pausedReason: null, snoozedUntil: null, lastAlertAt: null, lastEventId: null,
+    episodeLatched: false, pendingEpisode: false,
+  };
 }
 
-/**
- * Evaluates the current server population against the watchlist thresholds
- * and triggers native desktop notifications if conditions are met.
- *
- * @remarks
- * This is the core background check loop for the Watchlist feature. It compares
- * incoming server updates against the user's watched servers.
- *
- * A notification only fires if:
- * 1. The watched server is currently marked as `active` in the UI.
- * 2. The server's status is 'online'.
- * 3. The player count crosses the threshold (`<=` for 'below' mode, `>=` for 'above' mode).
- * 4. We haven't already notified the user during this threshold event (`lastStatus !== 'notified'`).
- *
- * If a server's population moves back across the threshold (e.g., it fills up again),
- * its state resets to 'idle', allowing it to trigger a new notification if it dips again.
- *
- * @param {Array<{ip: string, port: number, status: string, players: number, name: string}>} currentServers - Array of freshly queried server status objects.
- */
-async function processWatchlistChecks(currentServers) {
-  if (!validateCurrentServers(currentServers)) return [];
-  const settings = await settingsManager.loadSettingsAsync();
-  // Respect user setting: skip background watchlist checks and notifications if watchlist is disabled
-  if (settings && (settings.enableWatchlist === false || settings.showWatchlistTab === false)) {
-    return [];
+async function readDocument() {
+  let text;
+  let legacySettings = null;
+  try { text = await fs.readFile(file, "utf8"); }
+  catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    legacySettings = await settingsManager.loadSettingsAsync();
+    if (!legacySettings.watchlist?.length) return { schemaVersion: 2, revision: 1, entries: [] };
+    text = JSON.stringify(legacySettings.watchlist);
   }
-  const watchlist = await loadWatchlist();
-  const globalThreshold =
-    settings.watchlistThreshold !== undefined
-      ? settings.watchlistThreshold
-      : 50;
-  let changed = false;
-  const triggeredNotifications = [];
+  const parsed = JSON.parse(text);
+  if (!Array.isArray(parsed)) return validateDocument(parsed);
+  if (!validateWatchlist(parsed)) throw new Error("Invalid legacy watchlist; original file preserved");
+  const settings = legacySettings || await settingsManager.loadSettingsAsync();
+  const seen = new Set();
+  const entries = [];
+  for (const old of parsed) {
+    const config = sanitizeConfig({
+      ip: old.ip, port: old.port, queryPort: old.queryPort ?? null, name: old.name || "",
+      condition: { type: old.mode === "above" ? "population-at-least" : "legacy-player-at-most", value: old.threshold ?? settings.watchlistThreshold ?? 50 },
+      alertPolicy: "repeat", cooldownSeconds: 300, autoJoin: old.autoJoin ?? false, priority: entries.length + 1,
+    });
+    if (seen.has(identity(config))) continue;
+    seen.add(identity(config));
+    const entry = createEntry(config);
+    Object.assign(entry, { enabled: old.active, pausedReason: old.active ? null : "user", episodeLatched: old.lastStatus === "notified" });
+    entries.push(entry);
+  }
+  // Keep the complete original, including duplicate legacy entries, for recovery.
+  try { await fs.writeFile(file + ".v1-backup", text, { flag: "wx", mode: 0o600 }); }
+  catch (error) { if (error.code !== "EEXIST") throw error; }
+  const document = validateDocument({ schemaVersion: 2, revision: 1, entries });
+  await writeJsonAtomically(file, document);
+  if (legacySettings) await settingsManager.saveSettings({ ...legacySettings, watchlist: [] });
+  return document;
+}
 
-  const iconPath = path.join(__dirname, "..", "assets", "icon.png");
+async function loadDocument() {
+  if (cached) return clone(cached);
+  if (!loading) loading = readDocument().then((document) => { cached = document; }).finally(() => { loading = null; });
+  await loading;
+  return clone(cached);
+}
 
-  let activeCount = 0;
-  let matchedOnlineCount = 0;
-  let triggeredCount = 0;
-
-  const serverMap = new Map(currentServers.map((s) => [`${s.ip}:${s.port}`, s]));
-
-  watchlist.forEach((item) => {
-    if (!item.active) {
-      if (item.lastStatus === "notified") {
-        console.log(
-          `[Watchlist] RESET: ${item.name || item.ip} — item deactivated, resetting status to idle`,
-        );
-        item.lastStatus = "idle";
-        changed = true;
-      }
-      return;
-    }
-    activeCount++;
-
-    const server = serverMap.get(`${item.ip}:${item.port}`);
-    if (!server || server.status !== "online") return;
-    matchedOnlineCount++;
-
-    const threshold =
-      item.threshold !== undefined ? item.threshold : globalThreshold;
-    const mode = item.mode || "below";
-
-    const isTriggered =
-      mode === "above"
-        ? server.players >= threshold
-        : server.players <= threshold;
-
-    if (isTriggered && item.lastStatus !== "notified") {
-      const title =
-        mode === "above"
-          ? "🎯 Population Target Reached"
-          : "🟢 Server Slot Available";
-      const body = `${server.name || item.name} now has ${server.players} players. (Threshold: ${mode === "above" ? ">=" : "<="} ${threshold})`;
-
-      console.log(`[Watchlist] NOTIFY: ${title} — ${body}`);
-
-      let nativeShown = false;
-      const targetServerPayload = {
-        ip: item.ip,
-        port: item.port,
-        queryPort: server.queryPort || item.queryPort || null,
-        name: server.name || item.name || "Unknown Server",
-        autoJoin: !!item.autoJoin,
-      };
-
-      if (ElectronNotification.isSupported()) {
-        try {
-          const n = new ElectronNotification({ title, body, icon: iconPath });
-          activeNotifications.add(n);
-
-          const cleanup = () => {
-            activeNotifications.delete(n);
-          };
-
-          n.on("click", () => {
-            cleanup();
-            BrowserWindow.getAllWindows().forEach((win) => {
-              if (win.isMinimized()) win.restore();
-              win.show();
-              win.focus();
-              win.webContents.send("open-watchlist");
-              win.webContents.send(
-                "open-watchlist-autojoin",
-                targetServerPayload,
-              );
-            });
-          });
-
-          n.on("close", cleanup);
-          n.on("failed", cleanup);
-
-          n.show();
-          nativeShown = true;
-          console.log("[Watchlist] Native notification shown");
-        } catch (e) {
-          console.error("[Watchlist] Notification.show failed:", e.message);
-        }
-      } else {
-        console.log("[Watchlist] Notification.isSupported() returned false");
-      }
-
-      triggeredNotifications.push({
-        title,
-        body,
-        nativeShown,
-        autoJoin: !!item.autoJoin,
-        server: targetServerPayload,
-      });
-      triggeredCount++;
-
-      item.lastStatus = "notified";
-      changed = true;
-    } else if (!isTriggered && item.lastStatus === "notified") {
-      console.log(
-        `[Watchlist] RESET: ${item.name || item.ip} — threshold no longer met, rearming`,
-      );
-      item.lastStatus = "idle";
-      changed = true;
-    }
+function mutate(change) {
+  const operation = writes.then(async () => {
+    const candidate = await loadDocument();
+    const result = change(candidate.entries);
+    candidate.revision++;
+    validateDocument(candidate);
+    await writeJsonAtomically(file, candidate);
+    cached = candidate;
+    return clone(result ?? candidate);
   });
-
-  console.log(
-    `[Watchlist] Poll: ${watchlist.length} watched, ${activeCount} active, ${matchedOnlineCount} matched online, ${triggeredCount} triggered`,
-  );
-
-  if (changed) {
-    await saveWatchlist(watchlist);
-  }
-
-  return triggeredNotifications;
+  writes = operation.catch(() => {});
+  return operation;
 }
 
-module.exports = {
-  loadWatchlist,
-  saveWatchlist,
-  processWatchlistChecks,
-  _clearCache: () => {
-    cachedWatchlist = null;
-  },
-};
+function add(input) {
+  const config = sanitizeConfig(input);
+  return mutate((entries) => {
+    if (entries.length >= 1000) throw new Error("Watchlist limit reached");
+    if (entries.some((entry) => identity(entry) === identity(config))) throw new Error("This server is already watched");
+    const entry = createEntry(config, Math.min(1000, Math.max(0, ...entries.map((e) => e.priority)) + 1));
+    entries.push(entry);
+    return entry;
+  });
+}
+
+function update(id, change) {
+  return mutate((entries) => {
+    const entry = entries.find((item) => item.id === id);
+    if (!entry) throw new Error("Watch no longer exists");
+    change(entry);
+    return entry;
+  });
+}
+
+function remove(id) {
+  return mutate((entries) => {
+    const index = entries.findIndex((entry) => entry.id === id);
+    if (index < 0) throw new Error("Watch no longer exists");
+    entries.splice(index, 1);
+  });
+}
+
+module.exports = { loadDocument, mutate, add, update, remove, flush: () => writes };

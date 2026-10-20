@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { app } = require("electron");
 const { writeJsonAtomically } = require("./fileUtils");
+const { parseLegacy: parseFavoriteAddress } = require("./favoritesModel");
 
 const CACHE_FILE = path.join(app.getPath("userData"), "server_cache.json");
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -28,12 +29,14 @@ async function loadServerCache() {
     const content = await fs.promises.readFile(CACHE_FILE, "utf8");
     const data = JSON.parse(content);
     if (
+      data.schemaVersion === 2 &&
       data.timestamp &&
       Date.now() - data.timestamp < CACHE_TTL_MS &&
       Array.isArray(data.servers)
     ) {
       return data.servers.map((s, idx) => ({
-        id: `custom-${s.ip.replace(/\./g, "-")}-${s.port}`,
+        id: `${s.isFavoritePlaceholder ? "fav" : "custom"}-${s.ip.replace(/\./g, "-")}-${s.port}`,
+        isFavoritePlaceholder: s.isFavoritePlaceholder === true,
         originalIndex: idx,
         name: s.name || "Unknown Server",
         ip: s.ip,
@@ -41,6 +44,8 @@ async function loadServerCache() {
         queryPort: s.queryPort || null,
         players: s.players || 0,
         maxPlayers: s.maxPlayers !== undefined ? s.maxPlayers : 60,
+        reportedPlayers: Number.isInteger(s.reportedPlayers) && s.reportedPlayers >= 0 ? s.reportedPlayers : null,
+        reportedCapacity: Number.isInteger(s.reportedCapacity) && s.reportedCapacity > 0 ? s.reportedCapacity : null,
         status: s.status || "offline",
         mods: s.mods || [],
         customList: s.customList !== false,
@@ -73,9 +78,12 @@ async function saveServerCache(servers) {
         ip: s.ip,
         port: s.port,
       };
+      if (s.isFavoritePlaceholder) opt.isFavoritePlaceholder = true;
       if (s.queryPort) opt.queryPort = s.queryPort;
       if (s.players) opt.players = s.players;
       if (s.maxPlayers !== undefined && s.maxPlayers !== 60) opt.maxPlayers = s.maxPlayers;
+      if (s.reportedPlayers != null) opt.reportedPlayers = s.reportedPlayers;
+      if (s.reportedCapacity != null) opt.reportedCapacity = s.reportedCapacity;
       if (s.status && s.status !== "offline") opt.status = s.status;
       if (s.mods && s.mods.length > 0) opt.mods = s.mods;
       if (s.customList === false) opt.customList = false;
@@ -96,6 +104,7 @@ async function saveServerCache(servers) {
     // Optimize: Use asynchronous write to prevent blocking the Node.js event loop
     // during potentially large JSON stringification and file I/O operations.
     await writeJsonAtomically(CACHE_FILE, {
+      schemaVersion: 2,
       timestamp: Date.now(),
       servers: optimized,
     });
@@ -337,6 +346,8 @@ function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
         queryPort: custom.queryPort || null,
         players: 0,
         maxPlayers: 60,
+        reportedPlayers: null,
+        reportedCapacity: null,
         status: "offline",
         mods: resolvedMods,
         customList: true,
@@ -366,22 +377,31 @@ function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
 }
 
 function injectFavoritesPlaceholders(servers, favorites, serversMap) {
-  if (favorites && favorites.length > 0) {
+  if (Array.isArray(favorites) && favorites.length > 0) {
     const added = [];
+    const seen = new Set(serversMap.keys());
     favorites.forEach((fav) => {
-      const ip = fav.ip;
-      const port = typeof fav.port === "number" ? fav.port : parseInt(fav.port, 10);
+      // Settings preserve invalid/legacy Favorites for recovery. This read-only
+      // projection must not let one invalid entry discard the entire server list.
+      let address;
+      try { address = parseFavoriteAddress(fav); }
+      catch { return; }
+      const { ip, port, queryPort } = address;
       const mapKey = `${ip}:${port}`;
-      const exists = serversMap.has(mapKey);
+      const exists = seen.has(mapKey);
       if (!exists) {
+        seen.add(mapKey);
         added.push({
           id: `fav-${ip.replace(/\./g, "-")}-${port}`,
-          name: fav.name || "Favorited Server",
+          isFavoritePlaceholder: true,
+          name: typeof fav.name === "string" && fav.name.trim() ? fav.name.slice(0, 200) : "Favorited Server",
           ip: ip,
           port: port,
-          queryPort: fav.queryPort || null,
+          queryPort,
           players: 0,
           maxPlayers: 60,
+          reportedPlayers: null,
+          reportedCapacity: null,
           status: "offline",
           mods: [],
           customList: true,

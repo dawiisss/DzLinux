@@ -1,5 +1,11 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+function subscribe(channel, callback) {
+  const handler = (_event, payload) => callback(payload);
+  ipcRenderer.on(channel, handler);
+  return () => ipcRenderer.removeListener(channel, handler);
+}
+
 contextBridge.exposeInMainWorld("api", {
   app: {
     getVersion: () => ipcRenderer.invoke("get-version"),
@@ -9,7 +15,6 @@ contextBridge.exposeInMainWorld("api", {
   settings: {
     load: () => ipcRenderer.invoke("load-settings"),
     save: (settings) => ipcRenderer.invoke("save-settings", settings),
-    saveFavorites: (data) => ipcRenderer.invoke("save-favorites", data),
     getDefaults: () => ipcRenderer.invoke("get-default-settings"),
   },
 
@@ -52,8 +57,9 @@ contextBridge.exposeInMainWorld("api", {
   },
 
   game: {
-    launch: (ip, port, mods) =>
-      ipcRenderer.invoke("launch-game", ip, port, mods),
+    launch: (ip, port, mods, connectionId) => connectionId === undefined
+      ? ipcRenderer.invoke("launch-game", ip, port, mods)
+      : ipcRenderer.invoke("launch-game", ip, port, mods, connectionId),
     checkRequired: (requiredMods) =>
       ipcRenderer.invoke("check-mods", requiredMods),
     scanProton: (refresh = false) => ipcRenderer.invoke("scan-proton-versions", refresh),
@@ -69,27 +75,41 @@ contextBridge.exposeInMainWorld("api", {
     modState: (modId) => ipcRenderer.invoke("steamworks-mod-state", modId),
   },
 
+  favorites: {
+    getSnapshot: () => ipcRenderer.invoke("favorites:snapshot"),
+    add: (input, token = null) => ipcRenderer.invoke("favorites:add", input, token),
+    update: (id, patch, revision) => ipcRenderer.invoke("favorites:update", id, patch, revision),
+    remove: (id) => ipcRenderer.invoke("favorites:remove", id),
+    group: (action, id, name) => ipcRenderer.invoke("favorites:group", action, id, name),
+    preview: (input, requestId) => ipcRenderer.invoke("favorites:preview", input, requestId),
+    refresh: (ids, requestId) => ipcRenderer.invoke("favorites:refresh", ids, requestId),
+    cancel: (requestId = null) => ipcRenderer.invoke("favorites:cancel", requestId),
+    onChanged: (callback) => subscribe("favorites:changed", callback),
+    onRefreshProgress: (callback) => subscribe("favorites:progress", callback),
+  },
   watchlist: {
-    load: () => ipcRenderer.invoke("load-watchlist"),
-    save: (watchlist) => ipcRenderer.invoke("save-watchlist", watchlist),
-    checkThresholds: (currentServers) =>
-      ipcRenderer.invoke("check-watchlist-thresholds", currentServers),
-    onNotify: (callback) => {
-      const handler = (_event, notifications) => callback(notifications);
-      ipcRenderer.on("watchlist-notify", handler);
-      return () => ipcRenderer.removeListener("watchlist-notify", handler);
-    },
-    onOpen: (callback) => {
-      const handler = () => callback();
-      ipcRenderer.on("open-watchlist", handler);
-      return () => ipcRenderer.removeListener("open-watchlist", handler);
-    },
-    onAutoJoin: (callback) => {
-      const handler = (_event, server) => callback(server);
-      ipcRenderer.on("open-watchlist-autojoin", handler);
-      return () =>
-        ipcRenderer.removeListener("open-watchlist-autojoin", handler);
-    },
+    getSnapshot: () => ipcRenderer.invoke("watchlist:snapshot"),
+    add: (input) => ipcRenderer.invoke("watchlist:command", "add", [input]),
+    update: (id, patch, revision) => ipcRenderer.invoke("watchlist:command", "update", [id, patch, revision]),
+    remove: (id) => ipcRenderer.invoke("watchlist:command", "remove", [id]),
+    setEnabled: (id, enabled) => ipcRenderer.invoke("watchlist:command", "setEnabled", [id, enabled]),
+    snooze: (id, seconds = 900) => ipcRenderer.invoke("watchlist:command", "snooze", [id, seconds]),
+    wake: (id) => ipcRenderer.invoke("watchlist:command", "wake", [id]),
+    rearm: (id) => ipcRenderer.invoke("watchlist:command", "rearm", [id]),
+    refresh: () => ipcRenderer.invoke("watchlist:refresh"),
+    claimAutoJoin: (eventId) => ipcRenderer.invoke("watchlist:claim", eventId),
+    cancelAutoJoin: (offerId) => ipcRenderer.invoke("watchlist:cancel", offerId),
+    confirmAutoJoin: (offerId) => ipcRenderer.invoke("watchlist:confirm", offerId),
+    resumeAutoJoin: () => ipcRenderer.invoke("watchlist:resume-auto"),
+    onChanged: (callback) => subscribe("watchlist:changed", callback),
+    onAlert: (callback) => subscribe("watchlist:alert", callback),
+    onAutoJoinOffer: (callback) => subscribe("watchlist:offer", callback),
+    onOpen: (callback) => subscribe("watchlist:open", callback),
+  },
+  connection: {
+    begin: () => ipcRenderer.invoke("connection:begin"),
+    finish: (id, launched = false) => ipcRenderer.invoke("connection:finish", id, launched),
+    onCancelled: (callback) => subscribe("connection:cancelled", callback),
   },
 
   history: {
@@ -97,8 +117,6 @@ contextBridge.exposeInMainWorld("api", {
     record: (server) => ipcRenderer.invoke("history:record", server),
     delete: (id) => ipcRenderer.invoke("history:delete", id),
     clear: () => ipcRenderer.invoke("history:clear"),
-    saveNote: (serverId, note) =>
-      ipcRenderer.invoke("history:save-note", { serverId, note }),
     getAnalytics: (serverId) =>
       ipcRenderer.invoke("history:get-analytics", serverId),
   },

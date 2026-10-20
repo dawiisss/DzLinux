@@ -76,6 +76,7 @@ describe("settings", () => {
 
   test("saveSettings then loadSettingsAsync round-trips correctly", async () => {
     const { loadSettingsAsync, saveSettings } = require("../../src/main/settings");
+    fs.writeFileSync(settingsPath, JSON.stringify({ favorites: [{ ip: "1.2.3.4", port: 2302, queryPort: null, name: "" }] }));
     const toSave = {
       launchParams: "-nosplash",
       theme: "toxic",
@@ -184,6 +185,7 @@ describe("settings", () => {
   });
 
   test("slow auto-discovery cannot overwrite a more recent settings save", async () => {
+    await require("../../src/main/settings").loadSettingsAsync();
     const steamPaths = require("../../src/main/steamPaths");
     let finishDiscovery;
     jest.spyOn(steamPaths, "findDayzWorkshopFolderAsync").mockImplementationOnce(
@@ -192,7 +194,8 @@ describe("settings", () => {
     const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
     const first = saveSettings({ theme: "vampire", modDirectory: "" });
     const second = saveSettings({ theme: "toxic", modDirectory: "/mods" });
-    await Promise.resolve();
+    for (let turn = 0; turn < 10 && !finishDiscovery; turn++) await Promise.resolve();
+    expect(finishDiscovery).toEqual(expect.any(Function));
     finishDiscovery("/discovered-mods");
     expect(await Promise.all([first, second])).toEqual([true, true]);
     expect((await loadSettingsAsync()).theme).toBe("toxic");

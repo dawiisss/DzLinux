@@ -140,7 +140,19 @@ export function getPlayerBadgeClass(players, maxPlayers) {
   return "low";
 }
 
+export function getReportedPopulation(server) {
+  const players = server?.reportedPlayers;
+  const capacity = server?.reportedCapacity;
+  return {
+    players: Number.isInteger(players) && players >= 0 && players <= 10000 ? players : null,
+    maxPlayers: Number.isInteger(capacity) && capacity > 0 && capacity <= 10000 ? capacity : null,
+  };
+}
+
 export function applyPingResult(server, statusObj) {
+  const reported = getReportedPopulation(statusObj);
+  server.reportedPlayers = reported.players;
+  server.reportedCapacity = reported.maxPlayers;
   if (statusObj !== null && statusObj !== undefined) {
     server.realPing = statusObj.ping;
     server.ping = statusObj.ping;

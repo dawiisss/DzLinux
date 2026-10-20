@@ -1,4 +1,4 @@
-import { state } from "../state.js";
+import { state, markServerDataChanged } from "../state.js";
 import { refreshLocalModsCache } from "../modManager.js";
 import { serverPassesFilters } from "./serverBrowserCore.js";
 import { buildServerRow, renderMetadataBadges } from "../serverRow.js";
@@ -15,6 +15,15 @@ let _statsTimer = null;
 
 const existingServersMap = new Map();
 const PING_TIMEOUT_MS = 10000;
+
+function liveMeasurements(server) {
+  if (!Number.isFinite(server.realPing) || server.realPing < 0 || server.failedPing) return {};
+  return {
+    realPing: server.realPing, ping: server.ping, failedPing: false, status: server.status,
+    players: server.players, maxPlayers: server.maxPlayers,
+    reportedPlayers: server.reportedPlayers ?? null, reportedCapacity: server.reportedCapacity ?? null,
+  };
+}
 
 export async function refreshExpandedServerMods() {
   if (state.expandedServerId) {
@@ -355,6 +364,7 @@ export async function refreshServers(isBackground = false) {
   }
 
   state.allServers = [];
+  markServerDataChanged();
   existingServersMap.clear();
   state.totalPingedCount = 0;
   state.bgPing.queue = [];
@@ -388,15 +398,8 @@ export async function refreshServers(isBackground = false) {
               realPing: state.allServers[existingIdx].realPing,
               isPinging: state.allServers[existingIdx].isPinging,
               name: state.allServers[existingIdx].name,
+              ...liveMeasurements(state.allServers[existingIdx]),
             };
-            if (
-              state.allServers[existingIdx].realPing !== undefined &&
-              !state.allServers[existingIdx].failedPing
-            ) {
-              liveStats.players = state.allServers[existingIdx].players;
-              liveStats.maxPlayers = state.allServers[existingIdx].maxPlayers;
-              liveStats.status = state.allServers[existingIdx].status;
-            }
             state.allServers[existingIdx] = {
               ...state.allServers[existingIdx],
               ...newServer,
@@ -410,6 +413,7 @@ export async function refreshServers(isBackground = false) {
             });
           }
         });
+        markServerDataChanged();
         updateFooterTimestamp();
         scheduleRenderServers();
       });
@@ -424,9 +428,11 @@ export async function refreshServers(isBackground = false) {
         const existingIdx = existingServersMap.has(key) ? existingServersMap.get(key) : -1;
 
         if (existingIdx !== -1) {
+          const measurements = liveMeasurements(state.allServers[existingIdx]);
           state.allServers[existingIdx] = {
             ...state.allServers[existingIdx],
             ...newServer,
+            ...measurements,
           };
         } else {
           existingServersMap.set(key, state.allServers.length);
@@ -436,6 +442,7 @@ export async function refreshServers(isBackground = false) {
           });
         }
       });
+      markServerDataChanged();
       state.expandedServerId = null;
       document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       if (!state.bgPing.isRunning) startBackgroundPinging();

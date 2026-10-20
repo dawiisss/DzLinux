@@ -116,7 +116,18 @@ async function checkMods(requiredMods) {
   return { missingMods, hasAllMods: missingMods.length === 0 };
 }
 
-async function launchDayZ(ip, port, mods) {
+let gameLaunchQueue = Promise.resolve();
+
+function launchDayZ(ip, port, mods, assertCurrent = () => {}) {
+  // Serialize preparation through spawn so a cancelled request releases the
+  // shared Steamworks lock before the next request starts preparing.
+  const request = gameLaunchQueue.then(() => prepareLaunch(ip, port, mods, assertCurrent));
+  gameLaunchQueue = request.catch(() => {});
+  return request;
+}
+
+async function prepareLaunch(ip, port, mods, assertCurrent) {
+  assertCurrent();
   const settings = await settingsManager.loadSettingsAsync();
 
   if (settings.enableGameMode) {
@@ -128,6 +139,7 @@ async function launchDayZ(ip, port, mods) {
     }
   }
 
+  assertCurrent();
   const modString = buildModString(settings, mods);
   const extraParams = buildExtraParams(settings);
 
@@ -146,9 +158,9 @@ async function launchDayZ(ip, port, mods) {
   args.push(...extraParams);
 
   if (settings.protonPath && settings.protonPath !== "default") {
-    await launchViaProton(args, settings, handleGameExit);
+    await launchViaProton(args, settings, handleGameExit, assertCurrent);
   } else {
-    await launchViaSteam(ip, port, modString, extraParams, handleGameExit);
+    await launchViaSteam(ip, port, modString, extraParams, handleGameExit, assertCurrent);
   }
 }
 

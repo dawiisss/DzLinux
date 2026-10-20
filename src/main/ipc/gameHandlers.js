@@ -15,7 +15,7 @@ function registerGameHandlers() {
     );
     return gameManager.checkMods(validMods);
   });
-  ipcMain.handle("launch-game", (_event, ip, port, mods) => {
+  ipcMain.handle("launch-game", async (event, ip, port, mods, connectionId) => {
     if (ip || port) {
       if (!isValidIpOrHost(ip) || !isValidPort(port)) {
         return Promise.reject(new Error("Invalid arguments"));
@@ -32,7 +32,21 @@ function registerGameHandlers() {
     if (!isValidMods) {
       return Promise.reject(new Error("Invalid mod IDs"));
     }
-    return gameManager.launchDayZ(ip, port, mods);
+    const { monitor } = require("../watchlistMonitor");
+    if (connectionId !== undefined) monitor.assertConnection(connectionId, event.sender.id);
+    else connectionId = monitor.beginConnection(event.sender.id);
+    try {
+      const assertCurrent = () => {
+        if (event.sender.isDestroyed()) throw new Error("Connection owner closed");
+        monitor.assertConnection(connectionId, event.sender.id);
+      };
+      const result = await gameManager.launchDayZ(ip, port, mods, assertCurrent);
+      monitor.finishConnection(connectionId, event.sender.id, true);
+      return result;
+    } catch (error) {
+      monitor.finishConnection(connectionId, event.sender.id, false);
+      throw error;
+    }
   });
   ipcMain.handle("open-workshop", (_event, modId) =>
     gameManager.openWorkshopPage(modId),

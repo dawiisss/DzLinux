@@ -1,337 +1,106 @@
-const {
-  loadWatchlist,
-  saveWatchlist,
-  processWatchlistChecks,
-  _clearCache,
-} = require("../../src/main/watchlist");
-const settingsManager = require("../../src/main/settings");
-const { Notification: ElectronNotification, BrowserWindow } = require("electron");
-const fs = require("fs");
+jest.mock("electron", () => {
+  const notification = jest.fn(() => ({ show: jest.fn(), on: jest.fn(), close: jest.fn() }));
+  notification.isSupported = jest.fn(() => true);
+  return { app: { getPath: () => "/tmp/watchlist-fixture" }, Notification: notification, BrowserWindow: { getAllWindows: jest.fn(() => []) } };
+}, { virtual: true });
+jest.mock("node:fs/promises", () => ({ readFile: jest.fn(), writeFile: jest.fn().mockResolvedValue() }));
+jest.mock("../../src/main/fileUtils", () => ({ writeJsonAtomically: jest.fn().mockResolvedValue() }));
+jest.mock("../../src/main/settings", () => ({ loadSettingsAsync: jest.fn().mockResolvedValue({}), saveSettings: jest.fn().mockResolvedValue(true) }));
 
-jest.mock("../../src/main/settings", () => ({
-  loadSettingsAsync: jest.fn(),
-  saveSettings: jest.fn(),
-}));
+let repo;
+let disk;
+let settings;
+let atomic;
+let watchModel;
+let notifications;
+let DesktopNotification;
+let windows;
+const legacy = { ip: "1.2.3.4", port: 2302, active: true, name: "Server 1", threshold: 50, mode: "below" };
+const config = { ip: legacy.ip, port: legacy.port, condition: { type: "free-slots", value: 1 } };
+const rule = (extra = {}) => ({ ...config, enabled: true, condition: { type: "legacy-player-at-most", value: 50 }, alertPolicy: "repeat", cooldownSeconds: 300, episodeLatched: false, pendingEpisode: false, lastAlertAt: null, ...extra });
+const observation = (players) => ({ status: "online", players, capacity: 60 });
 
-jest.mock(
-  "electron",
-  () => {
-    const mNotification = jest.fn().mockImplementation(() => ({
-      show: jest.fn(),
-      on: jest.fn(),
-    }));
-    mNotification.isSupported = jest.fn().mockReturnValue(true);
-    const mBrowserWindow = {
-      getAllWindows: jest.fn().mockReturnValue([]),
-    };
-    const mApp = {
-      getPath: jest.fn().mockReturnValue("/tmp"),
-    };
-    return { Notification: mNotification, BrowserWindow: mBrowserWindow, app: mApp };
-  },
-  { virtual: true },
-);
+beforeEach(() => {
+  jest.resetModules(); jest.clearAllMocks();
+  disk = require("node:fs/promises");
+  disk.readFile.mockRejectedValue(Object.assign(new Error("missing"), { code: "ENOENT" }));
+  disk.writeFile.mockResolvedValue();
+  settings = require("../../src/main/settings"); settings.loadSettingsAsync.mockResolvedValue({});
+  atomic = require("../../src/main/fileUtils").writeJsonAtomically; atomic.mockResolvedValue();
+  repo = require("../../src/main/watchlist");
+  watchModel = require("../../src/main/watchlistModel");
+  notifications = require("../../src/main/watchlistNotifications").createNotifications;
+  const electron = require("electron"); DesktopNotification = electron.Notification; windows = electron.BrowserWindow;
+  DesktopNotification.isSupported.mockReturnValue(true);
+});
 
-jest.mock("fs", () => ({
-  existsSync: jest.fn(),
-  readFileSync: jest.fn(),
-  writeFileSync: jest.fn(),
-  promises: {
-    writeFile: jest.fn().mockImplementation(() => Promise.resolve()),
-    mkdir: jest.fn().mockImplementation(() => Promise.resolve()),
-    rename: jest.fn().mockImplementation(() => Promise.resolve()),
-    rm: jest.fn().mockImplementation(() => Promise.resolve()),
-    access: jest.fn(),
-    readFile: jest.fn(),
-  },
-}));
-
-describe("watchlist", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    ElectronNotification.isSupported.mockReturnValue(true);
-    _clearCache();
+describe("Watchlist repository and migrated policies", () => {
+  test("returns an empty versioned watchlist when no file or settings entries exist", async () => {
+    expect(await repo.loadDocument()).toEqual({ schemaVersion: 2, revision: 1, entries: [] });
   });
-
-  describe("loadWatchlist", () => {
-    test("returns empty array when no watchlist file exists and settings is empty", async () => {
-      fs.promises.access.mockRejectedValue(new Error("ENOENT"));
-      settingsManager.loadSettingsAsync.mockReturnValue({});
-      expect(await loadWatchlist()).toEqual([]);
-    });
-
-    test("returns watchlist from standalone file if it exists", async () => {
-      const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-      fs.promises.access.mockResolvedValue();
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-
-      expect(await loadWatchlist()).toEqual(mockWatchlist);
-      expect(fs.promises.readFile).toHaveBeenCalledWith(expect.stringContaining("watchlist.json"), "utf8");
-    });
-
-    test("migrates watchlist from settings if no standalone file exists", async () => {
-      const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-      fs.promises.access.mockRejectedValue(new Error("ENOENT"));
-      settingsManager.loadSettingsAsync.mockReturnValue({
-        watchlist: mockWatchlist,
-        theme: "dark",
-      });
-
-      expect(await loadWatchlist()).toEqual(mockWatchlist);
-      expect(fs.promises.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining("watchlist.json"),
-        expect.stringContaining('"ip": "1.2.3.4"'),
-        { encoding: "utf8", flag: "wx" },
-      );
-      expect(settingsManager.saveSettings).toHaveBeenCalledWith({
-        theme: "dark",
-      });
-    });
+  test("returns watchlist from standalone file and preserves its threshold", async () => {
+    disk.readFile.mockResolvedValue(JSON.stringify([legacy]));
+    const document = await repo.loadDocument();
+    expect(document.entries[0]).toMatchObject({ enabled: true, condition: { type: "legacy-player-at-most", value: 50 } });
+    expect(disk.writeFile).toHaveBeenCalledWith(expect.stringContaining(".v1-backup"), JSON.stringify([legacy]), expect.objectContaining({ flag: "wx" }));
   });
-
-  describe("saveWatchlist", () => {
-    test("writes watchlist to standalone file", async () => {
-      const mockWatchlist = [{ ip: "1.2.3.4", port: 2302, active: true }];
-
-      const result = await saveWatchlist(mockWatchlist);
-
-      expect(fs.promises.writeFile).toHaveBeenCalledWith(
-        expect.stringContaining("watchlist.json"),
-        expect.stringContaining('"ip": "1.2.3.4"'),
-        { encoding: "utf8", flag: "wx" },
-      );
-      expect(result).toBe(true);
-    });
+  test("migrates watchlist from settings if no standalone file exists", async () => {
+    settings.loadSettingsAsync.mockResolvedValue({ watchlist: [legacy], theme: "dark" });
+    expect((await repo.loadDocument()).entries).toHaveLength(1);
+    expect(settings.saveSettings).toHaveBeenCalledWith({ watchlist: [], theme: "dark" });
   });
-
-  describe("processWatchlistChecks", () => {
-    let mockServers;
-    let mockWatchlist;
-
-    beforeEach(() => {
-      mockServers = [
-        {
-          ip: "1.2.3.4",
-          port: 2302,
-          players: 40,
-          status: "online",
-          name: "Server 1",
-        },
-        {
-          ip: "5.6.7.8",
-          port: 2302,
-          players: 60,
-          status: "online",
-          name: "Server 2",
-        },
-      ];
-      mockWatchlist = [
-        {
-          ip: "1.2.3.4",
-          port: 2302,
-          active: true,
-          threshold: 50,
-          mode: "below",
-          name: "Server 1",
-        },
-        {
-          ip: "5.6.7.8",
-          port: 2302,
-          active: true,
-          threshold: 50,
-          mode: "above",
-          name: "Server 2",
-        },
-      ];
-      // Mock loadWatchlist to return our mockWatchlist
-      fs.promises.access.mockResolvedValue();
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-      settingsManager.loadSettingsAsync.mockReturnValue({
-        watchlistThreshold: 50,
-      });
-    });
-
-    test("triggers notification when threshold is met (below mode)", async () => {
-      await processWatchlistChecks(mockServers);
-
-      expect(ElectronNotification).toHaveBeenCalled();
-      const notificationInstance = ElectronNotification.mock.results[0].value;
-      expect(notificationInstance.show).toHaveBeenCalled();
-      expect(ElectronNotification).toHaveBeenCalledWith(
-        expect.objectContaining({
-          title: "🟢 Server Slot Available",
-          body: expect.stringContaining("40 players"),
-        }),
-      );
-
-      expect(fs.promises.writeFile).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
-      expect(writtenData[0].lastStatus).toBe("notified");
-    });
-
-    test("triggers notification when threshold is met (above mode)", async () => {
-      await processWatchlistChecks(mockServers);
-
-      expect(ElectronNotification).toHaveBeenCalledTimes(2);
-      expect(ElectronNotification).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          title: "🎯 Population Target Reached",
-          body: expect.stringContaining("60 players"),
-        }),
-      );
-
-      expect(fs.promises.writeFile).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
-      expect(writtenData[1].lastStatus).toBe("notified");
-    });
-
-    test("does not trigger notification if already notified", async () => {
-      mockWatchlist[0].lastStatus = "notified";
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-
-      await processWatchlistChecks(mockServers);
-
-      // Only server 2 should trigger
-      expect(ElectronNotification).toHaveBeenCalledTimes(1);
-      expect(ElectronNotification).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "🎯 Population Target Reached" }),
-      );
-    });
-
-    test("resets status to idle when threshold is no longer met", async () => {
-      mockWatchlist[0].lastStatus = "notified";
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-      mockServers[0].players = 60; // No longer <= 50
-
-      await processWatchlistChecks(mockServers);
-
-      expect(fs.promises.writeFile).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
-      expect(writtenData[0].lastStatus).toBe("idle");
-    });
-
-    test("uses global threshold if local threshold is missing", async () => {
-      delete mockWatchlist[0].threshold;
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-      settingsManager.loadSettingsAsync.mockReturnValue({
-        watchlistThreshold: 45,
-      });
-
-      mockServers[0].players = 45;
-      await processWatchlistChecks(mockServers);
-
-      expect(ElectronNotification).toHaveBeenCalled();
-    });
-
-    test("skips inactive watchlist items and resets lastStatus to idle if notified", async () => {
-      mockWatchlist[0].active = false;
-      mockWatchlist[0].lastStatus = "notified";
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-
-      await processWatchlistChecks(mockServers);
-
-      expect(ElectronNotification).not.toHaveBeenCalledWith(
-        expect.objectContaining({ title: "🟢 Server Slot Available" }),
-      );
-      expect(fs.promises.writeFile).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
-      expect(writtenData[0].lastStatus).toBe("idle");
-    });
-
-    test("does nothing if ElectronNotification is not supported", async () => {
-      ElectronNotification.isSupported.mockReturnValue(false);
-
-      await processWatchlistChecks(mockServers);
-
-      expect(ElectronNotification).not.toHaveBeenCalledWith(expect.any(Object));
-    });
-
-    test("handles boundary cases exactly at threshold", async () => {
-      mockServers[0].players = 50; // exactly threshold (below mode: 50 <= 50 -> true)
-      mockServers[1].players = 50; // exactly threshold (above mode: 50 >= 50 -> true)
-
-      await processWatchlistChecks(mockServers);
-
-      expect(ElectronNotification).toHaveBeenCalledTimes(2);
-      expect(fs.promises.writeFile).toHaveBeenCalled();
-      const writtenData = JSON.parse(fs.promises.writeFile.mock.calls[0][1]);
-      expect(writtenData[0].lastStatus).toBe("notified");
-      expect(writtenData[1].lastStatus).toBe("notified");
-    });
-
-    test("handles ElectronNotification.show failure gracefully", async () => {
-      const consoleSpy = jest
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
-
-      // Re-mock ElectronNotification.show just for this test
-      const mockShow = jest.fn().mockImplementation(() => {
-        throw new Error("Test show error");
-      });
-      ElectronNotification.mockImplementationOnce(() => ({
-        show: mockShow,
-        on: jest.fn(),
-      }));
-
-      await processWatchlistChecks(mockServers);
-
-      expect(mockShow).toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith(
-        "[Watchlist] Notification.show failed:",
-        "Test show error",
-      );
-
-      consoleSpy.mockRestore();
-    });
-
-    test("notification click restores and focuses all windows", async () => {
-      const mockWebContents = { send: jest.fn() };
-      const mockWindow = {
-        isMinimized: jest.fn().mockReturnValue(true),
-        restore: jest.fn(),
-        show: jest.fn(),
-        focus: jest.fn(),
-        webContents: mockWebContents,
-      };
-      BrowserWindow.getAllWindows.mockReturnValue([mockWindow]);
-
-      await processWatchlistChecks(mockServers);
-
-      const notificationInstance = ElectronNotification.mock.results[0].value;
-      const clickCall = notificationInstance.on.mock.calls.find(
-        (call) => call[0] === "click",
-      );
-      if (clickCall) {
-        const clickHandler = clickCall[1];
-        clickHandler();
-      }
-
-      expect(mockWindow.restore).toHaveBeenCalled();
-      expect(mockWindow.show).toHaveBeenCalled();
-      expect(mockWindow.focus).toHaveBeenCalled();
-      expect(mockWebContents.send).toHaveBeenCalledWith("open-watchlist");
-      expect(mockWebContents.send).toHaveBeenCalledWith(
-        "open-watchlist-autojoin",
-        expect.objectContaining({ ip: "1.2.3.4", port: 2302 }),
-      );
-    });
-
-    test("includes autoJoin flag and server payload in triggered notifications", async () => {
-      mockWatchlist[0].autoJoin = true;
-      fs.promises.readFile.mockResolvedValue(JSON.stringify(mockWatchlist));
-
-      const triggered = await processWatchlistChecks(mockServers);
-
-      expect(triggered[0]).toEqual(
-        expect.objectContaining({
-          autoJoin: true,
-          server: expect.objectContaining({
-            ip: "1.2.3.4",
-            port: 2302,
-            name: "Server 1",
-          }),
-        }),
-      );
-    });
+  test("writes a targeted watch mutation to the standalone file", async () => {
+    const entry = await repo.add(config);
+    expect(atomic).toHaveBeenCalledWith(expect.stringContaining("watchlist.json"), expect.objectContaining({ schemaVersion: 2, entries: [entry] }));
+    expect(entry).toMatchObject({ alertPolicy: "once", enabled: true });
+  });
+  test("triggers an alert when threshold is met (below mode)", () => {
+    expect(watchModel.evaluate(rule(), observation(40), {}, 1000000).alert).toBe(true);
+  });
+  test("triggers an alert when threshold is met (above mode)", () => {
+    expect(watchModel.evaluate(rule({ condition: { type: "population-at-least", value: 50 } }), observation(60), {}, 1000000).alert).toBe(true);
+  });
+  test("does not trigger an alert if the same episode already notified", () => {
+    expect(watchModel.evaluate(rule({ episodeLatched: true }), observation(40), {}, 1000000).alert).toBe(false);
+  });
+  test("rearms an episode when the threshold is no longer met", () => {
+    expect(watchModel.evaluate(rule({ episodeLatched: true }), observation(60), {}, 1000000).patch.episodeLatched).toBe(false);
+  });
+  test("uses the saved global threshold if a legacy local threshold is missing", async () => {
+    const entry = { ...legacy }; delete entry.threshold;
+    disk.readFile.mockResolvedValue(JSON.stringify([entry])); settings.loadSettingsAsync.mockResolvedValue({ watchlistThreshold: 45 });
+    expect((await repo.loadDocument()).entries[0].condition.value).toBe(45);
+  });
+  test("skips inactive watches without silently rearming an alerted episode", () => {
+    const result = watchModel.evaluate(rule({ enabled: false, episodeLatched: true }), observation(40), {}, 1000000);
+    expect(result.alert).toBe(false); expect(result.patch).toEqual({});
+  });
+  test("does nothing if native notifications are not supported", () => {
+    DesktopNotification.isSupported.mockReturnValue(false);
+    notifications(jest.fn()).deliver({ server: legacy, condition: "At most 50 players" });
+    expect(DesktopNotification).not.toHaveBeenCalled();
+  });
+  test("handles boundary cases exactly at threshold", () => {
+    expect(watchModel.evaluate(rule(), observation(50), {}, 1000000).alert).toBe(true);
+    expect(watchModel.evaluate(rule({ condition: { type: "population-at-least", value: 50 } }), observation(50), {}, 1000000).alert).toBe(true);
+  });
+  test("handles native notification show failure gracefully", () => {
+    const log = jest.spyOn(console, "error").mockImplementation(() => {});
+    DesktopNotification.mockImplementationOnce(() => ({ on: jest.fn(), show: () => { throw new Error("show failure"); } }));
+    expect(() => notifications(jest.fn()).deliver({ server: legacy, condition: "Ready" })).not.toThrow();
+    expect(log).toHaveBeenCalled(); log.mockRestore();
+  });
+  test("notification click restores and focuses an available window", () => {
+    const sender = { send: jest.fn() };
+    const windowFixture = { isDestroyed: () => false, isMinimized: () => true, restore: jest.fn(), show: jest.fn(), focus: jest.fn(), webContents: sender };
+    windows.getAllWindows.mockReturnValue([windowFixture]);
+    const click = jest.fn(); const alert = { server: legacy, condition: "Ready" };
+    notifications(click).deliver(alert);
+    DesktopNotification.mock.results[0].value.on.mock.calls.find(([name]) => name === "click")[1]();
+    expect(windowFixture.restore).toHaveBeenCalled(); expect(windowFixture.focus).toHaveBeenCalled(); expect(click).toHaveBeenCalledWith(alert, sender);
+  });
+  test("preserves auto-join configuration and server context during migration", async () => {
+    disk.readFile.mockResolvedValue(JSON.stringify([{ ...legacy, autoJoin: true, queryPort: 2305 }]));
+    expect((await repo.loadDocument()).entries[0]).toMatchObject({ autoJoin: true, ip: legacy.ip, port: legacy.port, queryPort: 2305, name: legacy.name });
   });
 });
