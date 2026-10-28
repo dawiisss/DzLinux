@@ -13,6 +13,7 @@ const {
 } = require("./game/prepareEnv");
 const { launchViaProton, scanProtonVersions } = require("./game/launchProton");
 const { launchViaSteam } = require("./game/launchSteam");
+const { isValidIpOrHost, isValidPort } = require("./validation");
 
 /**
  * Handles the game process exit event, particularly looking for non-zero exit codes.
@@ -128,6 +129,19 @@ function launchDayZ(ip, port, mods, assertCurrent = () => {}) {
 
 async function prepareLaunch(ip, port, mods, assertCurrent) {
   assertCurrent();
+  const isOmitted = (v) => v === undefined || v === null || v === "";
+  if (isOmitted(ip)) {
+    if (!isOmitted(port)) {
+      throw new Error("Invalid arguments");
+    }
+  } else {
+    if (!isValidIpOrHost(ip)) {
+      throw new Error("Invalid arguments");
+    }
+    if (!isOmitted(port) && !isValidPort(port)) {
+      throw new Error("Invalid arguments");
+    }
+  }
   const settings = await settingsManager.loadSettingsAsync();
 
   if (settings.enableGameMode) {

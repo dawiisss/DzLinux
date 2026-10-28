@@ -1369,6 +1369,19 @@ body.compact-mode .settings-info {
   gap: 10px;
 }
 
+.refresh-progress-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  padding: 6px;
+  cursor: help;
+}
+
+.refresh-progress-indicator[hidden] {
+  display: none !important;
+}
+
 .countdown-badge {
   font-family: "Share Tech Mono", monospace;
   font-size: 0.72rem;

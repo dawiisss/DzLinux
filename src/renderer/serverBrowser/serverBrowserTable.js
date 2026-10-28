@@ -3,12 +3,14 @@ import { state, upsertHistoryRecord } from "../state.js";
 import { escapeHtml, isValidIpOrHost, isValidPort, getReportedPopulation } from "../utils.js";
 import { showToast } from "../feedback.js";
 import { triggerSteamworksSync, refreshLocalModsCache } from "../modManager.js";
-import { buildServerRow, buildDetailRow } from "../serverRow.js";
-import { STAR_FAV_SVG, STAR_UNFAV_SVG } from "../utils.js";
+import {
+  buildServerRow,
+  buildDetailRow,
+  updateServerRowPresentation,
+} from "../serverRow.js";
 import { getCombinedAndFilteredServers } from "./serverBrowserCore.js";
 import { updateStatsBar, refreshServers } from "./serverBrowserRender.js";
-import { calculateTrustScore } from "../trustScore.js";
-import { getServerModCount, loadServerMods } from "../serverMods.js";
+import { loadServerMods } from "../serverMods.js";
 
 export function renderServers() {
   const tbody = document.getElementById("serverListBody");
@@ -48,9 +50,7 @@ export function renderServers() {
       return idxA - idxB;
     });
   } else {
-    const favoritesSet = new Set(
-      state.favorites.map((f) => `${f.ip}:${f.port}`)
-    );
+    const favoritesSet = state.favoritesSet;
     filtered.sort((a, b) => {
       const isFavA = favoritesSet.has(favoriteKey(a.ip, a.port)) ? 1 : 0;
       const isFavB = favoritesSet.has(favoriteKey(b.ip, b.port)) ? 1 : 0;
@@ -179,6 +179,13 @@ export function renderServers() {
   }
 
   const paginatedServers = filtered.slice(startIdx, endIdx);
+  if (
+    state.expandedServerId &&
+    !paginatedServers.some((server) => server.id === state.expandedServerId)
+  ) {
+    state.expandedServerId = null;
+    savedExpandedId = null;
+  }
 
   const existingRows = new Map();
   tbody
@@ -201,36 +208,11 @@ export function renderServers() {
     let tr = existingRows.get(server.id);
     if (tr) {
       existingRows.delete(server.id);
-      const modCount = tr.querySelector(".server-mod-count");
-      if (modCount) modCount.textContent = getServerModCount(server);
-      const starBtn = tr.querySelector(".star-btn");
-      if (starBtn) {
-        const isFav = state.favoritesSet.has(favoriteKey(server.ip, server.port));
-        const currentlyActive = starBtn.classList.contains("active");
-        if (isFav !== currentlyActive) {
-          starBtn.innerHTML = isFav ? STAR_FAV_SVG : STAR_UNFAV_SVG;
-          starBtn.className = `star-btn ${isFav ? "active" : ""}`;
-          starBtn.title = isFav ? "Remove from Favorites" : "Add to Favorites";
-          starBtn.setAttribute(
-            "aria-label",
-            isFav ? "Remove from Favorites" : "Add to Favorites"
-          );
-        }
+      if (tr._serverModel && tr._serverModel !== server) {
+        Object.assign(tr._serverModel, server);
       }
-      const nameCell = tr.querySelector(".server-name-cell");
-      if (nameCell && nameCell.textContent !== server.name) {
-        nameCell.textContent = server.name;
-        nameCell.title = server.name;
-      }
-      const securityCell = tr.querySelector(".col-security");
-      if (securityCell && state.settings && state.settings.enableTrustScore !== false) {
-        const { level, reasons } = calculateTrustScore(server);
-        const shieldIcon = securityCell.querySelector("app-icon");
-        if (shieldIcon && shieldIcon.className !== `shield-${level}`) {
-          shieldIcon.className = `shield-${level}`;
-          securityCell.title = reasons.join(", ");
-        }
-      }
+      tr._serverModel = server;
+      updateServerRowPresentation(tr, server, false);
     } else {
       tr = buildServerRow(server);
     }
@@ -320,17 +302,26 @@ export async function connectToServer(ip, port, options = {}) {
     return;
   } finally { connectionStarting = false; }
 
+  const targetKey = favoriteKey(ip, port);
   const live = state.allServers.find(
-    (server) => server.ip === ip && String(server.port) === String(port)
+    (server) =>
+      (server.ip === ip && String(server.port) === String(port)) ||
+      (targetKey && favoriteKey(server.ip, server.port) === targetKey)
   );
   const provided = options.serverContext;
-  const historical = provided?.ip === ip && String(provided.port) === String(port) ? provided : null;
+  const historical =
+    provided &&
+    ((provided.ip === ip && String(provided.port) === String(port)) ||
+      (targetKey && favoriteKey(provided.ip, provided.port) === targetKey))
+      ? provided
+      : null;
   const source = live || historical;
   const serverObj = source ? {
     ...live,
     name: live?.name || historical?.name,
     map: live?.map || historical?.map,
     queryPort: live?.queryPort || historical?.queryPort,
+    mods: live?.mods?.length ? live.mods : (historical?.mods || []),
     reportedPlayers: source.reportedPlayers,
     reportedCapacity: source.reportedCapacity,
     realPing: source.realPing,

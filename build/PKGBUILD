@@ -1,6 +1,6 @@
 # Maintainer: DzLinux Team <dawiisss@github.com>
 pkgname=dzlinux-bin
-pkgver=2.1.0
+pkgver=2.1.1
 pkgrel=1
 pkgdesc="A high-performance DayZ Server Browser and Mod Manager for Linux."
 arch=('x86_64')
@@ -9,12 +9,14 @@ license=('MIT')
 depends=('libxss' 'nss' 'gtk3' 'libnotify')
 provides=('dzlinux')
 conflicts=('dzlinux')
-source=("https://github.com/dawiisss/DzLinux/releases/download/v${pkgver}/DzLinux-${pkgver}-linux-x64.tar.gz")
+source=("https://github.com/dawiisss/DzLinux/releases/download/v${pkgver}/dzlinux-${pkgver}.tar.gz")
 sha256sums=('SKIP')
 
 package() {
   install -d "${pkgdir}/opt/dzlinux"
-  if [ -d "${srcdir}/DzLinux-${pkgver}-linux-x64" ]; then
+  if [ -d "${srcdir}/dzlinux-${pkgver}" ]; then
+    cp -r "${srcdir}/dzlinux-${pkgver}"/* "${pkgdir}/opt/dzlinux/"
+  elif [ -d "${srcdir}/DzLinux-${pkgver}-linux-x64" ]; then
     cp -r "${srcdir}/DzLinux-${pkgver}-linux-x64"/* "${pkgdir}/opt/dzlinux/"
   else
     find "${srcdir}" -mindepth 1 -maxdepth 1 ! -name "*.tar.gz" -exec cp -r {} "${pkgdir}/opt/dzlinux/" \;

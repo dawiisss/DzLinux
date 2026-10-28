@@ -23,6 +23,7 @@ const MODS_METADATA_CACHE_FILE = path.join(
 );
 const MODS_METADATA_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours per entry
 let modCacheRefreshQueue = Promise.resolve();
+let serverCacheWriteQueue = Promise.resolve();
 
 async function loadServerCache() {
   try {
@@ -34,33 +35,34 @@ async function loadServerCache() {
       Date.now() - data.timestamp < CACHE_TTL_MS &&
       Array.isArray(data.servers)
     ) {
-      return data.servers.map((s, idx) => ({
-        id: `${s.isFavoritePlaceholder ? "fav" : "custom"}-${s.ip.replace(/\./g, "-")}-${s.port}`,
-        isFavoritePlaceholder: s.isFavoritePlaceholder === true,
-        originalIndex: idx,
-        name: s.name || "Unknown Server",
-        ip: s.ip,
-        port: s.port,
-        queryPort: s.queryPort || null,
-        players: s.players || 0,
-        maxPlayers: s.maxPlayers !== undefined ? s.maxPlayers : 60,
-        reportedPlayers: Number.isInteger(s.reportedPlayers) && s.reportedPlayers >= 0 ? s.reportedPlayers : null,
-        reportedCapacity: Number.isInteger(s.reportedCapacity) && s.reportedCapacity > 0 ? s.reportedCapacity : null,
-        status: s.status || "offline",
-        mods: s.mods || [],
-        customList: s.customList !== false,
-        ping: s.ping,
-        country: s.country || "",
-        thirdPerson: s.thirdPerson !== false,
-        modded: s.modded !== false,
-        time: s.time || "",
-        map: s.map || "",
-        password: s.password === true,
-        monetized: s.monetized,
-        verifiedCommunity: s.verifiedCommunity,
-        realPing: s.realPing,
-        failedPing: s.failedPing,
-      }));
+      return data.servers
+        .filter((s) => s && s.isFavoritePlaceholder !== true)
+        .map((s, idx) => ({
+          id: `custom-${s.ip.replace(/\./g, "-")}-${s.port}`,
+          isFavoritePlaceholder: false,
+          originalIndex: idx,
+          name: s.name || "Unknown Server",
+          ip: s.ip,
+          port: s.port,
+          queryPort: s.queryPort || null,
+          players: s.players || 0,
+          maxPlayers: s.maxPlayers !== undefined ? s.maxPlayers : 60,
+          reportedPlayers: Number.isInteger(s.reportedPlayers) && s.reportedPlayers >= 0 ? s.reportedPlayers : null,
+          reportedCapacity: Number.isInteger(s.reportedCapacity) && s.reportedCapacity > 0 ? s.reportedCapacity : null,
+          status: s.status || "offline",
+          mods: Array.isArray(s.mods) ? [...s.mods] : [],
+          customList: s.customList !== false,
+          ping: s.ping,
+          country: s.country || "",
+          thirdPerson: s.thirdPerson !== false,
+          modded: s.modded !== false,
+          time: s.time || "",
+          map: s.map || "",
+          password: s.password === true,
+          monetized: s.monetized,
+          realPing: s.realPing,
+          failedPing: s.failedPing,
+        }));
     }
   } catch (e) {
     if (e.code !== "ENOENT") {
@@ -70,47 +72,51 @@ async function loadServerCache() {
   return null;
 }
 
-async function saveServerCache(servers) {
-  try {
-    const optimized = servers.map((s) => {
-      const opt = {
-        name: s.name,
-        ip: s.ip,
-        port: s.port,
-      };
-      if (s.isFavoritePlaceholder) opt.isFavoritePlaceholder = true;
-      if (s.queryPort) opt.queryPort = s.queryPort;
-      if (s.players) opt.players = s.players;
-      if (s.maxPlayers !== undefined && s.maxPlayers !== 60) opt.maxPlayers = s.maxPlayers;
-      if (s.reportedPlayers != null) opt.reportedPlayers = s.reportedPlayers;
-      if (s.reportedCapacity != null) opt.reportedCapacity = s.reportedCapacity;
-      if (s.status && s.status !== "offline") opt.status = s.status;
-      if (s.mods && s.mods.length > 0) opt.mods = s.mods;
-      if (s.customList === false) opt.customList = false;
-      if (s.ping !== undefined) opt.ping = s.ping;
-      if (s.country) opt.country = s.country;
-      if (s.thirdPerson === false) opt.thirdPerson = false;
-      if (s.modded === false) opt.modded = false;
-      if (s.time) opt.time = s.time;
-      if (s.map) opt.map = s.map;
-      if (s.password === true) opt.password = true;
-      if (s.monetized) opt.monetized = s.monetized;
-      if (s.verifiedCommunity) opt.verifiedCommunity = s.verifiedCommunity;
-      if (s.realPing !== undefined) opt.realPing = s.realPing;
-      if (s.failedPing) opt.failedPing = s.failedPing;
-      return opt;
-    });
+async function saveServerCache(servers, isAborted = () => false) {
+  const sourceEntries = Array.isArray(servers)
+    ? servers.filter((s) => s && s.isFavoritePlaceholder !== true)
+    : [];
+  const optimized = sourceEntries.map((s) => {
+    const opt = {
+      name: s.name,
+      ip: s.ip,
+      port: s.port,
+    };
+    if (s.queryPort) opt.queryPort = s.queryPort;
+    if (s.players) opt.players = s.players;
+    if (s.maxPlayers !== undefined && s.maxPlayers !== 60) opt.maxPlayers = s.maxPlayers;
+    if (s.reportedPlayers != null) opt.reportedPlayers = s.reportedPlayers;
+    if (s.reportedCapacity != null) opt.reportedCapacity = s.reportedCapacity;
+    if (s.status && s.status !== "offline") opt.status = s.status;
+    if (s.mods && s.mods.length > 0) opt.mods = s.mods;
+    if (s.customList === false) opt.customList = false;
+    if (s.ping !== undefined) opt.ping = s.ping;
+    if (s.country) opt.country = s.country;
+    if (s.thirdPerson === false) opt.thirdPerson = false;
+    if (s.modded === false) opt.modded = false;
+    if (s.time) opt.time = s.time;
+    if (s.map) opt.map = s.map;
+    if (s.password === true) opt.password = true;
+    if (s.monetized) opt.monetized = s.monetized;
+    if (s.realPing !== undefined) opt.realPing = s.realPing;
+    if (s.failedPing) opt.failedPing = s.failedPing;
+    return opt;
+  });
 
-    // Optimize: Use asynchronous write to prevent blocking the Node.js event loop
-    // during potentially large JSON stringification and file I/O operations.
-    await writeJsonAtomically(CACHE_FILE, {
-      schemaVersion: 2,
-      timestamp: Date.now(),
-      servers: optimized,
-    });
-  } catch (e) {
-    console.error("Failed to write server cache", e.message);
-  }
+  const writeOp = serverCacheWriteQueue.then(async () => {
+    if (isAborted()) return;
+    try {
+      await writeJsonAtomically(CACHE_FILE, {
+        schemaVersion: 2,
+        timestamp: Date.now(),
+        servers: optimized,
+      });
+    } catch (e) {
+      console.error("Failed to write server cache", e.message);
+    }
+  });
+  serverCacheWriteQueue = writeOp.catch(() => {});
+  return writeOp;
 }
 
 async function loadMonetizationCache() {
@@ -558,22 +564,72 @@ async function fetchAndApplyVerifiedIps(servers) {
 
 let currentGenerationId = null;
 
-async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
+async function projectUserServerView(sourceServers, settings, isAborted) {
+  const serversMap = new Map();
+  const projected = sourceServers.map((s, idx) => {
+    const clone = {
+      ...s,
+      id: `custom-${s.ip.replace(/\./g, "-")}-${s.port}`,
+      isFavoritePlaceholder: false,
+      originalIndex: idx,
+      mods: Array.isArray(s.mods) ? [...s.mods] : [],
+    };
+    delete clone.verifiedCommunity;
+    serversMap.set(`${clone.ip}:${clone.port}`, idx);
+    return clone;
+  });
+
+  injectFavoritesPlaceholders(projected, settings?.favorites, serversMap);
+  if (isAborted()) return [];
+
+  // Source records are already tagged, but newly projected favorites are not.
+  // Reuse the independent monetization cache without changing source cache age.
+  const placeholders = projected.filter((server) => server.isFavoritePlaceholder);
+  if (placeholders.length > 0) {
+    await fetchAndApplyMonetization(placeholders);
+    if (isAborted()) return [];
+  }
+
+  if (settings?.enableTrustScore !== false) {
+    await fetchAndApplyVerifiedIps(projected);
+    if (isAborted()) return [];
+  }
+
+  return projected;
+}
+
+async function fetchDayZServers(arg1, arg2) {
+  const onBatchReceived = typeof arg1 === "function" ? arg1 : null;
+  const generationId = typeof arg1 === "function" ? arg2 : arg1;
   currentGenerationId = generationId;
   const isAborted = () => generationId !== undefined && currentGenerationId !== generationId;
 
   try {
     if (isAborted()) return [];
-    // 1. Check Server cache
-    const cached = await loadServerCache();
-    if (cached) {
-      console.log(`Using cached server list (${cached.length} servers).`);
-      return cached;
+    const settingsManager = require("./settings");
+    const [cachedSource, settings] = await Promise.all([
+      loadServerCache(),
+      settingsManager.loadSettingsAsync(),
+    ]);
+    if (isAborted()) return [];
+
+    // 1. Warm Server cache: project user favorites and trust policy without refetching source
+    if (cachedSource) {
+      console.log(`Using cached server list (${cachedSource.length} servers).`);
+      const projected = await projectUserServerView(
+        cachedSource,
+        settings,
+        isAborted,
+      );
+      if (isAborted()) return [];
+      if (onBatchReceived && projected.length > 0) {
+        onBatchReceived(projected, generationId);
+      }
+      return projected;
     }
 
-    const settingsManager = require("./settings");
-    const settings = await settingsManager.loadSettingsAsync();
     const modsMetadataCache = await loadModsMetadataCache();
+    if (isAborted()) return [];
 
     console.log(
       "Fetching servers from Hosted List and Custom List (Phonebook Pattern)...",
@@ -588,33 +644,38 @@ async function fetchDayZServers(onBatchReceived = () => {}, generationId) {
     if (isAborted()) return [];
 
     const allCustomData = hostedData.concat(customData);
-    const serversMap = new Map();
+    const sourceMap = new Map();
 
-    // 3. Process custom and hosted servers
-    const servers = buildPhonebookServers(allCustomData, modsMetadataCache, serversMap);
+    // 3. Process custom and hosted servers (source-only)
+    const sourceServers = buildPhonebookServers(
+      allCustomData,
+      modsMetadataCache,
+      sourceMap,
+    );
 
-    // 4. Inject unlisted favorites
-    injectFavoritesPlaceholders(servers, settings.favorites, serversMap);
+    // 4. Monetization check & Tagging on source servers
+    await fetchAndApplyMonetization(sourceServers);
+    if (isAborted()) return [];
 
-    // 5. Monetization check & Tagging
-    await fetchAndApplyMonetization(servers);
+    // 5. Save source-only list to cache asynchronously (generation-gated)
+    if (sourceServers.length > 0) {
+      await saveServerCache(sourceServers, isAborted);
+    }
+    if (isAborted()) return [];
 
-    // 6. Verified IPs
-    if (settings.enableTrustScore !== false) {
-      await fetchAndApplyVerifiedIps(servers);
+    // 6. Project user-specific favorites and trust score policy
+    const projected = await projectUserServerView(
+      sourceServers,
+      settings,
+      isAborted,
+    );
+    if (isAborted()) return [];
+
+    if (onBatchReceived && projected.length > 0) {
+      onBatchReceived(projected, generationId);
     }
 
-    // 7. Stream enriched batch to front-end
-    if (servers.length > 0) {
-      onBatchReceived(servers, generationId);
-    }
-
-    if (isAborted()) return servers;
-
-    // 8. Save to cache asynchronously
-    await saveServerCache(servers);
-
-    return servers;
+    return projected;
   } catch (e) {
     console.error("Failed to fetch DayZ servers", e.message);
     return [];

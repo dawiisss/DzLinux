@@ -26,7 +26,7 @@ modules:
       - install -Dm755 dzlinux.sh /app/bin/dzlinux
     sources:
       - type: archive
-        url: https://github.com/dawiisss/DzLinux/releases/download/v2.1.0/DzLinux-2.1.0-linux-x64.tar.gz
+        url: https://github.com/dawiisss/DzLinux/releases/download/v2.1.1/dzlinux-2.1.1.tar.gz
         sha256: SKIP
       - type: script
         dest-filename: dzlinux.sh

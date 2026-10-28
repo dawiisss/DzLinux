@@ -270,6 +270,23 @@
           </div>
 
           <div class="refresh-group flex gap-2 items-center">
+            <span
+              id="refreshProgressIndicator"
+              class="refresh-progress-indicator"
+              title="Refreshing server list..."
+              aria-label="Refreshing server list"
+              role="status"
+              aria-live="polite"
+              hidden
+            >
+              <app-icon
+                name="loader"
+                style="width: 1.05rem; height: 1.05rem"
+                stroke-width="2"
+                fill="none"
+                stroke="currentColor"
+              ></app-icon>
+            </span>
             <button
               class="btn"
               id="directConnectOpenBtn"
@@ -1153,7 +1170,7 @@
         <p class="watch-help">Choose when a server should alert you. Auto-join uses a five-second countdown and checks again before connecting.</p>
         <div class="table-card watchlist-table-card">
           <table class="server-table watchlist-table">
-            <thead><tr><th>Server</th><th>Condition</th><th>Monitoring</th><th>On match</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Server</th><th>Condition</th><th>Monitoring</th><th>On match</th><th>Action</th></tr></thead>
             <tbody id="watchlistListBody"></tbody>
           </table>
         </div>
@@ -1206,7 +1223,7 @@
                 <th scope="col">Server</th>
                 <th scope="col">Last used</th>
                 <th scope="col">Attempts</th>
-                <th scope="col" class="history-actions-heading">Actions</th>
+                <th scope="col" class="history-actions-heading">Action</th>
               </tr>
             </thead>
             <tbody id="historyListBody"></tbody>
@@ -1319,7 +1336,7 @@
         <p id="favoritesHistoryStatus" class="watch-help" hidden><span></span> <button id="retryFavoriteHistory" class="btn btn-outline">Retry History</button></p>
         <p id="favoritesRefreshStatus" class="watch-help">Refresh checks all favorites, including hidden search results. Favorites are checked on demand.</p>
         <div class="table-card favorites-table-card"><table class="server-table favorites-table">
-          <thead><tr><th>Server</th><th>Players</th><th>Availability / ping</th><th>Details</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Server</th><th>Players</th><th>Availability / ping</th><th>Details</th><th>Action</th></tr></thead>
           <tbody id="favoritesListBody"></tbody>
         </table></div>
         <p class="watch-help favorites-footnote">Pinned favorites stay first within your filters. Last used reflects retained connection attempts, not confirmed gameplay. Unreachable means the latest query failed.</p>

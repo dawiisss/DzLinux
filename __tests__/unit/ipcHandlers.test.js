@@ -50,6 +50,15 @@ describe("ipcHandlers", () => {
         .mockResolvedValue({ mods: [{ id: "123", name: "Mod" }] }),
     };
     mockModManager = {
+      scanMods: jest.fn().mockResolvedValue({
+        scanId: 1,
+        root: "/mod/dir",
+        status: "complete",
+        reason: null,
+        mods: [{ id: "123" }],
+        totalSizeBytes: 1024,
+        sizeComplete: true,
+      }),
       getInstalledMods: jest.fn().mockResolvedValue([{ id: "123" }]),
       checkModUpdates: jest.fn().mockResolvedValue([]),
       checkModUpdatesDetailed: jest.fn().mockResolvedValue({ outdatedMods: [] }),
@@ -67,6 +76,10 @@ describe("ipcHandlers", () => {
     mockLogParser = {
       getRecentLogs: jest.fn().mockResolvedValue([{ status: "CLEAN" }]),
       getSessionSummary: jest.fn().mockResolvedValue({ crashes: 0 }),
+      getDiagnosticsSnapshot: jest.fn().mockResolvedValue({
+        logs: [{ status: "CLEAN" }],
+        summary: { crashes: 0 },
+      }),
     };
     mockSteamworks = {
       getUserProfile: jest.fn().mockResolvedValue({ name: "user" }),
@@ -205,19 +218,17 @@ describe("ipcHandlers", () => {
   });
 
   describe("server query handlers", () => {
-    test("fetch-servers streams batches to the sender", async () => {
-      mockServers.fetchDayZServers.mockImplementation((onBatch) => {
-        onBatch([{ ip: "1.1.1.1" }]);
-        return Promise.resolve([{ ip: "1.1.1.1" }]);
-      });
+    test("fetch-servers returns the authoritative server list without duplicate servers-batch emission", async () => {
+      mockServers.fetchDayZServers.mockResolvedValue([{ ip: "1.1.1.1" }]);
 
       const result = await handlers.get("fetch-servers")(event, 7);
 
       expect(result).toEqual([{ ip: "1.1.1.1" }]);
-      expect(event.sender.send).toHaveBeenCalledWith(
+      expect(mockServers.fetchDayZServers).toHaveBeenCalledWith(7);
+      expect(event.sender.send).not.toHaveBeenCalledWith(
         "servers-batch",
-        [{ ip: "1.1.1.1" }],
-        7,
+        expect.anything(),
+        expect.anything(),
       );
     });
 
@@ -357,6 +368,49 @@ describe("ipcHandlers", () => {
         listeners.get("cancel-ping-request")(null, 123),
       ).not.toThrow();
     });
+
+    test("reusing a request ID aborts the earlier request and preserves cancellation ownership for the newer request (R07)", async () => {
+      const pingCalls = [];
+      mockServerQuery.pingServer.mockImplementation(
+        (_ip, _port, _qPort, signal) =>
+          new Promise((resolve) => {
+            pingCalls.push({ resolve, signal });
+          }),
+      );
+
+      const pA = handlers.get("ping-server")(event, "1.1.1.1", 2302, null, "gen1:dup");
+      const pB = handlers.get("ping-server")(event, "2.2.2.2", 2302, null, "gen1:dup");
+
+      expect(pingCalls[0].signal.aborted).toBe(true);
+      expect(pingCalls[1].signal.aborted).toBe(false);
+
+      // Settle A first; B must remain registered so cancelling "gen1:dup" still aborts B
+      pingCalls[0].resolve({ ping: 10 });
+      await expect(pA).resolves.toBeNull();
+
+      listeners.get("cancel-ping-request")(null, "gen1:dup");
+      expect(pingCalls[1].signal.aborted).toBe(true);
+      pingCalls[1].resolve({ ping: 20 });
+      await expect(pB).resolves.toBeNull();
+
+      // Same ownership guarantee for query-mods
+      const modCalls = [];
+      mockServerQuery.queryServerGameDig.mockImplementation(
+        (_ip, _port, _qPort, signal) =>
+          new Promise((resolve) => {
+            modCalls.push({ resolve, signal });
+          }),
+      );
+      const mA = handlers.get("query-mods")(event, "1.1.1.1", 2302, 2303, "gen1:mods:dup");
+      const mB = handlers.get("query-mods")(event, "2.2.2.2", 2302, 2303, "gen1:mods:dup");
+      expect(modCalls[0].signal.aborted).toBe(true);
+      modCalls[0].resolve({ mods: [{ id: "1" }] });
+      await expect(mA).resolves.toBeNull();
+      listeners.get("cancel-ping-request")(null, "gen1:mods:dup");
+      expect(modCalls[1].signal.aborted).toBe(true);
+      modCalls[1].resolve({ mods: [{ id: "2" }] });
+      await expect(mB).resolves.toBeNull();
+    });
   });
 
   describe("game handlers", () => {
@@ -368,23 +422,42 @@ describe("ipcHandlers", () => {
         handlers.get("launch-game")(event, "1.2.3.4", 0, []),
       ).rejects.toThrow("Invalid arguments");
       await expect(
+        handlers.get("launch-game")(event, "", 0, []),
+      ).rejects.toThrow("Invalid arguments");
+      await expect(
+        handlers.get("launch-game")(event, "", 2302, []),
+      ).rejects.toThrow("Invalid arguments");
+      await expect(
+        handlers.get("launch-game")(event, "1.2.3.4", "", []),
+      ).rejects.toThrow("Invalid arguments");
+      await expect(
         handlers.get("launch-game")(event, "1.2.3.4", 2302, "not-array"),
       ).rejects.toThrow("Invalid arguments");
       await expect(
         handlers.get("launch-game")(event, "1.2.3.4", 2302, [{ id: "abc" }]),
       ).rejects.toThrow("Invalid mod IDs");
+      await expect(
+        handlers.get("launch-game")(event, "1.2.3.4", 2302, [Number.MAX_SAFE_INTEGER + 2]),
+      ).rejects.toThrow("Invalid mod IDs");
       expect(mockGame.launchDayZ).not.toHaveBeenCalled();
     });
 
-    test("launch-game delegates valid input", async () => {
-      const mods = [{ id: "12345" }];
+    test("launch-game delegates valid input and normalizes primitive/numeric mod IDs", async () => {
+      const mods = ["12345", 67890, { id: 111, name: "Extra" }];
       await handlers.get("launch-game")(event, "1.2.3.4", 2302, mods);
-      expect(mockGame.launchDayZ).toHaveBeenCalledWith("1.2.3.4", 2302, mods, expect.any(Function));
+      expect(mockGame.launchDayZ).toHaveBeenCalledWith(
+        "1.2.3.4",
+        2302,
+        [{ id: "12345" }, { id: "67890" }, { id: "111", name: "Extra" }],
+        expect.any(Function),
+      );
     });
 
     test("launch-game without connect info still validates mods", async () => {
       await handlers.get("launch-game")(event, null, null, []);
       expect(mockGame.launchDayZ).toHaveBeenCalledWith(null, null, [], expect.any(Function));
+      await handlers.get("launch-game")(event, "", "", ["123"]);
+      expect(mockGame.launchDayZ).toHaveBeenCalledWith("", "", [{ id: "123" }], expect.any(Function));
     });
 
     test("check-mods treats non-array input as empty", async () => {
@@ -432,10 +505,14 @@ describe("ipcHandlers", () => {
       );
     });
 
-    test("get-installed-mods delegates", async () => {
+    test("get-installed-mods and scan-mods delegate", async () => {
       await expect(handlers.get("get-installed-mods")()).resolves.toEqual([
         { id: "123" },
       ]);
+      await expect(handlers.get("scan-mods")(event, { force: true })).resolves.toEqual(
+        expect.objectContaining({ status: "complete", mods: [{ id: "123" }] }),
+      );
+      expect(mockModManager.scanMods).toHaveBeenCalledWith({ force: true });
     });
 
     test("mod sizes delegate valid IDs and reject malformed or oversized requests", async () => {
@@ -694,6 +771,20 @@ describe("ipcHandlers", () => {
       expect(() => listeners.get("window-min")()).not.toThrow();
       expect(() => listeners.get("window-max")()).not.toThrow();
       expect(() => listeners.get("window-close")()).not.toThrow();
+    });
+
+    test("renderer-log logs only bounded string messages", () => {
+      const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+      listeners.get("renderer-log")(event, "normal message");
+      expect(logSpy).toHaveBeenCalledWith("[RENDERER] normal message");
+
+      logSpy.mockClear();
+      listeners.get("renderer-log")(event, "x".repeat(4097));
+      listeners.get("renderer-log")(event, { not: "a string" });
+      listeners.get("renderer-log")(event, 12345);
+      listeners.get("renderer-log")(event, null);
+      expect(logSpy).not.toHaveBeenCalled();
+      logSpy.mockRestore();
     });
   });
 });

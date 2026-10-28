@@ -2,33 +2,210 @@ import { state } from "./state.js";
 import { escapeHtml } from "./utils.js";
 import { showToast, copyToClipboard } from "./feedback.js";
 
-export async function refreshLocalModsCache() {
-  try {
-    state.localMods = await window.api.mods.getInstalled();
-    state.localModsSet = new Set(state.localMods.map((m) => m.id));
-  } catch (e) {
-    console.error("Failed to update local mods cache", e);
+let modScanRequestGeneration = 0;
+
+export async function refreshLocalModsCache(options = {}) {
+  const reqGen = ++modScanRequestGeneration;
+  const requestedRoot =
+    typeof state.settings?.modDirectory === "string"
+      ? state.settings.modDirectory.trim()
+      : "";
+
+  if (state.modScanSnapshot && state.modScanSnapshot.root !== requestedRoot) {
     state.localMods = [];
     state.localModsSet = new Set();
+    state.modScanSnapshot = null;
+    state.lastCompleteModSizeBytes = null;
+    state.lastCompleteModRoot = null;
+  }
+
+  try {
+    let snapshot;
+    if (window.api?.mods?.scan) {
+      snapshot = await window.api.mods.scan(options);
+    } else if (window.api?.mods?.getInstalled) {
+      const mods = await window.api.mods.getInstalled();
+      const safeMods = Array.isArray(mods) ? mods : [];
+      const totalSizeBytes = safeMods.reduce(
+        (sum, m) =>
+          sum +
+          (typeof m.sizeBytes === "number"
+            ? m.sizeBytes
+            : Math.round((m.sizeMB || 0) * 1024 * 1024)),
+        0,
+      );
+      snapshot = {
+        scanId: reqGen,
+        root: requestedRoot,
+        status: "complete",
+        reason: null,
+        mods: safeMods,
+        totalSizeBytes,
+        sizeComplete: true,
+      };
+    } else {
+      snapshot = {
+        scanId: reqGen,
+        root: requestedRoot,
+        status: "unavailable",
+        reason: "not-configured",
+        mods: [],
+        totalSizeBytes: 0,
+        sizeComplete: false,
+      };
+    }
+
+    const currentRoot =
+      typeof state.settings?.modDirectory === "string"
+        ? state.settings.modDirectory.trim()
+        : "";
+
+    if (
+      reqGen !== modScanRequestGeneration ||
+      requestedRoot !== currentRoot ||
+      !snapshot ||
+      snapshot.root !== currentRoot
+    ) {
+      return state.modScanSnapshot;
+    }
+
+    if (snapshot.status === "cancelled") {
+      if (state.modScanSnapshot && state.modScanSnapshot.root === currentRoot) {
+        state.modScanSnapshot = { ...state.modScanSnapshot, stale: true };
+        state.localModsSet = new Set();
+      }
+      return state.modScanSnapshot;
+    }
+
+    if (snapshot.status === "unavailable") {
+      if (
+        snapshot.reason === "not-configured" ||
+        snapshot.reason === "not-found"
+      ) {
+        state.localMods = [];
+        state.localModsSet = new Set();
+        state.lastCompleteModSizeBytes = null;
+        state.lastCompleteModRoot = null;
+        state.modScanSnapshot = { ...snapshot, stale: false };
+      } else if (
+        state.modScanSnapshot &&
+        state.modScanSnapshot.root === snapshot.root &&
+        state.localMods.length > 0
+      ) {
+        state.modScanSnapshot = {
+          ...snapshot,
+          mods: state.localMods,
+          stale: true,
+          retainedMods: true,
+        };
+        state.localModsSet = new Set();
+      } else {
+        state.localMods = [];
+        state.localModsSet = new Set();
+        state.modScanSnapshot = { ...snapshot, stale: false };
+      }
+      return state.modScanSnapshot;
+    }
+
+    state.localMods = Array.isArray(snapshot.mods) ? snapshot.mods : [];
+    state.localModsSet = new Set(state.localMods
+      .filter((m) => (!m.scanStatus || m.scanStatus === "complete") && !m.isCorrupted)
+      .map((m) => m.id));
+    if (snapshot.sizeComplete && typeof snapshot.totalSizeBytes === "number") {
+      state.lastCompleteModSizeBytes = snapshot.totalSizeBytes;
+      state.lastCompleteModRoot = snapshot.root;
+    }
+    state.modScanSnapshot = { ...snapshot, stale: false };
+    return state.modScanSnapshot;
+  } catch (e) {
+    const currentRoot =
+      typeof state.settings?.modDirectory === "string"
+        ? state.settings.modDirectory.trim()
+        : "";
+    if (reqGen !== modScanRequestGeneration || requestedRoot !== currentRoot) {
+      return state.modScanSnapshot;
+    }
+    console.error("Failed to update local mods cache", e);
+    if (
+      state.modScanSnapshot &&
+      state.modScanSnapshot.root === currentRoot &&
+      state.localMods.length > 0
+    ) {
+      state.modScanSnapshot = {
+        ...state.modScanSnapshot,
+        status: "unavailable",
+        reason: "io-error",
+        stale: true,
+        retainedMods: true,
+      };
+      state.localModsSet = new Set();
+    } else {
+      state.localMods = [];
+      state.localModsSet = new Set();
+      state.modScanSnapshot = {
+        scanId: reqGen,
+        root: currentRoot,
+        status: "unavailable",
+        reason: "io-error",
+        mods: [],
+        totalSizeBytes: 0,
+        sizeComplete: false,
+        stale: false,
+      };
+    }
+    return state.modScanSnapshot;
   }
 }
 
-export async function loadInstalledMods() {
+export async function loadInstalledMods(options = {}) {
   const tbody = document.getElementById("installedModsListBody");
   tbody.innerHTML =
     '<tr><td colspan="6" class="empty-state-msg" style="padding: 30px;">Scanning Workshop storage pipeline...</td></tr>';
 
-  await refreshLocalModsCache();
+  const force = Boolean(options && options.force === true);
+  const snapshot = (await refreshLocalModsCache({ force })) || {
+    status: "unavailable",
+    reason: "not-configured",
+    mods: [],
+    totalSizeBytes: 0,
+    sizeComplete: false,
+    stale: false,
+  };
 
-  document.getElementById("totalModsCount").textContent =
-    state.localMods.length;
+  const isHardRootFailure =
+    snapshot.status === "unavailable" &&
+    !snapshot.retainedMods &&
+    (snapshot.reason === "permission-denied" || snapshot.reason === "io-error");
+
+  document.getElementById("totalModsCount").textContent = isHardRootFailure
+    ? "—"
+    : state.localMods.length;
 
   let totalSizeMB = 0;
-  state.localMods.forEach((m) => (totalSizeMB += m.sizeMB));
+  state.localMods.forEach((m) => (totalSizeMB += m.sizeMB || 0));
   const totalSizeGB = Math.round((totalSizeMB / 1024) * 10) / 10;
-  document.getElementById("totalModsSize").textContent = `${totalSizeGB} GB`;
 
-  if (state.settings.modDirectory) {
+  const sizeEl = document.getElementById("totalModsSize");
+  if (isHardRootFailure) {
+    sizeEl.textContent = "Unavailable";
+  } else if (
+    snapshot.stale &&
+    state.lastCompleteModRoot === snapshot.root &&
+    state.lastCompleteModSizeBytes !== null
+  ) {
+    const staleGB =
+      Math.round((state.lastCompleteModSizeBytes / (1024 * 1024 * 1024)) * 10) /
+      10;
+    sizeEl.textContent = `${staleGB} GB (Stale)`;
+  } else if (snapshot.status === "partial" || !snapshot.sizeComplete) {
+    sizeEl.textContent = `At least ${totalSizeGB} GB (Partial)`;
+  } else if (snapshot.stale) {
+    sizeEl.textContent = `${totalSizeGB} GB (Stale)`;
+  } else {
+    sizeEl.textContent = `${totalSizeGB} GB`;
+  }
+
+  if (state.settings?.modDirectory) {
     window.api.ui
       .getDiskSpace(state.settings.modDirectory)
       .then((space) => {
@@ -66,12 +243,65 @@ export async function loadInstalledMods() {
   }
 
   if (state.localMods.length === 0) {
-    tbody.innerHTML =
-      '<tr><td colspan="6" class="empty-state-msg" style="padding: 30px;">No installed Workshop mods detected. Define target Workshop folder in Settings.</td></tr>';
+    tbody.replaceChildren();
+    const tr = document.createElement("tr");
+    const td = document.createElement("td");
+    td.colSpan = 6;
+    td.className = "empty-state-msg";
+    td.style.padding = "30px";
+
+    if (snapshot.status === "unavailable") {
+      if (snapshot.reason === "permission-denied") {
+        td.textContent =
+          "Workshop folder could not be read (permission denied). Check folder permissions and retry. ";
+        const retryBtn = document.createElement("button");
+        retryBtn.className = "btn btn-outline btn-sm";
+        retryBtn.textContent = "Retry";
+        retryBtn.addEventListener("click", () => loadInstalledMods({ force: true }));
+        td.appendChild(retryBtn);
+      } else if (snapshot.reason === "io-error") {
+        td.textContent =
+          "Workshop folder could not be scanned due to a filesystem error. ";
+        const retryBtn = document.createElement("button");
+        retryBtn.className = "btn btn-outline btn-sm";
+        retryBtn.textContent = "Retry";
+        retryBtn.addEventListener("click", () => loadInstalledMods({ force: true }));
+        td.appendChild(retryBtn);
+      } else if (snapshot.reason === "not-found") {
+        td.textContent =
+          "Configured Workshop folder was not found. Verify target Workshop folder in Settings.";
+      } else {
+        td.textContent =
+          "No installed Workshop mods detected. Define target Workshop folder in Settings.";
+      }
+    } else {
+      td.textContent =
+        "No installed Workshop mods detected. Define target Workshop folder in Settings.";
+    }
+    tr.appendChild(td);
+    tbody.appendChild(tr);
     return;
   }
 
   tbody.replaceChildren();
+  if (snapshot.stale || snapshot.status === "partial") {
+    const noticeTr = document.createElement("tr");
+    const noticeTd = document.createElement("td");
+    noticeTd.colSpan = 6;
+    noticeTd.style.padding = "10px 16px";
+    noticeTd.style.color = "#ffb703";
+    noticeTd.style.fontSize = "0.82rem";
+    noticeTd.textContent = snapshot.stale
+      ? "Showing last known Workshop snapshot (latest scan could not complete). "
+      : "Partial Workshop scan: some mod files or metadata could not be read. ";
+    const retryBtn = document.createElement("button");
+    retryBtn.className = "btn btn-outline btn-sm";
+    retryBtn.textContent = "Retry";
+    retryBtn.addEventListener("click", () => loadInstalledMods({ force: true }));
+    noticeTd.appendChild(retryBtn);
+    noticeTr.appendChild(noticeTd);
+    tbody.appendChild(noticeTr);
+  }
   state.localMods.forEach((mod) => {
     const tr = document.createElement("tr");
 
@@ -88,11 +318,18 @@ export async function loadInstalledMods() {
     const tdName = document.createElement("td");
     tdName.id = `mod-name-cell-${mod.id}`;
     let nameHTML = `<div style="font-weight: 600;">${escapeHtml(mod.name)}</div>`;
-    if (mod.isCorrupted) {
+    if (mod.scanStatus === "unreadable" || mod.scanStatus === "partial") {
+      nameHTML += `
+        <div style="font-weight: 700; color: #ffb703; margin-top: 4px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
+          <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ffb703; vertical-align: middle;"></app-icon>
+          Incomplete Scan / Files Unreadable
+        </div>
+      `;
+    } else if (mod.isCorrupted) {
       nameHTML += `
         <div style="font-weight: 700; color: #ff5a5f; margin-top: 4px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 4px;">
           <app-icon name="alert" style="width: 0.95rem; height: 0.95rem; color: #ff5a5f; vertical-align: middle;"></app-icon>
-          Corrupted / Missing Files
+          Suspected Incomplete Installation / Missing Files
         </div>
       `;
     }
@@ -142,10 +379,17 @@ export async function loadInstalledMods() {
 
     const tdSize = document.createElement("td");
     tdSize.style.fontFamily = "'Share Tech Mono', monospace";
-    tdSize.textContent =
-      mod.sizeMB >= 1024
-        ? `${(mod.sizeMB / 1024).toFixed(1)} GB`
-        : `${mod.sizeMB.toFixed(0)} MB`;
+    const formattedModSize =
+      (mod.sizeMB || 0) >= 1024
+        ? `${((mod.sizeMB || 0) / 1024).toFixed(1)} GB`
+        : `${(mod.sizeMB || 0).toFixed(0)} MB`;
+    if (mod.scanStatus === "unreadable" && !(mod.sizeMB > 0)) {
+      tdSize.textContent = "Unavailable";
+    } else if (mod.scanStatus === "partial") {
+      tdSize.textContent = `At least ${formattedModSize}`;
+    } else {
+      tdSize.textContent = formattedModSize;
+    }
 
     const tdModified = document.createElement("td");
     tdModified.style.color = "var(--text-muted)";
@@ -401,7 +645,7 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
             currentEntry.statusLabel &&
             currentEntry.statusLabel.isConnected
           ) {
-            currentEntry.statusLabel.textContent = "✓";
+            currentEntry.statusLabel.innerHTML = '<app-icon name="check" role="img" aria-label="Installed"></app-icon>';
             currentEntry.statusLabel.className = "mod-pill-status installed";
             currentEntry.statusLabel.style.color = ""; // Let CSS handle color
 
@@ -471,20 +715,24 @@ export function buildDependencyTree(container, node, prefix, installedSet) {
     const nextPrefix = prefix + (isLast ? "     " : "  │  ");
 
     const childInstalled = installedSet.has(child.id);
-    let statusIcon = childInstalled ? "✓" : "✗";
+    let statusIcon = childInstalled ? "check" : "x";
+    let statusLabel = childInstalled ? "Installed" : "Not confirmed installed";
     let statusColor = childInstalled ? "var(--accent-green)" : "#ff5a5f";
     let extraInfo = "";
 
     if (child.error) {
-      statusIcon = "⚠";
+      statusIcon = "alert";
+      statusLabel = "Error";
       statusColor = "#ff5a5f";
       extraInfo = `<span style="color:#ff5a5f;font-size:0.7rem;"> [Error: ${escapeHtml(child.error)}]</span>`;
     } else if (child.truncated) {
-      statusIcon = "…";
+      statusIcon = "alert";
+      statusLabel = "Max depth reached";
       statusColor = "#ffb703";
       extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Max depth reached]</span>`;
     } else if (child.circular) {
-      statusIcon = "↻";
+      statusIcon = "refresh";
+      statusLabel = "Circular reference";
       statusColor = "#ffb703";
       extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Circular reference]</span>`;
     }
@@ -494,7 +742,7 @@ export function buildDependencyTree(container, node, prefix, installedSet) {
     line.style.fontSize = "0.8rem";
     line.style.padding = "2px 0";
     line.style.color = statusColor;
-    line.innerHTML = `${childPrefix}${statusIcon} ${escapeHtml(child.name || `Mod ${child.id}`)} <span style="color:var(--text-muted);font-size:0.7rem;">(${escapeHtml(String(child.id))})</span>${extraInfo}`;
+    line.innerHTML = `${childPrefix}<app-icon name="${statusIcon}" role="img" aria-label="${statusLabel}"></app-icon> ${escapeHtml(child.name || `Mod ${child.id}`)} <span style="color:var(--text-muted);font-size:0.7rem;">(${escapeHtml(String(child.id))})</span>${extraInfo}`;
     container.appendChild(line);
 
     if (child.children && child.children.length > 0 && !child.error) {
@@ -506,7 +754,7 @@ export function buildDependencyTree(container, node, prefix, installedSet) {
 export async function initModManager() {
   document
     .getElementById("refreshModsBtn")
-    .addEventListener("click", loadInstalledMods);
+    .addEventListener("click", () => loadInstalledMods({ force: true }));
 
   document
     .getElementById("checkDepsBtn")
@@ -531,7 +779,7 @@ export async function initModManager() {
 
         const missingDepsSet = new Set();
         let hasErrors = false;
-        const installedSet = new Set(state.localMods.map((m) => m.id));
+        const installedSet = state.localModsSet;
 
         trees.forEach((tree) => {
           if (!tree || !tree.id) return;
@@ -553,20 +801,20 @@ export async function initModManager() {
           let depsText = `${tree.children.length} Dep${tree.children.length !== 1 ? "s" : ""}`;
           if (tree.error) {
             statusColor = "#ff5a5f";
-            statusIndicator = `⚠️ API error`;
+            statusIndicator = `<app-icon name="alert" aria-hidden="true"></app-icon> API error`;
             depsText = "Failed";
           } else if (tree.truncated) {
             statusColor = "#ffb703";
-            statusIndicator = `… Truncated (max depth)`;
+            statusIndicator = `<app-icon name="alert" aria-hidden="true"></app-icon> Truncated (max depth)`;
           } else if (tree.circular) {
             statusColor = "#ffb703";
-            statusIndicator = `↻ Circular ref`;
+            statusIndicator = `<app-icon name="refresh" aria-hidden="true"></app-icon> Circular ref`;
           } else if (missingChildren.length > 0) {
             statusColor = "#ff5a5f";
             statusIndicator = `${missingChildren.length} Missing`;
           } else {
             statusColor = "var(--accent-green)";
-            statusIndicator = "✓ OK";
+            statusIndicator = `<app-icon name="check" aria-hidden="true"></app-icon> OK`;
           }
 
           const header = document.createElement("div");
@@ -619,7 +867,7 @@ export async function initModManager() {
           warningBanner.style.color = "#ff5a5f";
           warningBanner.style.fontSize = "0.85rem";
           warningBanner.style.fontWeight = "700";
-          warningBanner.innerHTML = `⚠️ ${totalMissingDeps} Missing transitive dependencies detected — Subscribe via Workshop to resolve`;
+          warningBanner.innerHTML = `<app-icon name="alert" aria-hidden="true"></app-icon> ${totalMissingDeps} Missing transitive dependencies detected — Subscribe via Workshop to resolve`;
           depsContainer.insertBefore(warningBanner, depsContainer.firstChild);
         }
 
@@ -634,7 +882,7 @@ export async function initModManager() {
           okBanner.style.fontSize = "0.85rem";
           okBanner.style.fontWeight = "700";
           okBanner.style.fontFamily = "'Share Tech Mono', monospace";
-          okBanner.innerHTML = "✓ All dependencies satisfied";
+          okBanner.innerHTML = `<app-icon name="check" aria-hidden="true"></app-icon> All dependencies satisfied`;
           depsContainer.insertBefore(okBanner, depsContainer.firstChild);
 
           setTimeout(() => {

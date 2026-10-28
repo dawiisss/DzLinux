@@ -33,10 +33,31 @@ function isValidPort(value) {
 }
 
 function isValidModId(value) {
-  return (
-    (typeof value === "string" || typeof value === "number") &&
-    /^\d+$/.test(String(value))
-  );
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value >= 0;
+  }
+  return typeof value === "string" && /^\d+$/.test(value);
+}
+
+function normalizeModId(mod) {
+  if (mod === null || mod === undefined) return null;
+  if (typeof mod === "object") {
+    if (Array.isArray(mod)) return null;
+    return isValidModId(mod.id) ? String(mod.id) : null;
+  }
+  return isValidModId(mod) ? String(mod) : null;
+}
+
+function normalizeMaxMem(value) {
+  if (typeof value === "number") {
+    return Number.isSafeInteger(value) && value >= 0 ? String(value) : "";
+  }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed === "") return "";
+    return /^\d+$/.test(trimmed) && isBoundedString(trimmed, 20) ? trimmed : "";
+  }
+  return "";
 }
 
 function isBoundedString(value, maxLength = MAX_TEXT_LENGTH) {
@@ -143,6 +164,8 @@ module.exports = {
   isValidIpOrHost,
   isValidPort,
   isValidModId,
+  normalizeModId,
+  normalizeMaxMem,
   isBoundedString,
   validateServerAddress,
   validateFavorite,

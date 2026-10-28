@@ -411,6 +411,33 @@ describe("game", () => {
         expect.any(Function),
       );
     });
+
+    test("supports standalone quick launch without target and rejects partial or invalid targets", async () => {
+      mockExecFile.mockImplementation((cmd, args, cb) => {
+        cb(null, "stdout", "stderr");
+        return { once: (evt, handler) => { if (evt === "spawn") handler(); } };
+      });
+
+      const game = require("../../src/main/game");
+      await expect(game.launchDayZ("", "", ["123", { id: 456 }])).resolves.not.toThrow();
+      expect(mockExecFile).toHaveBeenCalledWith(
+        "steam",
+        [
+          "-applaunch",
+          "221100",
+          "-noLauncher",
+          "-mod=Z:\\tmp\\123;Z:\\tmp\\456",
+        ],
+        expect.any(Function),
+      );
+
+      mockExecFile.mockClear();
+      await expect(game.launchDayZ("", 0, [])).rejects.toThrow("Invalid arguments");
+      await expect(game.launchDayZ("", 2302, [])).rejects.toThrow("Invalid arguments");
+      await expect(game.launchDayZ("1.2.3.4", 0, [])).rejects.toThrow("Invalid arguments");
+      await expect(game.launchDayZ("", "", ["bad-mod"])).rejects.toThrow("Invalid mod IDs");
+      expect(mockExecFile).not.toHaveBeenCalled();
+    });
   });
 
   describe("openWorkshopPage", () => {

@@ -79,6 +79,37 @@ describe("prepareEnv", () => {
       ]);
       expect(result).toBe("Z:\\mods\\99999");
     });
+
+    test("normalizes string, numeric, and object mod IDs identically and preserves order", () => {
+      const base = { modDirectory: "/home/user/Steam/workshop content/221100" };
+      const fromObjects = buildModString(base, [{ id: "123" }, { id: "456" }, { id: "789" }]);
+      const fromStrings = buildModString(base, ["123", "456", "789"]);
+      const fromMixed = buildModString(base, ["123", 456, { id: 789 }]);
+      expect(fromStrings).toBe(fromObjects);
+      expect(fromMixed).toBe(fromObjects);
+      expect(fromMixed).toBe(
+        "Z:\\home\\user\\Steam\\workshop content\\221100\\123;Z:\\home\\user\\Steam\\workshop content\\221100\\456;Z:\\home\\user\\Steam\\workshop content\\221100\\789",
+      );
+    });
+
+    test("rejects malformed, unsafe numeric, path-traversal, or null mod entries", () => {
+      const base = { modDirectory: "/mods" };
+      expect(() => buildModString(base, ["123", null])).toThrow("Invalid mod IDs");
+      expect(() => buildModString(base, [{ id: "../123" }])).toThrow("Invalid mod IDs");
+      expect(() => buildModString(base, [Number.MAX_SAFE_INTEGER + 2])).toThrow("Invalid mod IDs");
+      expect(() => buildModString(base, [-1])).toThrow("Invalid mod IDs");
+      expect(() => buildModString(base, [{}])).toThrow("Invalid mod IDs");
+      expect(() => buildModString(base, [["123"]])).toThrow("Invalid mod IDs");
+    });
+
+    test("requires a configured Workshop root when mods are non-empty", () => {
+      expect(() => buildModString({ modDirectory: "" }, ["123"])).toThrow(
+        /Workshop mod directory is not configured/i,
+      );
+      expect(() => buildModString({}, [{ id: "123" }])).toThrow(
+        /Workshop mod directory is not configured/i,
+      );
+    });
   });
 
   describe("buildEnvironment", () => {
@@ -210,8 +241,19 @@ describe("prepareEnv", () => {
     });
 
     test("does not add -maxMem when empty", () => {
-      const result = buildExtraParams({ maxMem: "" });
-      expect(result).not.toContain(expect.stringContaining("-maxMem"));
+      expect(buildExtraParams({ maxMem: "" })).not.toContain(
+        expect.stringContaining("-maxMem"),
+      );
+    });
+
+    test("accepts numeric and trimmed decimal string maxMem and ignores invalid values safely", () => {
+      expect(buildExtraParams({ maxMem: 16384 })).toEqual(["-maxMem=16384"]);
+      expect(buildExtraParams({ maxMem: " 16384 " })).toEqual(["-maxMem=16384"]);
+      expect(buildExtraParams({ maxMem: "0" })).toEqual(["-maxMem=0"]);
+      expect(buildExtraParams({ maxMem: 0 })).toEqual(["-maxMem=0"]);
+      for (const bad of [null, "   ", -1024, 12.5, Number.MAX_SAFE_INTEGER + 2, true, {}, "-4096", "4096; rm -rf"]) {
+        expect(buildExtraParams({ maxMem: bad })).toEqual([]);
+      }
     });
 
     test("adds -name when set", () => {

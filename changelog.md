@@ -10,6 +10,44 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [2.1.1] - 2026-10-28
+
+### Security
+
+- Updated Electron from 43.7.5 to 43.8.3 within the existing 43.x release line to fix pointer-lock permission attribution and mitigate compromised eMudhra intermediate certificates.
+- Updated Axios's transitive `follow-redirects` dependency from 1.16.0 to 1.16.1 to fix cross-origin credential disclosure through array-form headers and sensitive-header matching.
+- Updated transitive `undici` dependencies from 6.29.0 to 6.29.1 and 7.30.0 to 7.30.1 in Electron's download and native-module build tooling to fix EventSource memory exhaustion, excessive content-encoding crashes, and the affected 7.x subresource-integrity check.
+- Raised the existing `fast-uri` override from `^3.1.8` to `^3.1.9` and updated the lockfile to fix URI scheme spoofing/injection, host confusion, and relative-path normalization in Electron Builder's AJV dependency.
+
+### Added
+
+- **Single-Pass Diagnostics Snapshot:** Added `get-diagnostics-snapshot` (`window.api.diagnostics.getSnapshot`) and pure `summarizeLogs()` in `src/main/logParser.js` so opening the Diagnostics tab parses DayZ session logs in a single pass instead of scanning and parsing log files twice.
+- **Structured Mod Scan Status:** Added `scanMods()` (`scan-mods` / `window.api.mods.scan`) returning scan identity, root, status, reason, mod records, measured bytes, and size completeness. Filesystem concurrency is bounded and concurrent scans of the same root share work.
+- **Centralized Metadata Icons:** Registered `lock`, `sun`, `moon`, and `coins` icons in `src/renderer/components/app-icon.js` and replaced decorative/status emojis across Server Browser metadata badges, Diagnostics, Crash Diagnostic modal, and Mod Manager with `<app-icon>` elements.
+
+### Changed
+
+- **Packaged Build File Allowlist:** Constrained `package.json` `build.files` to `["src/**/*", "package.json"]` to exclude repository-root datasets, tests, review documents, and maintenance scripts from application content. Production dependencies remain handled by Electron Builder, including the native Steamworks module.
+- **Release Version Sync Tooling:** Moved `sync-versions.js` into `build/sync-versions.js` so `pnpm run sync-versions` remains available inside `git archive` source tarballs used by AUR `makepkg` builds.
+- **Server Browser Delivery and Reconciliation:** Removed duplicate `servers-batch` IPC streaming in favor of a single `fetch-servers` response, reconciled in `refreshServers()` while preserving surviving row models, live measurements, and expanded details.
+- **Action Column Header Standardization:** Standardized the action column header label to `Action` across Server Browser, Watchlist, History, and Favorites tables.
+- **Legacy History Bootstrap Removal:** Removed the renderer's redundant `settings.history` initialization and cleanup write. History continues to load through its main-process repository, retaining legacy import behavior.
+
+### Fixed
+
+- **Linux Archive Installation:** Matched AUR and Flatpak download URLs, AUR installation paths, and README extraction instructions to Electron Builder's generated `dzlinux-2.1.1.tar.gz` archive.
+- **Settings Save Side Effects and Custom DXVK Threads:** Keep newer form edits separate from committed runtime settings, reconcile auto-refresh timers against the last applied values after queued saves finish, and retain configured thread counts outside the preset options across unrelated saves and readbacks.
+- **Mod Installation Certainty and Dependency Icons:** Unreadable, partial, corrupt, or stale scan records no longer count as confirmed installed mods. Server details label uncertain records as unverified and retain subscription controls. Dependency-tree states and installed badges use registered icons.
+- **Unreadable Log Directory Fallback:** Continue through Steam library candidates when directory enumeration fails, reusing the successful listing for the diagnostics snapshot.
+- **Launch Input Validation:** Normalize string, safe numeric, and object mod IDs without silently dropping invalid requests, preserve Proton mod paths, handle numeric memory settings safely, and validate supplied connection targets while retaining standalone launch.
+- **Persisted Settings Reconciliation:** Normalize optional launch and display settings, save form-owned preference patches, and reload authoritative values through `settings.load()` after the boolean save response. Revision checks protect newer edits and collection snapshots. Factory reset discards queued edits, drains active saves, and invalidates old readbacks before writing defaults.
+- **Mod Cache Refresh Integrity:** Retain useful same-root snapshots as stale on transient scan failures, display partial/unavailable scan states, and reject superseded scan results and errors, including results arriving after the Workshop path is cleared. Missing or unconfigured roots clear obsolete installed-mod data.
+- **Ping Request and Steamworks Worker Cleanup:** Abort replaced `ping-server` / `query-mods` requests and delete controllers only while the invocation still owns the request ID. Scope worker shutdown, pending requests, and exit callbacks to the originating worker so late events cannot invalidate a replacement worker.
+- **Server Cache Projection and Refresh Timers:** Stored source-only server records in `server_cache.json`, projected current `favorites` and `enableTrustScore` settings dynamically on both cache hits and misses, preserved cache age across cache hits, serialized cache writes by fetch generation, and prevented overlapping manual/auto refreshes from running duplicate countdown timers.
+- **Unlisted Favorite Approval Badges:** Apply monetization enrichment to newly projected favorite placeholders on cold and warm fetches using the independent monetization cache.
+- **Recycled Server Rows and Favorite Sorting:** Refresh player counts, ping, metadata, and trust tooltips on reused rows. Manual pings reapply filtering and sorting, removing details when the parent row becomes hidden. Favorite-first sorting reuses the maintained canonical `state.favoritesSet`.
+- **Diagnostics Completion Feedback and Multi-Library Log Discovery:** Updated `getLogsDirectory()` to search all configured Steam library folders (`libraryfolders.vdf`) and Flatpak paths when `modDirectory` is unset or lacks `compatdata/221100` logs, and fixed `Run System Check` to disable during execution and report failure toasts instead of unconditionally toasting success.
+
 ## [2.1.0] - 2026-10-20
 
 ### Added

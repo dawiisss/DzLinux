@@ -9,10 +9,14 @@ const logParser = require("../logParser");
 const systemCheck = require("../systemCheck");
 const { getLogFilePath } = require("../logger");
 const { isAllowedPath } = require("./pathGuard");
+const { isBoundedString } = require("../validation");
 
 function registerSystemHandlers() {
   ipcMain.handle("get-diagnostics", () => logParser.getRecentLogs());
   ipcMain.handle("get-session-summary", () => logParser.getSessionSummary());
+  ipcMain.handle("get-diagnostics-snapshot", () =>
+    logParser.getDiagnosticsSnapshot(),
+  );
   ipcMain.handle("run-system-compatibility-check", () =>
     systemCheck.runSystemCheck(),
   );
@@ -78,7 +82,10 @@ function registerSystemHandlers() {
     }
   });
 
-  ipcMain.on("renderer-log", (_event, msg) => console.log(`[RENDERER] ${msg}`));
+  ipcMain.on("renderer-log", (_event, msg) => {
+    if (!isBoundedString(msg)) return;
+    console.log(`[RENDERER] ${msg}`);
+  });
 
   ipcMain.handle("open-log-file", () => {
     const logPath = getLogFilePath();

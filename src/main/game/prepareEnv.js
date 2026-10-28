@@ -1,6 +1,7 @@
 const path = require("node:path");
 const { execFile } = require("node:child_process");
 const steamPaths = require("../steamPaths");
+const { normalizeModId, normalizeMaxMem } = require("../validation");
 
 function sanitizeArg(arg) {
   return String(arg).replace(/"/g, "");
@@ -22,9 +23,29 @@ function checkGameMode() {
 
 function buildModString(settings, mods) {
   if (!mods) return "";
-  return mods
-    .map((m) => {
-      let p = path.join(settings.modDirectory, m.id);
+  if (!Array.isArray(mods)) {
+    throw new Error("Invalid mod IDs");
+  }
+  if (mods.length === 0) return "";
+  const normalizedIds = mods.map((m) => {
+    const id = normalizeModId(m);
+    if (id === null) {
+      throw new Error("Invalid mod IDs");
+    }
+    return id;
+  });
+  const modDir =
+    settings && typeof settings.modDirectory === "string"
+      ? settings.modDirectory.trim()
+      : "";
+  if (!modDir) {
+    throw new Error(
+      "Workshop mod directory is not configured. Please set the Workshop path in Settings.",
+    );
+  }
+  return normalizedIds
+    .map((id) => {
+      let p = path.join(modDir, id);
       if (p.startsWith("/")) {
         p = "Z:" + p.replace(/\//g, "\\");
       }
@@ -69,9 +90,10 @@ async function buildEnvironment(settings, compatDataPath) {
 }
 
 function buildExtraParams(settings) {
+  if (!settings || typeof settings !== "object") return [];
   let extraParams = [];
 
-  if (settings.launchParams) {
+  if (typeof settings.launchParams === "string" && settings.launchParams) {
     const rawTokens = (
       settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || []
     ).map((p) => {
@@ -95,10 +117,14 @@ function buildExtraParams(settings) {
   if (settings.mallocSystem) {
     extraParams.push("-malloc=system");
   }
-  if (settings.maxMem && settings.maxMem.trim() !== "") {
-    extraParams.push(`-maxMem=${sanitizeArg(settings.maxMem.trim())}`);
+  const maxMem = normalizeMaxMem(settings.maxMem);
+  if (maxMem !== "") {
+    extraParams.push(`-maxMem=${sanitizeArg(maxMem)}`);
   }
-  if (settings.playerName && settings.playerName.trim() !== "") {
+  if (
+    typeof settings.playerName === "string" &&
+    settings.playerName.trim() !== ""
+  ) {
     extraParams.push(`-name=${sanitizeArg(settings.playerName.trim())}`);
   }
 

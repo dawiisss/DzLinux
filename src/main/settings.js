@@ -5,6 +5,7 @@ const steamPaths = require("./steamPaths");
 const { writeJsonAtomically } = require("./fileUtils");
 const {
   isBoundedString,
+  normalizeMaxMem,
   validateWatchlist,
   MIN_QUERY_CONCURRENCY,
   MAX_QUERY_CONCURRENCY,
@@ -75,6 +76,18 @@ const defaultSettings = {
 };
 
 const SETTINGS_KEYS = new Set(Object.keys(defaultSettings));
+const VALID_THEMES = new Set([
+  "tactical-dark",
+  "classic",
+  "toxic",
+  "amber",
+  "deep-sea",
+  "vampire",
+  "frost-light",
+  "solar-light",
+  "cyber-neon",
+  "forest-moss",
+]);
 
 const FAVORITE_FIELDS = ["favorites", "favoritesSchemaVersion", "favoritesRevision", "favoriteGroups", "favoriteNames", "favoritePorts"];
 const clone = (value) => JSON.parse(JSON.stringify(value));
@@ -176,6 +189,32 @@ function sanitizeSettings(settings) {
   if (!isBoundedString(safeSettings.protonPath)) safeSettings.protonPath = "default";
   if (!isBoundedString(safeSettings.mangoHudConfig, 1000)) safeSettings.mangoHudConfig = defaultSettings.mangoHudConfig;
   if (!isBoundedString(safeSettings.dxvkConfig, 10000)) safeSettings.dxvkConfig = "";
+  if (!isBoundedString(safeSettings.filterName, 200)) safeSettings.filterName = defaultSettings.filterName;
+  safeSettings.maxMem = normalizeMaxMem(safeSettings.maxMem);
+
+  if (
+    typeof safeSettings.dxvkThreads === "number" &&
+    Number.isSafeInteger(safeSettings.dxvkThreads) &&
+    safeSettings.dxvkThreads >= 0
+  ) {
+    safeSettings.dxvkThreads = String(safeSettings.dxvkThreads);
+  } else if (typeof safeSettings.dxvkThreads === "string") {
+    const trimmedThreads = safeSettings.dxvkThreads.trim();
+    if (/^\d+$/.test(trimmedThreads) && isBoundedString(trimmedThreads, 10)) {
+      safeSettings.dxvkThreads = trimmedThreads;
+    } else {
+      safeSettings.dxvkThreads = defaultSettings.dxvkThreads;
+    }
+  } else {
+    safeSettings.dxvkThreads = defaultSettings.dxvkThreads;
+  }
+
+  if (!VALID_THEMES.has(safeSettings.theme)) safeSettings.theme = defaultSettings.theme;
+  if (!["all", "1pp", "3pp"].includes(safeSettings.filterPerspective)) safeSettings.filterPerspective = defaultSettings.filterPerspective;
+  if (!["all", "vanilla", "modded"].includes(safeSettings.filterCategory)) safeSettings.filterCategory = defaultSettings.filterCategory;
+  if (!["standard", "compact"].includes(safeSettings.serverListMode)) safeSettings.serverListMode = defaultSettings.serverListMode;
+  if (!["classic", "modern"].includes(safeSettings.layoutMode)) safeSettings.layoutMode = defaultSettings.layoutMode;
+  if (!["paging", "virtual"].includes(safeSettings.listMode)) safeSettings.listMode = defaultSettings.listMode;
   // Favorites are validated by their repository. Preserve raw invalid/legacy data
   // during unrelated preference writes instead of silently erasing the collection.
   if (safeSettings.favoritesSchemaVersion === 2) { delete safeSettings.favoriteNames; delete safeSettings.favoritePorts; }
@@ -295,6 +334,9 @@ function loadSettings() {
     if (fs.existsSync(settingsPath)) {
       const data = fs.readFileSync(settingsPath, "utf8");
       const parsed = JSON.parse(data);
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        throw new Error("Invalid settings file");
+      }
       for (const key of Object.keys(parsed)) {
         if (SETTINGS_KEYS.has(key)) {
           settings[key] = parsed[key];

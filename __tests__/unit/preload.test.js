@@ -62,22 +62,9 @@ describe("preload", () => {
     expect(ipcRenderer.invoke).toHaveBeenCalledWith("ping-server", "1.2.3.4", 2302, 27015);
   });
 
-  test("servers listener helpers register and remove ipcRenderer listeners", () => {
-    const { ipcRenderer } = require("electron");
-    const mockCallback = jest.fn();
-
-    const unsubscribe = mockExposedApis.api.servers.onBatch(mockCallback);
-    expect(ipcRenderer.on).toHaveBeenCalledWith("servers-batch", expect.any(Function));
-
-    const handler = ipcRenderer.on.mock.calls[0][1];
-    handler({}, "batch-data", "gen-123");
-    expect(mockCallback).toHaveBeenCalledWith("batch-data", "gen-123");
-
-    unsubscribe();
-    expect(ipcRenderer.removeListener).toHaveBeenCalledWith("servers-batch", handler);
-
-    mockExposedApis.api.servers.removeListeners();
-    expect(ipcRenderer.removeAllListeners).toHaveBeenCalledWith("servers-batch");
+  test("servers endpoints use single-response fetch without redundant batch listeners", () => {
+    expect(mockExposedApis.api.servers.onBatch).toBeUndefined();
+    expect(mockExposedApis.api.servers.removeListeners).toBeUndefined();
   });
 
   test("mod queries pass cancellation IDs across the preload boundary", async () => {
@@ -86,10 +73,15 @@ describe("preload", () => {
     expect(ipcRenderer.invoke).toHaveBeenCalledWith("query-mods", "1.2.3.4", 2302, 2303, "1:mods:0");
   });
 
-  test("mod sizes use the dedicated Workshop metadata endpoint", async () => {
+  test("mod sizes and scan endpoints use the dedicated Workshop metadata/scan channels", async () => {
     const { ipcRenderer } = require("electron");
     await mockExposedApis.api.mods.getDownloadSizes(["123", "456"]);
     expect(ipcRenderer.invoke).toHaveBeenCalledWith("get-mod-download-sizes", ["123", "456"]);
+    await mockExposedApis.api.mods.scan({ force: true });
+    expect(ipcRenderer.invoke).toHaveBeenCalledWith("scan-mods", { force: true });
+
+    await mockExposedApis.api.diagnostics.getSnapshot();
+    expect(ipcRenderer.invoke).toHaveBeenCalledWith("get-diagnostics-snapshot");
   });
 
   test("ui endpoints delegate to ipcRenderer", async () => {

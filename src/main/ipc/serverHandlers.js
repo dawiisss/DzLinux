@@ -9,12 +9,8 @@ const { isValidIpOrHost, isValidPort } = require("../validation");
 const activePingRequests = new Map();
 
 function registerServerHandlers() {
-  ipcMain.handle("fetch-servers", async (event, generationId) => {
-    return serverManager.fetchDayZServers((batch) => {
-      if (!event.sender.isDestroyed()) {
-        event.sender.send("servers-batch", batch, generationId);
-      }
-    }, generationId);
+  ipcMain.handle("fetch-servers", async (_event, generationId) => {
+    return serverManager.fetchDayZServers(generationId);
   });
   ipcMain.handle("query-mods", async (_event, ip, port, queryPort, requestId) => {
     if (
@@ -28,13 +24,19 @@ function registerServerHandlers() {
       const result = await queryServerGameDig(ip, port, queryPort);
       return result && Array.isArray(result.mods) ? result.mods : null;
     }
+    const existing = activePingRequests.get(requestId);
+    if (existing) {
+      existing.abort();
+    }
     const request = new AbortController();
     activePingRequests.set(requestId, request);
     try {
       const result = await queryServerGameDig(ip, port, queryPort, request.signal);
       return request.signal.aborted || !Array.isArray(result?.mods) ? null : result.mods;
     } finally {
-      if (activePingRequests.get(requestId) === request) activePingRequests.delete(requestId);
+      if (activePingRequests.get(requestId) === request) {
+        activePingRequests.delete(requestId);
+      }
     }
   });
   ipcMain.handle("refresh-mod-cache", async (_event, ip, port, queryPort) => {
@@ -65,13 +67,19 @@ function registerServerHandlers() {
       : null;
     if (!id) return pingServer(ip, port, queryPort);
 
+    const existing = activePingRequests.get(id);
+    if (existing) {
+      existing.abort();
+    }
     const request = new AbortController();
     activePingRequests.set(id, request);
     try {
       const result = await pingServer(ip, port, queryPort, request.signal);
       return request.signal.aborted ? null : result;
     } finally {
-      activePingRequests.delete(id);
+      if (activePingRequests.get(id) === request) {
+        activePingRequests.delete(id);
+      }
     }
   });
   ipcMain.on("cancel-ping-generation", (_event, generationId) => {

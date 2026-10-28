@@ -150,6 +150,9 @@ export function getReportedPopulation(server) {
 }
 
 export function applyPingResult(server, statusObj) {
+  if (server && typeof server === "object") {
+    server._needsRefreshPing = false;
+  }
   const reported = getReportedPopulation(statusObj);
   server.reportedPlayers = reported.players;
   server.reportedCapacity = reported.maxPlayers;
@@ -163,10 +166,10 @@ export function applyPingResult(server, statusObj) {
     if (statusObj.maxPlayers !== null && statusObj.maxPlayers !== undefined) {
       server.maxPlayers = statusObj.maxPlayers;
     }
-    if (statusObj.name) {
-      if (server.name === "Unknown Server" || !server.id) {
-        server.name = statusObj.name;
-      }
+    if (statusObj.name && statusObj.name !== "Unknown Server") {
+      server.name = statusObj.name;
+    } else if (!server.name) {
+      server.name = statusObj.name || "Unknown Server";
     }
     server.failedPing = false;
     if (statusObj.mods && statusObj.mods.length > 0) {

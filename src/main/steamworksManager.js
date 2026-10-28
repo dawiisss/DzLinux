@@ -4,9 +4,19 @@ const path = require("node:path");
 let worker = null;
 let msgIdCounter = 0;
 const pendingRequests = new Map();
+const shutdownPromises = new WeakMap();
 let cachedProfileName = null;
 
 let isLockedForLaunch = false;
+
+function rejectWorkerRequests(targetWorker, reason = "Steamworks worker exited") {
+  for (const [id, entry] of pendingRequests.entries()) {
+    if (entry.worker === targetWorker) {
+      pendingRequests.delete(id);
+      entry.reject(new Error(reason));
+    }
+  }
+}
 
 function lockForLaunch() {
   isLockedForLaunch = true;
@@ -14,16 +24,10 @@ function lockForLaunch() {
 }
 
 function unlockForLaunch() {
-  if (launchTimeoutId) {
-    clearTimeout(launchTimeoutId);
-    launchTimeoutId = null;
-  }
   isLockedForLaunch = false;
 }
 
 const STEAMWORKS_LAUNCH_LOCK_MS = 1500;
-
-let launchTimeoutId = null;
 
 async function lockAndDelayForLaunch() {
   await lockForLaunch();
@@ -34,23 +38,23 @@ function init() {
   if (isLockedForLaunch) return false;
   if (worker) return true;
   try {
-    worker = fork(path.join(__dirname, "steamworksWorker.js"));
-    worker.on("message", (msg) => {
+    const child = fork(path.join(__dirname, "steamworksWorker.js"));
+    worker = child;
+    child.on("message", (msg) => {
+      if (!msg || typeof msg !== "object") return;
       const { id, error, result } = msg;
-      if (pendingRequests.has(id)) {
-        const { resolve, reject } = pendingRequests.get(id);
+      const entry = pendingRequests.get(id);
+      if (entry && entry.worker === child) {
         pendingRequests.delete(id);
-        if (error) reject(new Error(error));
-        else resolve(result);
+        if (error) entry.reject(new Error(error));
+        else entry.resolve(result);
       }
     });
-    worker.on("exit", () => {
-      worker = null;
-      // Reject any pending requests
-      for (const { reject } of pendingRequests.values()) {
-        reject(new Error("Steamworks worker exited"));
+    child.on("exit", () => {
+      if (worker === child) {
+        worker = null;
       }
-      pendingRequests.clear();
+      rejectWorkerRequests(child, "Steamworks worker exited");
     });
     return true;
   } catch (e) {
@@ -60,42 +64,76 @@ function init() {
 }
 
 function shutdown() {
-  if (launchTimeoutId) {
-    clearTimeout(launchTimeoutId);
-    launchTimeoutId = null;
+  if (!worker) {
+    return Promise.resolve();
   }
-  return new Promise((resolve) => {
-    if (worker) {
-      const forceKill = setTimeout(() => {
-        if (worker) {
-          worker.kill("SIGKILL");
-          worker = null;
-          resolve();
-        }
-      }, 2000);
-      worker.once("exit", () => {
+  const targetWorker = worker;
+  if (shutdownPromises.has(targetWorker)) {
+    return shutdownPromises.get(targetWorker);
+  }
+  const promise = new Promise((resolve) => {
+    let settled = false;
+    let forceKill = null;
+
+    const finalize = () => {
+      if (settled) return;
+      settled = true;
+      if (forceKill !== null) {
         clearTimeout(forceKill);
+        forceKill = null;
+      }
+      if (typeof targetWorker.removeListener === "function") {
+        targetWorker.removeListener("exit", onExit);
+      } else if (typeof targetWorker.off === "function") {
+        targetWorker.off("exit", onExit);
+      }
+      if (worker === targetWorker) {
         worker = null;
-        resolve();
-      });
-      worker.kill("SIGTERM");
-    } else {
+      }
+      rejectWorkerRequests(targetWorker, "Steamworks worker exited");
+      shutdownPromises.delete(targetWorker);
       resolve();
+    };
+
+    const onExit = () => {
+      finalize();
+    };
+
+    forceKill = setTimeout(() => {
+      forceKill = null;
+      try {
+        targetWorker.kill("SIGKILL");
+      } catch {}
+      finalize();
+    }, 2000);
+
+    targetWorker.once("exit", onExit);
+    try {
+      targetWorker.kill("SIGTERM");
+    } catch {
+      finalize();
     }
   });
+  shutdownPromises.set(targetWorker, promise);
+  return promise;
 }
 
 const REQUEST_TIMEOUT = 30000; // 30 seconds
 
 async function sendRequest(type, payload) {
-  if (!init()) throw new Error("Worker not initialized");
+  if (!init() || !worker) throw new Error("Worker not initialized");
+  const activeWorker = worker;
   return new Promise((resolve, reject) => {
     const id = msgIdCounter++;
     const timeout = setTimeout(() => {
-      pendingRequests.delete(id);
+      const current = pendingRequests.get(id);
+      if (current && current.worker === activeWorker) {
+        pendingRequests.delete(id);
+      }
       reject(new Error(`Request ${type} timed out after ${REQUEST_TIMEOUT}ms`));
     }, REQUEST_TIMEOUT);
     pendingRequests.set(id, {
+      worker: activeWorker,
       resolve: (value) => {
         clearTimeout(timeout);
         resolve(value);
@@ -105,7 +143,7 @@ async function sendRequest(type, payload) {
         reject(err);
       },
     });
-    worker.send({ id, type, payload });
+    activeWorker.send({ id, type, payload });
   });
 }
 

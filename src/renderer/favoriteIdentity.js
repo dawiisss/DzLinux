@@ -1,7 +1,9 @@
 import { isValidIpOrHost, isValidPort } from "./utils.js";
 
 export function canonicalHost(input) {
-  const host = typeof input === "string" ? input.trim().toLowerCase() : "";
+  const raw = typeof input === "string" ? input.trim().toLowerCase() : "";
+  const host =
+    raw.startsWith("[") && raw.endsWith("]") ? raw.slice(1, -1) : raw;
   if (!isValidIpOrHost(host)) throw new Error("Enter a valid IP address or hostname");
   return host.includes(":") ? new URL(`http://[${host}]/`).hostname.slice(1, -1) : host;
 }

@@ -11,7 +11,7 @@ minimumReleaseAgeExclude:
 
 overrides:
   form-data: "^4.0.6"
-  fast-uri: "^3.1.8"
+  fast-uri: "^3.1.9"
   tar: "^7.5.18"
   js-yaml: "^4.3.2"
   "@xmldom/xmldom": "^0.8.15"

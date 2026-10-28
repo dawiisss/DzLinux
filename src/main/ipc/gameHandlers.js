@@ -3,7 +3,16 @@
 
 const { ipcMain } = require("electron");
 const gameManager = require("../game");
-const { isValidIpOrHost, isValidPort, isValidModId } = require("../validation");
+const {
+  isValidIpOrHost,
+  isValidPort,
+  isValidModId,
+  normalizeModId,
+} = require("../validation");
+
+function isOmittedLaunchParam(value) {
+  return value === undefined || value === null || value === "";
+}
 
 function registerGameHandlers() {
   ipcMain.handle("check-mods", (_event, requiredMods) => {
@@ -16,7 +25,7 @@ function registerGameHandlers() {
     return gameManager.checkMods(validMods);
   });
   ipcMain.handle("launch-game", async (event, ip, port, mods, connectionId) => {
-    if (ip || port) {
+    if (!isOmittedLaunchParam(ip) || !isOmittedLaunchParam(port)) {
       if (!isValidIpOrHost(ip) || !isValidPort(port)) {
         return Promise.reject(new Error("Invalid arguments"));
       }
@@ -24,13 +33,15 @@ function registerGameHandlers() {
     if (!Array.isArray(mods)) {
       return Promise.reject(new Error("Invalid arguments"));
     }
-    const isValidMods = mods.every((mod) => {
-      if (!mod) return false;
-      const id = typeof mod === "object" ? mod.id : mod;
-      return isValidModId(id);
-    });
-    if (!isValidMods) {
-      return Promise.reject(new Error("Invalid mod IDs"));
+    const normalizedMods = [];
+    for (const mod of mods) {
+      const id = normalizeModId(mod);
+      if (id === null) {
+        return Promise.reject(new Error("Invalid mod IDs"));
+      }
+      normalizedMods.push(
+        typeof mod === "object" && mod !== null ? { ...mod, id } : { id },
+      );
     }
     const { monitor } = require("../watchlistMonitor");
     if (connectionId !== undefined) monitor.assertConnection(connectionId, event.sender.id);
@@ -40,7 +51,7 @@ function registerGameHandlers() {
         if (event.sender.isDestroyed()) throw new Error("Connection owner closed");
         monitor.assertConnection(connectionId, event.sender.id);
       };
-      const result = await gameManager.launchDayZ(ip, port, mods, assertCurrent);
+      const result = await gameManager.launchDayZ(ip, port, normalizedMods, assertCurrent);
       monitor.finishConnection(connectionId, event.sender.id, true);
       return result;
     } catch (error) {

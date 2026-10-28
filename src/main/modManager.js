@@ -6,173 +6,526 @@ const axios = require("axios");
 const steamworksManager = require("./steamworksManager");
 
 const MOD_UPDATE_TOLERANCE_SECONDS = 3600; // 1 hour buffer for timezone/download delay edges
+const MAX_ACTIVE_MODS = 4;
+const MAX_ACTIVE_FS_OPS = 16;
+const MAX_FILE_WORKERS_PER_MOD = 4;
 
-// Scans the modDirectory, finds all workshop mod folders, parses meta.cpp for names and returns mod details
-async function getInstalledMods() {
-  const settings = await settingsManager.loadSettingsAsync();
-  const modDir = settings.modDirectory;
+let activeFsOps = 0;
+let peakFsOps = 0;
+let totalFsOps = 0;
+let activeModScans = 0;
+let peakModScans = 0;
+const fsWaitQueue = [];
 
-  if (!modDir) {
-    return [];
+function acquireFsSlot() {
+  if (activeFsOps < MAX_ACTIVE_FS_OPS) {
+    activeFsOps++;
+    totalFsOps++;
+    if (activeFsOps > peakFsOps) peakFsOps = activeFsOps;
+    return Promise.resolve();
   }
-  const dirExists = await fs.promises.access(modDir).then(() => true).catch(() => false);
-  if (!dirExists) {
-    return [];
+  return new Promise((resolve) => {
+    fsWaitQueue.push(resolve);
+  });
+}
+
+function releaseFsSlot() {
+  const next = fsWaitQueue.shift();
+  if (next) {
+    totalFsOps++;
+    if (activeFsOps > peakFsOps) peakFsOps = activeFsOps;
+    next();
+  } else {
+    activeFsOps--;
   }
+}
+
+async function withFsSlot(fn) {
+  await acquireFsSlot();
+  try {
+    return await fn();
+  } finally {
+    releaseFsSlot();
+  }
+}
+
+function getScanMetrics() {
+  return {
+    activeFsOps,
+    peakFsOps,
+    totalFsOps,
+    activeModScans,
+    peakModScans,
+    maxFsConcurrency: MAX_ACTIVE_FS_OPS,
+    maxModConcurrency: MAX_ACTIVE_MODS,
+  };
+}
+
+function resetScanMetrics() {
+  peakFsOps = activeFsOps;
+  totalFsOps = 0;
+  peakModScans = activeModScans;
+}
+
+function classifyFsErrorReason(err) {
+  const code = err && typeof err.code === "string" ? err.code : "";
+  if (code === "ENOENT" || code === "ENOTDIR") return "not-found";
+  if (code === "EACCES" || code === "EPERM") return "permission-denied";
+  return "io-error";
+}
+
+function boundedErrorCode(err) {
+  if (err && typeof err.code === "string" && err.code.length <= 32) {
+    return err.code;
+  }
+  return "EIO";
+}
+
+let currentScan = null;
+let nextScanId = 0;
+
+async function scanSingleMod(modDir, folder, stat, shouldAbort) {
+  const folderPath = path.join(modDir, folder);
+  let name = `Workshop Mod ${folder}`;
+  let author = "Unknown";
+  let version = "Unknown";
+  let overview = "";
+
+  const metaPath = path.join(folderPath, "meta.cpp");
+  const modInfoPath = path.join(folderPath, "mod.cpp");
+
+  let metaState = "missing";
+  let modErrorCode = null;
+
+  if (shouldAbort()) return null;
 
   try {
-    const folders = await fs.promises.readdir(modDir);
-    const mods = [];
-
-    const subscribedItems = await steamworksManager.getSubscribedMods();
-    const subscribedSet =
-      subscribedItems && subscribedItems.length > 0
-        ? new Set(subscribedItems)
-        : null;
-
-    const modPromises = folders.map(async (folder) => {
-      const folderPath = path.join(modDir, folder);
-      let stat;
-      try {
-        stat = await fs.promises.stat(folderPath);
-      } catch {
-        return null;
-      }
-
-      // Workshop mods are directories and usually numeric ID folders
-      if (stat.isDirectory() && /^\d+$/.test(folder)) {
-        // If we successfully got the subscribed list, and this folder isn't in it, skip it!
-        if (subscribedSet && !subscribedSet.has(folder)) {
-          return null;
-        }
-        let name = `Workshop Mod ${folder}`;
-        let author = "Unknown";
-        let version = "Unknown";
-        let overview = "";
-
-        const metaPath = path.join(folderPath, "meta.cpp");
-        const modInfoPath = path.join(folderPath, "mod.cpp");
-
-        // Try parsing the real name from meta.cpp
-        let metaContent = null;
-        try {
-          metaContent = await fs.promises.readFile(metaPath, "utf8");
-          const nameMatch = metaContent.match(/name\s*=\s*"([^"]+)"/i);
-          if (nameMatch && nameMatch[1]) {
-            name = nameMatch[1];
-          }
-        } catch (err) {
-          if (err.code !== "ENOENT") {
-            console.error(
-              `Failed to parse meta.cpp for mod ${folder}`,
-              err.message,
-            );
-          }
-        }
-
-        let infoContent = null;
-        try {
-          infoContent = await fs.promises.readFile(modInfoPath, "utf8");
-          const nameMatch = infoContent.match(/name\s*=\s*"([^"]+)"/i);
-          if (nameMatch) name = nameMatch[1];
-
-          const authorMatch = infoContent.match(/author\s*=\s*"([^"]+)"/i);
-          if (authorMatch) author = authorMatch[1];
-
-          const versionMatch = infoContent.match(/version\s*=\s*"([^"]+)"/i);
-          if (versionMatch) version = versionMatch[1];
-
-          const overviewMatch = infoContent.match(
-            /overview\s*=\s*"([\s\S]*?)"/i,
-          );
-          if (overviewMatch)
-            overview = overviewMatch[1].replace(/\r?\n/g, " ").trim();
-        } catch (err) {
-          if (err.code !== "ENOENT") {
-            console.warn(`Failed to parse mod.cpp for mod ${folder}:`, err.message);
-          }
-        }
-
-        // Estimate folder size in MB recursively (asynchronous)
-        let sizeBytes = 0;
-        try {
-          sizeBytes = await getFolderSize(folderPath);
-        } catch {
-          // Ignore size read errors
-        }
-
-        // Integrity Check: A valid mod should at least have a meta.cpp and not be empty
-        const isCorrupted = metaContent === null || sizeBytes < 1024;
-
-        return {
-          id: folder,
-          name: name,
-          author: author,
-          version: version,
-          overview: overview,
-          path: folderPath,
-          sizeMB: Math.round((sizeBytes / (1024 * 1024)) * 10) / 10,
-          lastModified: stat.mtime,
-          isCorrupted: isCorrupted,
-        };
-      }
-      return null;
-    });
-
-    const resolvedMods = await Promise.all(modPromises);
-    for (const m of resolvedMods) {
-      if (m) mods.push(m);
+    const metaContent = await withFsSlot(() =>
+      fs.promises.readFile(metaPath, "utf8"),
+    );
+    metaState = "present";
+    const nameMatch = metaContent.match(/name\s*=\s*"([^"]+)"/i);
+    if (nameMatch && nameMatch[1]) {
+      name = nameMatch[1];
     }
-
-    // Sort mods by name alphabetically
-    mods.sort((a, b) => a.name.localeCompare(b.name));
-    return mods;
-  } catch (e) {
-    console.error("Failed to scan installed mods", e.message);
-    return [];
+  } catch (err) {
+    if (err && err.code === "ENOENT") {
+      metaState = "missing";
+    } else {
+      metaState = "error";
+      modErrorCode = boundedErrorCode(err);
+      console.error(`Failed to parse meta.cpp for mod ${folder}`, err.message);
+    }
   }
+
+  if (shouldAbort()) return null;
+
+  let modInfoError = false;
+  try {
+    const infoContent = await withFsSlot(() =>
+      fs.promises.readFile(modInfoPath, "utf8"),
+    );
+    const nameMatch = infoContent.match(/name\s*=\s*"([^"]+)"/i);
+    if (nameMatch) name = nameMatch[1];
+
+    const authorMatch = infoContent.match(/author\s*=\s*"([^"]+)"/i);
+    if (authorMatch) author = authorMatch[1];
+
+    const versionMatch = infoContent.match(/version\s*=\s*"([^"]+)"/i);
+    if (versionMatch) version = versionMatch[1];
+
+    const overviewMatch = infoContent.match(/overview\s*=\s*"([\s\S]*?)"/i);
+    if (overviewMatch) {
+      overview = overviewMatch[1].replace(/\r?\n/g, " ").trim();
+    }
+  } catch (err) {
+    if (!err || err.code !== "ENOENT") {
+      modInfoError = true;
+      modErrorCode = modErrorCode || boundedErrorCode(err);
+      console.warn(
+        `Failed to parse mod.cpp for mod ${folder}:`,
+        err ? err.message : "unknown error",
+      );
+    }
+  }
+
+  if (shouldAbort()) return null;
+
+  const sizeResult = await getFolderSizeDetailed(folderPath, shouldAbort);
+  if (shouldAbort() || sizeResult.aborted) return null;
+
+  const sizeBytes = sizeResult.sizeBytes;
+  const hasReadFailure =
+    metaState === "error" || modInfoError || !sizeResult.complete;
+
+  let scanStatus = "complete";
+  let isCorrupted = false;
+  let errorCode = null;
+
+  if (hasReadFailure) {
+    scanStatus =
+      sizeResult.rootUnreadable || (metaState === "error" && sizeBytes === 0)
+        ? "unreadable"
+        : "partial";
+    isCorrupted = false;
+    errorCode = modErrorCode || sizeResult.errorCode || "EIO";
+  } else {
+    scanStatus = "complete";
+    isCorrupted = metaState === "missing" || sizeBytes < 1024;
+  }
+
+  return {
+    id: folder,
+    name,
+    author,
+    version,
+    overview,
+    path: folderPath,
+    sizeBytes,
+    sizeMB: Math.round((sizeBytes / (1024 * 1024)) * 10) / 10,
+    lastModified: stat ? stat.mtime : new Date(0),
+    isCorrupted,
+    scanStatus,
+    ...(errorCode ? { errorCode } : {}),
+  };
+}
+
+async function executeModScan(scanId, modDir, shouldAbort) {
+  if (!modDir) {
+    return {
+      scanId,
+      root: "",
+      status: "unavailable",
+      reason: "not-configured",
+      mods: [],
+      totalSizeBytes: 0,
+      sizeComplete: false,
+    };
+  }
+
+  if (shouldAbort()) {
+    return {
+      scanId,
+      root: modDir,
+      status: "cancelled",
+      reason: "superseded",
+      mods: [],
+      totalSizeBytes: 0,
+      sizeComplete: false,
+    };
+  }
+
+  let folders;
+  try {
+    folders = await withFsSlot(() => fs.promises.readdir(modDir));
+  } catch (err) {
+    const reason = classifyFsErrorReason(err);
+    if (reason !== "not-found") {
+      console.error("Failed to scan installed mods", err.message);
+    }
+    return {
+      scanId,
+      root: modDir,
+      status: "unavailable",
+      reason,
+      mods: [],
+      totalSizeBytes: 0,
+      sizeComplete: false,
+    };
+  }
+
+  if (shouldAbort()) {
+    return {
+      scanId,
+      root: modDir,
+      status: "cancelled",
+      reason: "superseded",
+      mods: [],
+      totalSizeBytes: 0,
+      sizeComplete: false,
+    };
+  }
+
+  let subscribedItems = null;
+  try {
+    subscribedItems = await steamworksManager.getSubscribedMods();
+  } catch {
+    subscribedItems = null;
+  }
+
+  if (shouldAbort()) {
+    return {
+      scanId,
+      root: modDir,
+      status: "cancelled",
+      reason: "superseded",
+      mods: [],
+      totalSizeBytes: 0,
+      sizeComplete: false,
+    };
+  }
+
+  const subscribedSet =
+    subscribedItems && subscribedItems.length > 0
+      ? new Set(subscribedItems)
+      : null;
+
+  const mods = [];
+  let hasIncompleteEntry = false;
+  let firstPartialReason = null;
+  let index = 0;
+
+  const workerCount = Math.min(MAX_ACTIVE_MODS, folders.length);
+  const workers = [];
+
+  for (let w = 0; w < workerCount; w++) {
+    workers.push(
+      (async () => {
+        activeModScans++;
+        if (activeModScans > peakModScans) peakModScans = activeModScans;
+        try {
+          while (index < folders.length) {
+            if (shouldAbort()) break;
+            const folder = folders[index++];
+            const folderName =
+              typeof folder === "string"
+                ? folder
+                : folder && typeof folder.name === "string"
+                  ? folder.name
+                  : String(folder);
+            const isNumericId = /^\d+$/.test(folderName);
+            if (isNumericId && subscribedSet && !subscribedSet.has(folderName)) {
+              continue;
+            }
+
+            const folderPath = path.join(modDir, folderName);
+            let stat;
+            try {
+              stat = await withFsSlot(() => fs.promises.stat(folderPath));
+            } catch (err) {
+              hasIncompleteEntry = true;
+              firstPartialReason =
+                firstPartialReason ||
+                (err && (err.code === "EACCES" || err.code === "EPERM")
+                  ? "permission-denied"
+                  : "io-error");
+              if (isNumericId) {
+                mods.push({
+                  id: folderName,
+                  name: `Workshop Mod ${folderName}`,
+                  author: "Unknown",
+                  version: "Unknown",
+                  overview: "",
+                  path: folderPath,
+                  sizeBytes: 0,
+                  sizeMB: 0,
+                  lastModified: new Date(0),
+                  isCorrupted: false,
+                  scanStatus: "unreadable",
+                  errorCode: boundedErrorCode(err),
+                });
+              }
+              continue;
+            }
+
+            if (shouldAbort()) break;
+
+            if (stat && stat.isDirectory() && isNumericId) {
+              const modRecord = await scanSingleMod(
+                modDir,
+                folderName,
+                stat,
+                shouldAbort,
+              );
+              if (shouldAbort() || !modRecord) break;
+              if (modRecord.scanStatus !== "complete") {
+                hasIncompleteEntry = true;
+                firstPartialReason =
+                  firstPartialReason ||
+                  (modRecord.errorCode === "EACCES" ||
+                  modRecord.errorCode === "EPERM"
+                    ? "permission-denied"
+                    : "io-error");
+              }
+              mods.push(modRecord);
+            }
+          }
+        } finally {
+          activeModScans--;
+        }
+      })(),
+    );
+  }
+
+  await Promise.all(workers);
+
+  if (shouldAbort()) {
+    return {
+      scanId,
+      root: modDir,
+      status: "cancelled",
+      reason: "superseded",
+      mods: [],
+      totalSizeBytes: 0,
+      sizeComplete: false,
+    };
+  }
+
+  mods.sort((a, b) => a.name.localeCompare(b.name));
+  const totalSizeBytes = mods.reduce((sum, m) => sum + (m.sizeBytes || 0), 0);
+  const sizeComplete = !hasIncompleteEntry;
+
+  return {
+    scanId,
+    root: modDir,
+    status: sizeComplete ? "complete" : "partial",
+    reason: sizeComplete ? null : firstPartialReason || "io-error",
+    mods,
+    totalSizeBytes,
+    sizeComplete,
+  };
+}
+
+async function scanMods(options = {}) {
+  const force = Boolean(options && options.force);
+  const settings = await settingsManager.loadSettingsAsync();
+  const root =
+    settings && typeof settings.modDirectory === "string"
+      ? settings.modDirectory.trim()
+      : "";
+
+  if (!force && currentScan && !currentScan.aborted && currentScan.root === root) {
+    return currentScan.promise;
+  }
+
+  if (currentScan && !currentScan.aborted) {
+    currentScan.aborted = true;
+  }
+
+  const scanId = ++nextScanId;
+  const scanCtx = {
+    scanId,
+    root,
+    aborted: false,
+    promise: null,
+  };
+  currentScan = scanCtx;
+  const shouldAbort = () => scanCtx.aborted || currentScan !== scanCtx;
+
+  scanCtx.promise = executeModScan(scanId, root, shouldAbort).finally(() => {
+    if (currentScan === scanCtx) {
+      currentScan = null;
+    }
+  });
+
+  return scanCtx.promise;
+}
+
+// Compatibility wrapper returning installed mods array or rejecting failed/cancelled scans
+async function getInstalledMods() {
+  const result = await scanMods();
+  if (result.status === "cancelled") {
+    throw new Error("Mod scan cancelled");
+  }
+  if (result.status === "unavailable") {
+    if (result.reason === "not-configured" || result.reason === "not-found") {
+      return [];
+    }
+    throw new Error(`Mod scan unavailable: ${result.reason || "io-error"}`);
+  }
+  return result.mods;
 }
 
 const fsPromises = fs.promises;
 
-// Asynchronous iterative folder size calculator
-async function getFolderSize(dirPath) {
-  let size = 0;
-  const queue = [dirPath];
+// Asynchronous iterative folder size calculator with bounded concurrency and explicit completeness
+async function getFolderSizeDetailed(dirPath, shouldAbort = () => false) {
+  let sizeBytes = 0;
+  let complete = true;
+  let rootUnreadable = false;
+  let errorCode = null;
+  const dirQueue = [dirPath];
 
-  while (queue.length > 0) {
-    const currentDir = queue.pop();
+  while (dirQueue.length > 0) {
+    if (shouldAbort()) {
+      return { sizeBytes, complete: false, aborted: true, rootUnreadable, errorCode };
+    }
+    const currentDir = dirQueue.pop();
+    let files;
     try {
-      const files = await fsPromises.readdir(currentDir, {
-        withFileTypes: true,
-      });
+      files = await withFsSlot(() =>
+        fsPromises.readdir(currentDir, { withFileTypes: true }),
+      );
+    } catch (err) {
+      complete = false;
+      if (currentDir === dirPath) rootUnreadable = true;
+      errorCode = errorCode || boundedErrorCode(err);
+      continue;
+    }
 
-      // ⚡ Bolt: Collect stat promises to execute them concurrently instead of blocking sequentially
-      const statPromises = [];
+    if (shouldAbort()) {
+      return { sizeBytes, complete: false, aborted: true, rootUnreadable, errorCode };
+    }
 
-      for (const file of files) {
-        const filePath = path.join(currentDir, file.name);
-        if (file.isDirectory()) {
-          queue.push(filePath);
-        } else {
-          statPromises.push(
-            fsPromises
-              .stat(filePath)
-              .then((stat) => stat.size)
-              .catch(() => 0), // Ignore individual file stat errors
-          );
-        }
+    const filePaths = [];
+    for (const file of files) {
+      const entryName = typeof file === "string" ? file : file.name;
+      const filePath = path.join(currentDir, entryName);
+      const isSymLink =
+        typeof file === "object" &&
+        file !== null &&
+        typeof file.isSymbolicLink === "function" &&
+        file.isSymbolicLink();
+      const isDir =
+        typeof file === "object" &&
+        file !== null &&
+        typeof file.isDirectory === "function" &&
+        file.isDirectory();
+
+      if (isDir && !isSymLink) {
+        dirQueue.push(filePath);
+      } else {
+        filePaths.push({ filePath, isSymLink });
       }
+    }
 
-      if (statPromises.length > 0) {
-        const sizes = await Promise.all(statPromises);
-        size += sizes.reduce((acc, curr) => acc + curr, 0);
+    if (filePaths.length > 0) {
+      let fileIndex = 0;
+      const workerCount = Math.min(MAX_FILE_WORKERS_PER_MOD, filePaths.length);
+      const workers = [];
+      for (let w = 0; w < workerCount; w++) {
+        workers.push(
+          (async () => {
+            while (fileIndex < filePaths.length) {
+              if (shouldAbort()) break;
+              const { filePath, isSymLink } = filePaths[fileIndex++];
+              try {
+                const st = await withFsSlot(() => fsPromises.stat(filePath));
+                if (st && typeof st.isDirectory === "function" && st.isDirectory()) {
+                  if (!isSymLink) {
+                    dirQueue.push(filePath);
+                  }
+                } else if (st && typeof st.size === "number") {
+                  sizeBytes += st.size;
+                }
+              } catch (err) {
+                complete = false;
+                errorCode = errorCode || boundedErrorCode(err);
+              }
+            }
+          })(),
+        );
       }
-    } catch {
-      // Ignore directory read errors
+      await Promise.all(workers);
     }
   }
-  return size;
+
+  return { sizeBytes, complete, aborted: false, rootUnreadable, errorCode };
+}
+
+async function getFolderSize(dirPath) {
+  const result = await getFolderSizeDetailed(dirPath);
+  return result.sizeBytes;
 }
 
 function validateModId(modId) {
@@ -320,7 +673,12 @@ async function checkModUpdatesDetailed(mods) {
 }
 
 module.exports = {
+  scanMods,
   getInstalledMods,
+  getFolderSize,
+  getFolderSizeDetailed,
+  getScanMetrics,
+  resetScanMetrics,
   openModFolder,
   deleteMod,
   checkModUpdates,

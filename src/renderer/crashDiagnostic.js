@@ -29,9 +29,18 @@ export function initCrashDiagnostic() {
       crashDesc.textContent =
         diagnostic.description || "Unknown error occurred.";
       crashSnippet.textContent = diagnostic.snippet || "> Log unavailable";
-      crashFix.textContent =
-        "🛠️ Suggested fix: " +
-        (diagnostic.suggestedFix || "Check community forums for assistance.");
+      crashFix.replaceChildren();
+      const fixIcon = document.createElement("app-icon");
+      fixIcon.setAttribute("name", "wrench");
+      fixIcon.setAttribute("aria-hidden", "true");
+      crashFix.appendChild(fixIcon);
+      crashFix.appendChild(
+        document.createTextNode(
+          " Suggested fix: " +
+            (diagnostic.suggestedFix ||
+              "Check community forums for assistance."),
+        ),
+      );
 
       latestCrashText = `[CRASH DIAGNOSTIC]\nStatus: ${diagnostic.status}\nDescription: ${diagnostic.description}\nSnippet: ${diagnostic.snippet}\nSuggested Fix: ${diagnostic.suggestedFix}`;
       crashModal.style.display = "flex";

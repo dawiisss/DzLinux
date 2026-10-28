@@ -7,6 +7,17 @@ import { updateLaunchOptionAvailability } from "./launchOptions.js";
 
 export async function initSettings() {
   const settings = state.settings;
+  const setDxvkThreads = (value) => {
+    const select = document.getElementById("dxvkThreads");
+    const selected = String(value ?? "0");
+    if (!Array.from(select.options).some((option) => option.value === selected)) {
+      const option = document.createElement("option");
+      option.value = selected;
+      option.textContent = `${selected} Threads (configured)`;
+      select.appendChild(option);
+    }
+    select.value = selected;
+  };
 
   const queryConcurrencyInput = document.getElementById("queryConcurrency");
   const normalizeQueryConcurrency = () => {
@@ -75,7 +86,7 @@ export async function initSettings() {
 
   document.getElementById("dxvkAsyncEnabled").checked =
     settings.dxvkAsyncEnabled !== false;
-  document.getElementById("dxvkThreads").value = settings.dxvkThreads || "0";
+  setDxvkThreads(settings.dxvkThreads);
   document.getElementById("disableProtonLogs").checked =
     settings.disableProtonLogs !== false;
   const gmCheckbox = document.getElementById("enableGameMode");
@@ -99,7 +110,10 @@ export async function initSettings() {
     settings.nativeWayland === true;
   document.getElementById("mallocSystem").checked =
     settings.mallocSystem !== false;
-  document.getElementById("maxMem").value = settings.maxMem || "16000";
+  document.getElementById("maxMem").value =
+    settings.maxMem !== undefined && settings.maxMem !== null
+      ? String(settings.maxMem)
+      : "16000";
   document.getElementById("mallocTrim").checked = settings.mallocTrim !== false;
   document.getElementById("noEsync").checked = settings.noEsync === true;
   document.getElementById("mangoHudConfig").value =
@@ -191,15 +205,24 @@ export async function initSettings() {
     }
   });
 
-  // Settings persistence
-  const saveSettingsSilently = async (silent) => {
-    const prev = state.settings || {};
+  const COLLECTION_OWNED_KEYS = new Set([
+    "favorites",
+    "favoritesSchemaVersion",
+    "favoritesRevision",
+    "favoriteGroups",
+    "favoriteNames",
+    "favoritePorts",
+    "watchlist",
+    "history",
+  ]);
+
+  const collectFormPreferencePatch = () => {
     const watchlistEl = document.getElementById("enableWatchlist");
     const watchlistEnabled = watchlistEl ? watchlistEl.checked : true;
     const historyEl = document.getElementById("enableHistory");
     const historyEnabled = historyEl ? historyEl.checked : true;
-    const newSettings = {
-      ...state.settings,
+    const trustEl = document.getElementById("enableTrustScore");
+    return {
       playerName: document.getElementById("playerName").value,
       launchParams: document.getElementById("launchParams").value,
       modDirectory: document.getElementById("modDirectory").value,
@@ -216,7 +239,7 @@ export async function initSettings() {
       showDiagnosticsTab: document.getElementById("showDiagnosticsTab").checked,
       showHistoryTab: historyEnabled,
       enableHistory: historyEnabled,
-      enableTrustScore: document.getElementById("enableTrustScore") ? document.getElementById("enableTrustScore").checked : true,
+      enableTrustScore: trustEl ? trustEl.checked : true,
       protonPath: document.getElementById("protonPath").value,
       mangoHudEnabled: document.getElementById("flagMangoHud").checked,
       dxvkAsyncEnabled: document.getElementById("dxvkAsyncEnabled").checked,
@@ -232,48 +255,315 @@ export async function initSettings() {
       dxvkConfig: document.getElementById("dxvkConfig").value,
       serverListPageSize:
         parseInt(document.getElementById("serverListPageSize").value, 10) || 50,
-      queryConcurrency:
-        Math.min(
-          500,
-          Math.max(
-            10,
-            parseInt(document.getElementById("queryConcurrency").value, 10) || 150,
-          ),
+      queryConcurrency: Math.min(
+        500,
+        Math.max(
+          10,
+          parseInt(document.getElementById("queryConcurrency").value, 10) || 150,
         ),
+      ),
       serverListMode: document.getElementById("serverListMode").value,
       watchlistRefreshEnabled:
         document.getElementById("watchlistRefreshEnabled").value === "true",
       watchlistRefreshTime:
         parseInt(document.getElementById("watchlistRefreshTime").value, 10) || 10,
+      modLoadouts: JSON.parse(JSON.stringify(state.modLoadouts || {})),
     };
+  };
 
-    state.pagination.size = newSettings.serverListPageSize;
-    applyServerListMode(newSettings.serverListMode);
-
-    const success = await window.api.settings.save(newSettings);
-    if (success) {
-      state.settings = newSettings;
-
-      // Update tab visibility dynamically
-      applyTabVisibility(newSettings);
-      applyLayoutMode(newSettings.layoutMode);
-
-      // Restart server-browser countdown only if relevant settings changed
-      const refreshKeysChanged =
-        newSettings.autoRefreshEnabled !== prev.autoRefreshEnabled ||
-        newSettings.autoRefreshTime !== prev.autoRefreshTime;
-      if (refreshKeysChanged) {
-        startCountdown();
-      }
-
-      document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
-      if (!silent)
-        showToast("Settings committed to local storage", "#ff9f1c", "save");
-    } else {
-      if (!silent) showToast("Error committing settings", "#ff5a5f", "x");
+  const applyFieldValueToDOM = (key, val) => {
+    switch (key) {
+      case "playerName":
+        document.getElementById("playerName").value = val || "";
+        break;
+      case "launchParams":
+        launchParamsInput.value = val || "";
+        parseLaunchParamsToUI();
+        break;
+      case "modDirectory":
+        document.getElementById("modDirectory").value = val || "";
+        break;
+      case "autoRefreshEnabled":
+        document.getElementById("autoRefreshEnabled").value = val ? "true" : "false";
+        break;
+      case "autoRefreshTime":
+        document.getElementById("autoRefreshTime").value = String(val || 180);
+        break;
+      case "watchlistRefreshEnabled":
+        document.getElementById("watchlistRefreshEnabled").value =
+          val !== false ? "true" : "false";
+        break;
+      case "watchlistRefreshTime":
+        document.getElementById("watchlistRefreshTime").value = String(val || 10);
+        break;
+      case "serverListPageSize":
+        document.getElementById("serverListPageSize").value = String(val || 50);
+        break;
+      case "queryConcurrency":
+        queryConcurrencyInput.value = String(val || 150);
+        break;
+      case "serverListMode":
+        document.getElementById("serverListMode").value = val || "compact";
+        break;
+      case "theme":
+        document.getElementById("themeSelect").value = val || "tactical-dark";
+        break;
+      case "layoutMode":
+        document.getElementById("layoutModeSelect").value = val || "modern";
+        break;
+      case "listMode":
+        document.getElementById("listModeSelect").value = val || "paging";
+        break;
+      case "audioFeedback":
+        document.getElementById("audioFeedback").value =
+          val !== false ? "true" : "false";
+        break;
+      case "enableWatchlist":
+      case "showWatchlistTab":
+        if (watchlistCheckbox) {
+          watchlistCheckbox.checked = val !== false;
+        }
+        break;
+      case "showDiagnosticsTab":
+        document.getElementById("showDiagnosticsTab").checked = val !== false;
+        break;
+      case "enableHistory":
+      case "showHistoryTab":
+        if (historyCheckbox) {
+          historyCheckbox.checked = val !== false;
+        }
+        break;
+      case "enableTrustScore":
+        if (trustScoreCheckbox) {
+          trustScoreCheckbox.checked = val !== false;
+        }
+        break;
+      case "protonPath":
+        protonSelect.value = val || "default";
+        updateLaunchControls();
+        break;
+      case "mangoHudEnabled":
+        document.getElementById("flagMangoHud").checked = val === true;
+        break;
+      case "dxvkAsyncEnabled":
+        document.getElementById("dxvkAsyncEnabled").checked = val !== false;
+        break;
+      case "dxvkThreads":
+        setDxvkThreads(val);
+        break;
+      case "disableProtonLogs":
+        document.getElementById("disableProtonLogs").checked = val !== false;
+        break;
+      case "enableGameMode":
+        gmCheckbox.checked = val === true;
+        break;
+      case "nativeWayland":
+        document.getElementById("nativeWayland").checked = val === true;
+        break;
+      case "mallocSystem":
+        document.getElementById("mallocSystem").checked = val !== false;
+        break;
+      case "maxMem":
+        document.getElementById("maxMem").value =
+          val !== undefined && val !== null ? String(val) : "";
+        break;
+      case "mallocTrim":
+        document.getElementById("mallocTrim").checked = val !== false;
+        break;
+      case "noEsync":
+        document.getElementById("noEsync").checked = val === true;
+        break;
+      case "mangoHudConfig":
+        document.getElementById("mangoHudConfig").value = val || "";
+        break;
+      case "dxvkConfig":
+        document.getElementById("dxvkConfig").value = val || "";
+        break;
+      case "modLoadouts":
+        state.modLoadouts = JSON.parse(JSON.stringify(val || {}));
+        break;
+      default:
+        break;
     }
   };
 
+  let editRevision = 0;
+  let lastKnownPatch = collectFormPreferencePatch();
+  const fieldRevisions = {};
+  for (const key of Object.keys(lastKnownPatch)) {
+    fieldRevisions[key] = 0;
+  }
+
+  const valuesEqual = (a, b) =>
+    typeof a === "object" || typeof b === "object"
+      ? JSON.stringify(a) === JSON.stringify(b)
+      : a === b;
+
+  const recordFormEdits = (forceIncrement = false) => {
+    const current = collectFormPreferencePatch();
+    const changedKeys = Object.keys(current).filter(
+      (key) => !valuesEqual(current[key], lastKnownPatch[key]),
+    );
+    if (changedKeys.length > 0 || forceIncrement) {
+      editRevision++;
+      for (const key of changedKeys) {
+        fieldRevisions[key] = editRevision;
+      }
+      lastKnownPatch = current;
+    }
+    return current;
+  };
+
+  let pendingSave = null;
+  let isProcessingSaves = false;
+  let saveWaiters = [];
+  let activeSavePromise = Promise.resolve();
+  let saveEpoch = 0;
+  let resetInProgress = false;
+  let lastAppliedSettings = { ...settings };
+
+  const applyCommittedSideEffects = (committed, prevCommitted) => {
+    state.pagination.size = committed.serverListPageSize || 50;
+    applyServerListMode(committed.serverListMode || "compact");
+    applyTabVisibility(committed);
+    applyLayoutMode(committed.layoutMode || "modern");
+
+    const refreshKeysChanged =
+      committed.autoRefreshEnabled !== prevCommitted.autoRefreshEnabled ||
+      committed.autoRefreshTime !== prevCommitted.autoRefreshTime;
+    if (refreshKeysChanged) {
+      startCountdown();
+    }
+    document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+    lastAppliedSettings = { ...committed };
+  };
+
+  const processSaveQueue = async () => {
+    if (isProcessingSaves) return;
+    isProcessingSaves = true;
+    let committedInRun = false;
+    try {
+      while (pendingSave) {
+        const job = pendingSave;
+        pendingSave = null;
+        const prevCommitted = state.settings ? { ...state.settings } : {};
+
+        if (!pendingSave) {
+          state.pagination.size = job.patch.serverListPageSize;
+          applyServerListMode(job.patch.serverListMode);
+        }
+
+        let writeOk = false;
+        try {
+          writeOk = Boolean(await window.api.settings.save(job.patch));
+        } catch {
+          writeOk = false;
+        }
+        if (job.epoch !== saveEpoch) continue;
+
+        if (!writeOk) {
+          const settled = saveWaiters.filter((w) => w.targetRevision <= job.revision);
+          saveWaiters = saveWaiters.filter((w) => w.targetRevision > job.revision);
+          for (const w of settled) {
+            if (!w.silent) {
+              showToast("Error committing settings", "#ff5a5f", "x");
+            }
+            w.resolve(false);
+          }
+          continue;
+        }
+
+        let persisted = null;
+        let readbackOk = false;
+        if (window.api.settings && typeof window.api.settings.load === "function") {
+          try {
+            persisted = await window.api.settings.load();
+            readbackOk = Boolean(persisted && typeof persisted === "object");
+          } catch (err) {
+            console.error("Failed to reload settings after save:", err);
+            readbackOk = false;
+          }
+        } else {
+          persisted = { ...prevCommitted, ...job.patch };
+          readbackOk = true;
+        }
+        if (job.epoch !== saveEpoch) continue;
+
+        // Capture any edits made while save/readback was awaiting
+        recordFormEdits();
+
+        const nextSettings = { ...(state.settings || {}) };
+        const sourceSnapshot = readbackOk && persisted ? persisted : job.patch;
+
+        for (const [key, val] of Object.entries(sourceSnapshot)) {
+          if (COLLECTION_OWNED_KEYS.has(key)) continue;
+          // Runtime state follows committed values; newer form edits stay in the DOM.
+          nextSettings[key] = val;
+          if (Object.hasOwn(job.fieldRevisions, key)) {
+            if ((fieldRevisions[key] || 0) <= job.fieldRevisions[key]) {
+              lastKnownPatch[key] =
+                typeof val === "object" && val !== null
+                  ? JSON.parse(JSON.stringify(val))
+                  : val;
+              if (readbackOk) {
+                applyFieldValueToDOM(key, val);
+              }
+            }
+          }
+        }
+        // Preserve authoritative renderer collection snapshots
+        if (Array.isArray(state.favorites)) {
+          nextSettings.favorites = state.favorites;
+        }
+        state.settings = nextSettings;
+        committedInRun = true;
+
+        const settled = saveWaiters.filter((w) => w.targetRevision <= job.revision);
+        saveWaiters = saveWaiters.filter((w) => w.targetRevision > job.revision);
+        for (const w of settled) {
+          if (!w.silent) {
+            if (!readbackOk) {
+              showToast(
+                "Settings saved, but could not reload persisted values",
+                "#ff9f1c",
+                "alert",
+              );
+            } else {
+              showToast("Settings committed to local storage", "#ff9f1c", "save");
+            }
+          }
+          w.resolve(readbackOk);
+        }
+      }
+    } finally {
+      isProcessingSaves = false;
+      if (committedInRun && !resetInProgress) {
+        applyCommittedSideEffects(state.settings, lastAppliedSettings);
+      }
+    }
+  };
+
+  // Settings persistence
+  const saveSettingsSilently = (silent) => {
+    if (resetInProgress) return Promise.resolve(false);
+    recordFormEdits(true);
+    const targetRevision = editRevision;
+    const patch = JSON.parse(JSON.stringify(lastKnownPatch));
+    pendingSave = {
+      epoch: saveEpoch,
+      revision: targetRevision,
+      patch,
+      fieldRevisions: { ...fieldRevisions },
+    };
+    return new Promise((resolve) => {
+      saveWaiters.push({ targetRevision, silent: Boolean(silent), resolve });
+      if (!isProcessingSaves) activeSavePromise = processSaveQueue();
+    });
+  };
+
+  document
+    .getElementById("settings")
+    .addEventListener("input", () => recordFormEdits());
   document
     .getElementById("settings")
     .addEventListener("change", () => saveSettingsSilently(true));
@@ -312,23 +602,73 @@ export async function initSettings() {
   document
     .getElementById("resetSettingsBtn")
     .addEventListener("click", async () => {
+      if (resetInProgress) return;
       const confirmed = await showConfirmModal(
         "Reset all Settings to Factory Defaults? This action cannot be undone.",
       );
-      if (!confirmed) return;
+      if (!confirmed || resetInProgress) return;
 
-      const defaultSettings = await window.api.settings.getDefaults();
-      if (!defaultSettings) {
-        showToast("Error retrieving settings defaults", "#ff5a5f", "x");
-        return;
-      }
+      resetInProgress = true;
+      const resetButton = document.getElementById("resetSettingsBtn");
+      resetButton.disabled = true;
+      // Reset is a barrier in the same save pipeline: discard queued edits,
+      // invalidate old readbacks, and let any already-dispatched write settle.
+      saveEpoch++;
+      pendingSave = null;
+      const supersededWaiters = saveWaiters;
+      saveWaiters = [];
+      for (const waiter of supersededWaiters) waiter.resolve(false);
+      try {
+        await activeSavePromise;
+        const defaultSettings = await window.api.settings.getDefaults();
+        if (!defaultSettings) {
+          showToast("Error retrieving settings defaults", "#ff5a5f", "x");
+          return;
+        }
 
-      const success = await window.api.settings.save(defaultSettings);
-      if (success) {
-        state.settings = defaultSettings;
-        location.reload();
-      } else {
+        const success = await window.api.settings.save(defaultSettings);
+        if (success) {
+          let reloaded = null;
+          if (window.api.settings && typeof window.api.settings.load === "function") {
+            try {
+              reloaded = await window.api.settings.load();
+            } catch (err) {
+              console.error("Failed to reload settings after reset:", err);
+            }
+          }
+          const effective = reloaded && typeof reloaded === "object" ? reloaded : defaultSettings;
+          const nextSettings = { ...(state.settings || {}), ...effective };
+          if (Array.isArray(state.favorites)) {
+            nextSettings.favorites = state.favorites;
+          }
+          state.settings = nextSettings;
+          for (const key of Object.keys(lastKnownPatch)) {
+            if (Object.hasOwn(effective, key)) {
+              applyFieldValueToDOM(key, effective[key]);
+              lastKnownPatch[key] = effective[key];
+            }
+          }
+          if (!reloaded && window.api.settings && typeof window.api.settings.load === "function") {
+            showToast(
+              "Settings reset, but could not reload persisted values",
+              "#ff9f1c",
+              "alert",
+            );
+          }
+          if (typeof location !== "undefined" && typeof location.reload === "function") {
+            try {
+              location.reload();
+            } catch {}
+          }
+        } else {
+          showToast("Error resetting settings", "#ff5a5f", "x");
+        }
+      } catch (err) {
+        console.error("Failed to reset settings:", err);
         showToast("Error resetting settings", "#ff5a5f", "x");
+      } finally {
+        resetInProgress = false;
+        resetButton.disabled = false;
       }
     });
 

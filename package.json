@@ -1,6 +1,6 @@
 {
   "name": "dzlinux",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "DzLinux Server Browser",
   "desktopName": "DzLinux",
   "main": "src/main/main.js",
@@ -12,12 +12,16 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "sync-versions": "node scripts/sync-versions.js",
+    "sync-versions": "node build/sync-versions.js",
     "prepare": "husky"
   },
   "build": {
     "appId": "com.dawiisss.dzlinux",
     "productName": "DzLinux",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
     "publish": {
       "provider": "github",
       "owner": "dawiisss",
@@ -72,7 +76,7 @@
     "@babel/plugin-transform-modules-commonjs": "^7.29.7",
     "@eslint/js": "^10.0.1",
     "babel-jest": "^30.5.2",
-    "electron": "^43.7.5",
+    "electron": "^43.8.3",
     "electron-builder": "^26.15.3",
     "eslint": "^10.11.0",
     "globals": "^17.12.0",

@@ -16,77 +16,6 @@ describe("steamPaths", () => {
     jest.restoreAllMocks();
   });
 
-  test("getSteamInstallPath returns first matched candidate", () => {
-    const targetDir = path.join(tmpDir, ".steam", "steam");
-    fs.mkdirSync(targetDir, { recursive: true });
-
-    const { getSteamInstallPath, _clearCache } = require("../../src/main/steamPaths");
-    _clearCache();
-
-    expect(getSteamInstallPath()).toBe(targetDir);
-  });
-
-  test("getSteamInstallPath returns fallback if no matches", () => {
-    const { getSteamInstallPath, _clearCache } = require("../../src/main/steamPaths");
-    _clearCache();
-
-    const expectedFallback = path.join(tmpDir, ".local", "share", "Steam");
-    expect(getSteamInstallPath()).toBe(expectedFallback);
-  });
-
-  test("findDayzWorkshopFolder parses libraryfolders.vdf", () => {
-    const steamDir = path.join(tmpDir, ".local", "share", "Steam");
-    fs.mkdirSync(steamDir, { recursive: true });
-
-    // Create a fake libraryfolders.vdf
-    const vdfPath = path.join(steamDir, "steamapps", "libraryfolders.vdf");
-    fs.mkdirSync(path.dirname(vdfPath), { recursive: true });
-    
-    const fakeLibraryFolders = `
-      "libraryfolders"
-      {
-        "0"
-        {
-          "path"    "${tmpDir.replace(/\\/g, '\\\\')}/CustomLibrary"
-        }
-      }
-    `;
-    fs.writeFileSync(vdfPath, fakeLibraryFolders, "utf8");
-
-    const customWorkshop = path.join(tmpDir, "CustomLibrary", "steamapps", "workshop", "content", "221100");
-    fs.mkdirSync(customWorkshop, { recursive: true });
-
-    const { findDayzWorkshopFolder, _clearCache } = require("../../src/main/steamPaths");
-    _clearCache();
-
-    expect(findDayzWorkshopFolder()).toBe(customWorkshop);
-  });
-
-  test("findDayzWorkshopFolder falls back to main workshop folder", () => {
-    const steamDir = path.join(tmpDir, ".local", "share", "Steam");
-    const mainWorkshop = path.join(steamDir, "steamapps", "workshop", "content", "221100");
-    fs.mkdirSync(mainWorkshop, { recursive: true });
-
-    const { findDayzWorkshopFolder, _clearCache } = require("../../src/main/steamPaths");
-    _clearCache();
-
-    expect(findDayzWorkshopFolder()).toBe(mainWorkshop);
-  });
-
-  test("findDayzWorkshopFolder returns empty string if not found", () => {
-    const { findDayzWorkshopFolder, _clearCache } = require("../../src/main/steamPaths");
-    _clearCache();
-
-    expect(findDayzWorkshopFolder()).toBe("");
-  });
-
-  test("getDayzLogsCandidatePaths returns candidate paths for all steam dirs", () => {
-    const { getDayzLogsCandidatePaths } = require("../../src/main/steamPaths");
-    const candidates = getDayzLogsCandidatePaths();
-    expect(candidates.length).toBe(3);
-    expect(candidates[0]).toContain("steamapps/compatdata/221100");
-  });
-
   describe("async steamPaths methods", () => {
     test("getSteamInstallPathAsync returns first matched candidate", async () => {
       const targetDir = path.join(tmpDir, ".steam", "steam");
@@ -212,6 +141,29 @@ describe("steamPaths", () => {
         const result = await findDayzSteamappsFolderAsync(modDir);
         expect(result).toBe("/custom/path/steamapps");
       });
+    });
+
+    test("R16: getDayzLogsCandidatePathsAsync includes secondary libraries and Flatpak candidates without duplicates", async () => {
+      const defaultSteamDir = path.join(tmpDir, ".local", "share", "Steam");
+      fs.mkdirSync(defaultSteamDir, { recursive: true });
+      const secondaryLibrary = path.join(tmpDir, "SecondaryLibrary");
+      const vdfPath = path.join(defaultSteamDir, "steamapps", "libraryfolders.vdf");
+      fs.mkdirSync(path.dirname(vdfPath), { recursive: true });
+      fs.writeFileSync(
+        vdfPath,
+        `"libraryfolders"\n{\n  "0"\n  {\n    "path"\t\t"${defaultSteamDir.replace(/\\/g, "\\\\")}"\n  }\n  "1"\n  {\n    "path"\t\t"${secondaryLibrary.replace(/\\/g, "\\\\")}"\n  }\n}\n`,
+        "utf8",
+      );
+
+      const { getDayzLogsCandidatePathsAsync, _clearCache } = require("../../src/main/steamPaths");
+      _clearCache();
+
+      const candidates = await getDayzLogsCandidatePathsAsync();
+      expect(candidates.some((p) => p.startsWith(secondaryLibrary))).toBe(true);
+      expect(
+        candidates.some((p) => p.includes("com.valvesoftware.Steam")),
+      ).toBe(true);
+      expect(new Set(candidates).size).toBe(candidates.length);
     });
   });
 });

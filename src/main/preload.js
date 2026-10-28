@@ -33,18 +33,13 @@ contextBridge.exposeInMainWorld("api", {
       ipcRenderer.send("cancel-ping-generation", generationId),
     cancelPingRequest: (requestId) =>
       ipcRenderer.send("cancel-ping-request", requestId),
-    onBatch: (callback) => {
-      const handler = (_event, batch, generationId) =>
-        callback(batch, generationId);
-      ipcRenderer.on("servers-batch", handler);
-      return () => ipcRenderer.removeListener("servers-batch", handler);
-    },
-    removeListeners: () => {
-      ipcRenderer.removeAllListeners("servers-batch");
-    },
   },
 
   mods: {
+    scan: (options) =>
+      options === undefined
+        ? ipcRenderer.invoke("scan-mods")
+        : ipcRenderer.invoke("scan-mods", options),
     getInstalled: () => ipcRenderer.invoke("get-installed-mods"),
     getDownloadSizes: (modIds) => ipcRenderer.invoke("get-mod-download-sizes", modIds),
     checkUpdates: (mods) => ipcRenderer.invoke("check-mod-updates", mods),
@@ -122,6 +117,7 @@ contextBridge.exposeInMainWorld("api", {
   },
 
   diagnostics: {
+    getSnapshot: () => ipcRenderer.invoke("get-diagnostics-snapshot"),
     getRecentLogs: () => ipcRenderer.invoke("get-diagnostics"),
     getSessionSummary: () => ipcRenderer.invoke("get-session-summary"),
     runSystemCheck: () =>

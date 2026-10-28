@@ -161,5 +161,149 @@ describe("servers", () => {
       expect(result.length).toBeGreaterThanOrEqual(1);
       await new Promise((r) => setTimeout(r, 100));
     });
+
+    test("R09: warm cache reflects favorite additions/removals and trust score toggles without refetching hosted list", async () => {
+      const directory = "/tmp/dzlinux-test-data";
+      _fs.mkdirSync(directory, { recursive: true });
+      const settingsFile = _path.join(directory, "settings.json");
+      const cacheFile = _path.join(directory, "server_cache.json");
+
+      _fs.writeFileSync(
+        settingsFile,
+        JSON.stringify({
+          favorites: [{ ip: "9.9.9.9", port: 2302, name: "Fav One" }],
+          modDirectory: "/workshop",
+          enableTrustScore: false,
+        }),
+      );
+      _fs.writeFileSync(
+        _path.join(directory, "custom_servers.json"),
+        JSON.stringify([{ ip: "2.3.4.5", port: 2302, name: "Local server" }]),
+      );
+
+      const mockGet = jest.fn(async (url) => {
+        if (url.endsWith("hosted_servers.json")) {
+          return {
+            data: [{ ip: "1.2.3.4", port: 2302, name: "Hosted server" }],
+          };
+        }
+        if (url.endsWith("monetized_ips.json")) {
+          return { data: ["1.2.3.4:2302", "9.9.9.9:2302", "8.8.8.8:2402"] };
+        }
+        if (url.endsWith("verified_ips.json")) {
+          return {
+            data: {
+              verified_servers: [
+                { ip: "1.2.3.4", port: 2302, community: "DayOne" },
+              ],
+            },
+          };
+        }
+        return { data: [] };
+      });
+      jest.doMock("axios", () => ({ get: mockGet }));
+
+      const settingsManager = require("../../src/main/settings");
+      const servers = require("../../src/main/servers");
+
+      // 1. Cold fetch: 1 hosted + 1 local + 1 fav placeholder, trust score disabled
+      const first = await servers.fetchDayZServers(1);
+      expect(first).toHaveLength(3);
+      expect(first.filter((s) => s.isFavoritePlaceholder)).toHaveLength(1);
+      expect(first.find((s) => s.ip === "9.9.9.9").name).toBe("Fav One");
+      expect(first.find((s) => s.ip === "1.2.3.4").verifiedCommunity).toBeUndefined();
+      expect(first.find((s) => s.ip === "1.2.3.4").monetized).toBe(true);
+      expect(first.find((s) => s.ip === "9.9.9.9").monetized).toBe(true);
+      expect(first.find((s) => s.ip === "2.3.4.5").monetized).toBeUndefined();
+
+      // Verify on-disk cache excludes favorite placeholders and verifiedCommunity
+      const persistedCache = JSON.parse(_fs.readFileSync(cacheFile, "utf8"));
+      const initialTimestamp = persistedCache.timestamp;
+      expect(persistedCache.servers).toHaveLength(2);
+      expect(persistedCache.servers.some((s) => s.isFavoritePlaceholder)).toBe(false);
+
+      // 2. Warm cache: remove 9.9.9.9, add 8.8.8.8, and enable trust score
+      await settingsManager.updateSettings((current) => {
+        current.favorites = [{ ip: "8.8.8.8", port: 2402, name: "Fav Two" }];
+        current.enableTrustScore = true;
+      });
+      mockGet.mockClear();
+
+      const second = await servers.fetchDayZServers(2);
+      expect(second).toHaveLength(3);
+      expect(second.find((s) => s.ip === "9.9.9.9")).toBeUndefined();
+      expect(second.find((s) => s.ip === "8.8.8.8")).toMatchObject({
+        isFavoritePlaceholder: true,
+        name: "Fav Two",
+        port: 2402,
+        monetized: true,
+      });
+      expect(second.find((s) => s.ip === "1.2.3.4").verifiedCommunity).toBe("DayOne");
+      // Hosted list was NOT refetched on warm cache hit
+      expect(
+        mockGet.mock.calls.some(([url]) => url.endsWith("hosted_servers.json")),
+      ).toBe(false);
+      expect(
+        mockGet.mock.calls.some(([url]) => url.endsWith("monetized_ips.json")),
+      ).toBe(false);
+      // Source cache timestamp was NOT refreshed on warm cache hit
+      const afterSecondCache = JSON.parse(_fs.readFileSync(cacheFile, "utf8"));
+      expect(afterSecondCache.timestamp).toBe(initialTimestamp);
+
+      // 3. Warm cache: disable trust score again and clear favorites
+      await settingsManager.updateSettings((current) => {
+        current.favorites = [];
+        current.enableTrustScore = false;
+      });
+      mockGet.mockClear();
+
+      const third = await servers.fetchDayZServers(3);
+      expect(third).toHaveLength(2);
+      expect(third.some((s) => s.isFavoritePlaceholder)).toBe(false);
+      expect(third.find((s) => s.ip === "1.2.3.4").verifiedCommunity).toBeUndefined();
+      expect(mockGet).not.toHaveBeenCalled();
+    });
+
+    test("R09: strips legacy persisted favorite placeholders from v2 cache while preserving real customList servers", async () => {
+      const directory = "/tmp/dzlinux-test-data";
+      _fs.mkdirSync(directory, { recursive: true });
+      _fs.writeFileSync(
+        _path.join(directory, "settings.json"),
+        JSON.stringify({
+          favorites: [],
+          modDirectory: "/workshop",
+          enableTrustScore: false,
+        }),
+      );
+      _fs.writeFileSync(
+        _path.join(directory, "server_cache.json"),
+        JSON.stringify({
+          schemaVersion: 2,
+          timestamp: Date.now(),
+          servers: [
+            {
+              ip: "9.9.9.9",
+              port: 2302,
+              name: "Old Cached Favorite",
+              isFavoritePlaceholder: true,
+              customList: true,
+            },
+            {
+              ip: "1.2.3.4",
+              port: 2302,
+              name: "Real Hosted Server",
+              customList: true,
+              verifiedCommunity: "StaleCommunity",
+            },
+          ],
+        }),
+      );
+
+      const servers = require("../../src/main/servers");
+      const result = await servers.fetchDayZServers(1);
+      expect(result).toHaveLength(1);
+      expect(result[0].ip).toBe("1.2.3.4");
+      expect(result[0].verifiedCommunity).toBeUndefined();
+    });
   });
 });

@@ -13,6 +13,13 @@ function registerModHandlers() {
       `steam://openurl/https://steamcommunity.com/sharedfiles/filedetails/?id=${modId}`,
     );
   });
+  ipcMain.handle("scan-mods", (_event, options) =>
+    modManager.scanMods(
+      options && typeof options === "object"
+        ? { force: options.force === true }
+        : {},
+    ),
+  );
   ipcMain.handle("get-installed-mods", () => modManager.getInstalledMods());
   ipcMain.handle("get-mod-download-sizes", (_event, modIds) => {
     if (!Array.isArray(modIds) || modIds.length > 1000 || !modIds.every(isValidModId)) {

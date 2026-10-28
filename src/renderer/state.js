@@ -47,6 +47,9 @@ export const state = {
   expandedServerId: null,
   localMods: [],
   localModsSet: new Set(),
+  modScanSnapshot: null,
+  lastCompleteModSizeBytes: null,
+  lastCompleteModRoot: null,
 
   // Background pinging
   bgPing: {
@@ -143,29 +146,12 @@ export function removeFavorite(ip, port) {
   });
 }
 
-export function setFavoritesFromSettings(settings) {
-  // Main-process Favorites snapshots are authoritative; legacy settings are
-  // left untouched until that repository has validated and migrated them.
-  
-  const rawHistory = settings.history || [];
-  state.history = rawHistory.filter(
-    (h) => h && typeof h.ip === "string" && h.port
-  );
-  if (state.history.length !== rawHistory.length) {
-    settings.history = state.history;
-    if (window.api && window.api.settings && window.api.settings.save) {
-      window.api.settings.save(settings).catch((e) => {
-        console.error("Failed to save cleaned settings history:", e.message);
-      });
-    }
-  }
-  state.historySet = new Set(state.history.map((h) => `${h.ip}:${h.port}`));
-}
-
 export function setFiltersFromSettings(settings) {
   if (!settings) return;
-  state.filters.name = settings.filterName || "";
-  state.filters.nameLower = (settings.filterName || "").toLowerCase();
+  const filterName =
+    typeof settings.filterName === "string" ? settings.filterName : "";
+  state.filters.name = filterName;
+  state.filters.nameLower = filterName.toLowerCase();
   state.filters.perspective = settings.filterPerspective || "all";
   state.filters.category = settings.filterCategory || "all";
   state.filters.maps = new Set(settings.filterMaps || []);
@@ -181,20 +167,22 @@ export function setFiltersFromSettings(settings) {
 
 export async function saveFiltersToSettings() {
   if (!state.settings) return;
-  state.settings.filterName = state.filters.name;
-  state.settings.filterPerspective = state.filters.perspective;
-  state.settings.filterCategory = state.filters.category;
-  state.settings.filterMaps = Array.from(state.filters.maps);
-  state.settings.filterCountries = Array.from(state.filters.countries);
-
-  state.settings.flagFavoritesOnly = state.flags.favoritesOnly;
-  state.settings.flagHideFavorites = state.flags.hideFavorites;
-  state.settings.flagHideEmpty = state.flags.hideEmpty;
-  state.settings.flagHideFull = state.flags.hideFull;
-  state.settings.flagHistoryOnly = state.flags.historyOnly;
-  state.settings.flagHideLocked = state.flags.hideLocked;
+  const filterPatch = {
+    filterName: state.filters.name,
+    filterPerspective: state.filters.perspective,
+    filterCategory: state.filters.category,
+    filterMaps: Array.from(state.filters.maps),
+    filterCountries: Array.from(state.filters.countries),
+    flagFavoritesOnly: state.flags.favoritesOnly,
+    flagHideFavorites: state.flags.hideFavorites,
+    flagHideEmpty: state.flags.hideEmpty,
+    flagHideFull: state.flags.hideFull,
+    flagHistoryOnly: state.flags.historyOnly,
+    flagHideLocked: state.flags.hideLocked,
+  };
+  Object.assign(state.settings, filterPatch);
 
   if (window.api && window.api.settings && window.api.settings.save) {
-    await window.api.settings.save(state.settings);
+    await window.api.settings.save(filterPatch);
   }
 }

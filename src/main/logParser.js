@@ -4,55 +4,78 @@ const settingsManager = require("./settings");
 const steamPaths = require("./steamPaths");
 
 /**
- * Resolves the path to the hidden DayZ logs directory inside the active Proton prefix.
+ * Finds an enumerable DayZ logs directory and retains its listing for this snapshot.
  *
  * @remarks
  * DayZ writes its `.rpt` logs into its Windows `AppData/Local/DayZ` folder. When running under Proton,
  * this directory is nested deeply inside Steam's `compatdata` prefix. We traverse upwards from the
  * known Mod Directory to locate it, and provide fallbacks for Flatpak or alternative Steam installations.
  *
- * @returns {string|null} The absolute path to the log directory, or null if it cannot be found.
+ * @returns {Promise<{directory: string, files: string[]}|null>} The first readable directory and its files.
  */
-async function getLogsDirectory() {
+async function discoverLogs() {
+  const attempted = new Set();
+  const tryDirectory = async (directory) => {
+    if (attempted.has(directory)) return null;
+    attempted.add(directory);
+    try {
+      return { directory, files: await fs.promises.readdir(directory) };
+    } catch (error) {
+      if (error.code !== "ENOENT" && error.code !== "ENOTDIR") {
+        console.warn(`Unable to enumerate logs in ${directory}:`, error.message);
+      }
+      return null;
+    }
+  };
   const settings = await settingsManager.loadSettingsAsync();
-  if (!settings.modDirectory) {
-    return null;
-  }
-  const modDirExists = await fs.promises.access(settings.modDirectory).then(() => true).catch(() => false);
-  if (!modDirExists) {
-    return null;
+  const configuredModDir =
+    settings && typeof settings.modDirectory === "string"
+      ? settings.modDirectory.trim()
+      : "";
+
+  if (configuredModDir) {
+    const modDirExists = await fs.promises
+      .access(configuredModDir)
+      .then(() => true)
+      .catch(() => false);
+    if (modDirExists) {
+      // Typical structure: steamapps/workshop/content/221100
+      // We want: steamapps/compatdata/221100/pfx/drive_c/users/steamuser/AppData/Local/DayZ
+      // Traverse up 3 levels to get to steamapps
+      const steamappsPath = path.resolve(configuredModDir, "..", "..", "..");
+      const dayzPrefixPath = path.join(
+        steamappsPath,
+        "compatdata",
+        "221100",
+        "pfx",
+        "drive_c",
+        "users",
+        "steamuser",
+        "AppData",
+        "Local",
+        "DayZ",
+      );
+
+      const discovered = await tryDirectory(dayzPrefixPath);
+      if (discovered) return discovered;
+    }
   }
 
-  // Typical structure: steamapps/workshop/content/221100
-  // We want: steamapps/compatdata/221100/pfx/drive_c/users/steamuser/AppData/Local/DayZ
-  // Traverse up 3 levels to get to steamapps
-  const steamappsPath = path.resolve(settings.modDirectory, "..", "..", "..");
-  const dayzPrefixPath = path.join(
-    steamappsPath,
-    "compatdata",
-    "221100",
-    "pfx",
-    "drive_c",
-    "users",
-    "steamuser",
-    "AppData",
-    "Local",
-    "DayZ",
-  );
-
-  const prefixExists = await fs.promises.access(dayzPrefixPath).then(() => true).catch(() => false);
-  if (prefixExists) {
-    return dayzPrefixPath;
-  }
-
-  const searchPaths = steamPaths.getDayzLogsCandidatePaths();
+  const searchPaths =
+    typeof steamPaths.getDayzLogsCandidatePathsAsync === "function"
+      ? await steamPaths.getDayzLogsCandidatePathsAsync()
+      : steamPaths.getDayzLogsCandidatePaths();
 
   for (const p of searchPaths) {
-    const exists = await fs.promises.access(p).then(() => true).catch(() => false);
-    if (exists) return p;
+    const discovered = await tryDirectory(p);
+    if (discovered) return discovered;
   }
 
   return null;
+}
+
+async function getLogsDirectory() {
+  return (await discoverLogs())?.directory || null;
 }
 
 /**
@@ -65,11 +88,11 @@ async function getLogsDirectory() {
  * @returns {Promise<Array<Object>>} An array of analyzed log objects, sorted newest to oldest.
  */
 async function getRecentLogs() {
-  const logsDir = await getLogsDirectory();
-  if (!logsDir) return [];
+  const discovered = await discoverLogs();
+  if (!discovered) return [];
+  const { directory: logsDir, files } = discovered;
 
   try {
-    const files = await fs.promises.readdir(logsDir);
     const logFiles = files.filter(
       (f) =>
         f.toLowerCase().endsWith(".log") ||
@@ -376,8 +399,7 @@ async function analyzeLog(log) {
  *
  * @returns {Promise<Object>} An object summarizing playtime, crash counts, and average session length.
  */
-async function getSessionSummary() {
-  const logs = await getRecentLogs();
+function summarizeLogs(logs) {
   if (!logs || logs.length === 0) {
     return {
       totalSessions: 0,
@@ -444,7 +466,32 @@ async function getSessionSummary() {
   };
 }
 
+/**
+ * Aggregates high-level telemetry and health metrics from all recently stored game logs.
+ *
+ * @remarks
+ * Calculates total playtime, crash frequency, and connection drops by parsing timestamps and statuses
+ * across the latest logs. Useful for generating a "System Health" or "Session History" overview.
+ *
+ * @returns {Promise<Object>} An object summarizing playtime, crash counts, and average session length.
+ */
+async function getSessionSummary() {
+  const logs = await getRecentLogs();
+  return summarizeLogs(logs);
+}
+
+async function getDiagnosticsSnapshot() {
+  const logs = await getRecentLogs();
+  return {
+    logs,
+    summary: summarizeLogs(logs),
+  };
+}
+
 module.exports = {
+  getLogsDirectory,
   getRecentLogs,
   getSessionSummary,
+  summarizeLogs,
+  getDiagnosticsSnapshot,
 };

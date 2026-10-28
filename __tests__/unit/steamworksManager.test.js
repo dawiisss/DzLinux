@@ -1,31 +1,26 @@
 const child_process = require("child_process");
+const { EventEmitter } = require("node:events");
+
+function createMockWorker() {
+  const emitter = new EventEmitter();
+  emitter.send = jest.fn();
+  emitter.kill = jest.fn();
+  jest.spyOn(emitter, "on");
+  jest.spyOn(emitter, "once");
+  jest.spyOn(emitter, "removeListener");
+  return emitter;
+}
 
 describe("steamworksManager", () => {
   let mockWorker;
-  let exitCallback;
-  let messageCallback;
   let forkSpy;
 
   beforeEach(() => {
     jest.resetModules();
     jest.clearAllMocks();
 
-    messageCallback = null;
-    exitCallback = null;
-
-    mockWorker = {
-      on: jest.fn((event, cb) => {
-        if (event === "exit") exitCallback = cb;
-        if (event === "message") messageCallback = cb;
-      }),
-      once: jest.fn((event, cb) => {
-        if (event === "exit") exitCallback = cb;
-      }),
-      send: jest.fn(),
-      kill: jest.fn(),
-    };
-
-    forkSpy = jest.spyOn(child_process, "fork").mockReturnValue(mockWorker);
+    mockWorker = createMockWorker();
+    forkSpy = jest.spyOn(child_process, "fork").mockImplementation(() => mockWorker);
   });
 
   afterEach(() => {
@@ -42,18 +37,20 @@ describe("steamworksManager", () => {
     expect(mockWorker.on).toHaveBeenCalledWith("exit", expect.any(Function));
   });
 
-  test("shutdown terminates worker gracefully via SIGTERM", async () => {
+  test("shutdown terminates worker gracefully via SIGTERM and cleans up temporary exit listener", async () => {
     const steamworksManager = require("../../src/main/steamworksManager");
     steamworksManager.init();
 
-    const shutdownPromise = steamworksManager.shutdown();
+    const shutdownPromise1 = steamworksManager.shutdown();
+    const shutdownPromise2 = steamworksManager.shutdown();
+    expect(shutdownPromise1).toBe(shutdownPromise2);
 
-    // Trigger graceful exit
+    expect(mockWorker.kill).toHaveBeenCalledTimes(1);
     expect(mockWorker.kill).toHaveBeenCalledWith("SIGTERM");
     expect(mockWorker.once).toHaveBeenCalledWith("exit", expect.any(Function));
-    
-    exitCallback();
-    await shutdownPromise;
+
+    mockWorker.emit("exit", 0, "SIGTERM");
+    await shutdownPromise1;
   });
 
   test("shutdown kills worker forcefully via SIGKILL if timeout fires", async () => {
@@ -64,13 +61,59 @@ describe("steamworksManager", () => {
 
     const shutdownPromise = steamworksManager.shutdown();
 
-    // Fast forward timeout (2000ms)
     jest.advanceTimersByTime(2000);
     await shutdownPromise;
 
     expect(mockWorker.kill).toHaveBeenCalledWith("SIGKILL");
-    
-    // Cleanup fake timers
+    expect(mockWorker.removeListener).toHaveBeenCalledWith("exit", expect.any(Function));
+
+    jest.useRealTimers();
+  });
+
+  test("force-killed worker A emitting late exit/message cannot affect newly initialized worker B or its pending requests (R08)", async () => {
+    jest.useFakeTimers();
+
+    const workerA = createMockWorker();
+    const workerB = createMockWorker();
+    forkSpy
+      .mockImplementationOnce(() => workerA)
+      .mockImplementationOnce(() => workerB);
+
+    const steamworksManager = require("../../src/main/steamworksManager");
+    steamworksManager.init();
+
+    // Start a request on Worker A
+    const reqAPromise = steamworksManager.getModState("111");
+    expect(workerA.send).toHaveBeenCalledTimes(1);
+    const reqAId = workerA.send.mock.calls[0][0].id;
+
+    // Shut down Worker A, let it time out into SIGKILL without emitting exit yet
+    const shutdownPromise = steamworksManager.shutdown();
+    jest.advanceTimersByTime(2000);
+    await shutdownPromise;
+
+    // Request A should have settled (getModState catches rejection and resolves null)
+    await expect(reqAPromise).resolves.toBeNull();
+
+    // Now start Worker B and send a request on Worker B
+    expect(steamworksManager.init()).toBe(true);
+    const reqBPromise = steamworksManager.getModState("222");
+    expect(workerB.send).toHaveBeenCalledTimes(1);
+    const reqBId = workerB.send.mock.calls[0][0].id;
+
+    // Late message and late exit arrive from Worker A
+    workerA.emit("message", { id: reqAId, result: 99 });
+    workerA.emit("message", { id: reqBId, error: "forged from old worker" });
+    workerA.emit("exit", null, "SIGKILL");
+
+    // Worker B must still be active and its request must resolve normally when Worker B replies
+    workerB.emit("message", { id: reqBId, result: 4 });
+    await expect(reqBPromise).resolves.toBe(4);
+
+    // Calling init() again does not spawn a third worker because Worker B is still current
+    expect(steamworksManager.init()).toBe(true);
+    expect(forkSpy).toHaveBeenCalledTimes(2);
+
     jest.useRealTimers();
   });
 
@@ -80,20 +123,15 @@ describe("steamworksManager", () => {
 
     const requestPromise = steamworksManager.getUserProfile();
 
-    // Verify message sent to worker
     expect(mockWorker.send).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "getUserProfile",
-      })
+      }),
     );
 
-    // Get the request ID sent to worker
     const sentMsg = mockWorker.send.mock.calls[0][0];
-    const requestId = sentMsg.id;
-
-    // Simulate worker response
-    messageCallback({
-      id: requestId,
+    mockWorker.emit("message", {
+      id: sentMsg.id,
       result: { name: "Test User" },
     });
 
@@ -108,24 +146,22 @@ describe("steamworksManager", () => {
     const requestPromise = steamworksManager.subscribeMod("12345");
 
     const sentMsg = mockWorker.send.mock.calls[0][0];
-    messageCallback({
+    mockWorker.emit("message", {
       id: sentMsg.id,
       error: "Failed to subscribe",
     });
 
     const result = await requestPromise;
-    expect(result).toBe(false); // Wrapper returns false on throw
+    expect(result).toBe(false);
   });
 
   test("worker exit rejects pending requests", async () => {
     const steamworksManager = require("../../src/main/steamworksManager");
     steamworksManager.init();
 
-    // We call a method directly to test throw path (getUserProfile returns null on catch)
     const requestPromise = steamworksManager.getUserProfile();
 
-    // Simulate worker crash/exit
-    exitCallback();
+    mockWorker.emit("exit", 1, null);
 
     const result = await requestPromise;
     expect(result).toBeNull();
@@ -136,17 +172,16 @@ describe("steamworksManager", () => {
     steamworksManager.init();
 
     const shutdownPromise = steamworksManager.lockForLaunch();
-    exitCallback();
+    mockWorker.emit("exit", 0, "SIGTERM");
     await shutdownPromise;
 
-    // Subsequent init calls should return false and not call fork
     forkSpy.mockClear();
     const success = steamworksManager.init();
     expect(success).toBe(false);
     expect(forkSpy).not.toHaveBeenCalled();
 
-    // unlockForLaunch enables it again
     steamworksManager.unlockForLaunch();
+    mockWorker = createMockWorker();
     const success2 = steamworksManager.init();
     expect(success2).toBe(true);
     expect(forkSpy).toHaveBeenCalled();
@@ -160,19 +195,16 @@ describe("steamworksManager", () => {
 
     const launchPromise = steamworksManager.lockAndDelayForLaunch();
 
-    // Mock worker exit to resolve lockForLaunch
-    exitCallback();
+    mockWorker.emit("exit", 0, "SIGTERM");
 
-    // Advance timer past launch delay (1500ms)
     await jest.advanceTimersByTimeAsync(1500);
 
     await launchPromise;
 
-    // Worker remains locked even after delay
     expect(steamworksManager.init()).toBe(false);
 
-    // Explicit unlock releases lock
     steamworksManager.unlockForLaunch();
+    mockWorker = createMockWorker();
     expect(steamworksManager.init()).toBe(true);
 
     jest.useRealTimers();

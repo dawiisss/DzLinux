@@ -430,5 +430,48 @@ describe("settings", () => {
       expect(loaded.modLoadouts.PVP).toEqual(["12345", "67890"]);
       expect(loaded.modLoadouts.Invalid).toBeUndefined();
     });
+
+    test("normalizes maxMem, filterName, enums, and dxvkThreads on async and sync loads", async () => {
+      fs.writeFileSync(
+        settingsPath,
+        JSON.stringify({
+          maxMem: 16384,
+          filterName: 123,
+          filterPerspective: "invalid-persp",
+          filterCategory: "invalid-cat",
+          serverListMode: "invalid-mode",
+          layoutMode: "invalid-layout",
+          listMode: "invalid-list",
+          theme: "unknown-theme",
+          dxvkThreads: 16,
+        }),
+        "utf8",
+      );
+
+      const { loadSettings, loadSettingsAsync, saveSettings } = require("../../src/main/settings");
+      const syncLoaded = loadSettings();
+      expect(syncLoaded.maxMem).toBe("16384");
+      expect(syncLoaded.filterName).toBe("");
+      expect(syncLoaded.filterPerspective).toBe("all");
+      expect(syncLoaded.filterCategory).toBe("all");
+      expect(syncLoaded.serverListMode).toBe("compact");
+      expect(syncLoaded.layoutMode).toBe("modern");
+      expect(syncLoaded.listMode).toBe("paging");
+      expect(syncLoaded.theme).toBe("tactical-dark");
+      expect(syncLoaded.dxvkThreads).toBe("16");
+
+      const asyncLoaded = await loadSettingsAsync();
+      expect(asyncLoaded.maxMem).toBe("16384");
+      expect(asyncLoaded.filterName).toBe("");
+      expect(asyncLoaded.dxvkThreads).toBe("16");
+
+      await saveSettings({
+        maxMem: "   ",
+        dxvkThreads: "not-a-number",
+      });
+      const afterInvalidSave = await loadSettingsAsync();
+      expect(afterInvalidSave.maxMem).toBe("");
+      expect(afterInvalidSave.dxvkThreads).toBe("0");
+    });
   });
 });
