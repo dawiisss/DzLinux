@@ -281,4 +281,30 @@ describe("prepareEnv", () => {
       ]);
     });
   });
+
+  describe("mod directory and launch environment edge cases", () => {
+    test("rejects a mod directory containing a semicolon", () => {
+      const { buildModString } = require("../../src/main/game/prepareEnv");
+      expect(() =>
+        buildModString({ modDirectory: "/games/a;b/workshop" }, ["123"]),
+      ).toThrow("semicolon");
+    });
+
+    test("returns NAME=value tokens before %command% only", () => {
+      const { getLaunchEnvAssignments } = require("../../src/main/game/prepareEnv");
+      expect(
+        getLaunchEnvAssignments({
+          launchParams: "PROTON_LOG=1 DXVK_HUD=fps gamemoderun %command% -nosplash X=1",
+        }),
+      ).toEqual(["PROTON_LOG=1", "DXVK_HUD=fps"]);
+      expect(getLaunchEnvAssignments({ launchParams: "PROTON_LOG=1 -nosplash" })).toEqual([]);
+      expect(getLaunchEnvAssignments({})).toEqual([]);
+    });
+
+    test("matches the Proton launch rules for wrappers and quoted assignments", () => {
+      const { getLaunchEnvAssignments } = require("../../src/main/game/prepareEnv");
+      expect(getLaunchEnvAssignments({ launchParams: "gamemoderun FOO=1 %command%" })).toEqual([]);
+      expect(getLaunchEnvAssignments({ launchParams: '"FOO=a b" %command%' })).toEqual(["FOO=a b"]);
+    });
+  });
 });

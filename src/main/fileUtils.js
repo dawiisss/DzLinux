@@ -7,7 +7,7 @@ const writeQueues = new Map();
  * Writes JSON without exposing a partially-written final file if the process
  * exits while the serialization or filesystem operation is in progress.
  */
-function writeJsonAtomically(filePath, value) {
+function writeJsonAtomically(filePath, value, options = {}) {
   // Snapshot at invocation time, before any caller can mutate the value.
   let json;
   try {
@@ -17,7 +17,7 @@ function writeJsonAtomically(filePath, value) {
   }
   const target = path.resolve(filePath);
   const previous = writeQueues.get(target) || Promise.resolve();
-  const next = previous.catch(() => {}).then(() => writeJsonFile(target, json));
+  const next = previous.catch(() => {}).then(() => writeJsonFile(target, json, options));
   writeQueues.set(target, next);
   const cleanup = () => {
     if (writeQueues.get(target) === next) writeQueues.delete(target);
@@ -26,21 +26,40 @@ function writeJsonAtomically(filePath, value) {
   return next;
 }
 
-async function writeJsonFile(filePath, json) {
+async function writeJsonFile(filePath, json, { mode = 0o644 } = {}) {
   const directory = path.dirname(filePath);
   const tempPath = `${filePath}.${randomUUID()}.tmp`;
 
   try {
     await fs.promises.mkdir(directory, { recursive: true });
-    await fs.promises.writeFile(
-      tempPath,
-      json,
-      { encoding: "utf8", flag: "wx" },
-    );
+    const handle = await fs.promises.open(tempPath, "wx", mode);
+    try {
+      await handle.writeFile(json, "utf8");
+      // Flush before the rename so a crash or power loss cannot leave the
+      // final file pointing at data that never reached the disk.
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
     await fs.promises.rename(tempPath, filePath);
   } catch (error) {
     await fs.promises.rm(tempPath, { force: true }).catch(() => {});
     throw error;
+  }
+  await syncDirectory(directory);
+}
+
+// Persists the rename itself. Best effort: some filesystems reject fsync on
+// directories, and the data file is already durable at this point.
+async function syncDirectory(directory) {
+  let handle;
+  try {
+    handle = await fs.promises.open(directory, "r");
+    await handle.sync();
+  } catch {
+    // ignore
+  } finally {
+    await handle?.close().catch(() => {});
   }
 }
 

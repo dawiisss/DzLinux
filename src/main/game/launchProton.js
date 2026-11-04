@@ -1,11 +1,10 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
-const { spawn } = require("node:child_process");
 const { existsAsync } = require("../fileUtils");
-const steamworksManager = require("../steamworksManager");
 const { configureDxvk } = require("./configDxvk");
-const { buildEnvironment } = require("./prepareEnv");
+const { buildEnvironment, parseLaunchTokens, LAUNCH_ENV_ASSIGNMENT } = require("./prepareEnv");
+const { spawnWithLaunchLock } = require("./processExit");
 const steamPaths = require("../steamPaths");
 
 let cachedProtonVersions = null;
@@ -153,16 +152,11 @@ async function launchViaProton(args, settings, handleGameExit, assertCurrent = (
 
   const protonArgs = ["waitforexitandrun", dayzExe, ...args];
   const launchArgs = [...prefix, settings.protonPath, ...protonArgs];
+  let commandLine = launchArgs;
 
   if (settings.launchParams && settings.launchParams.includes("%command%")) {
     // Parse custom launch parameters with %command% replacement
-    const rawTokens = settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
-    const parsedParams = rawTokens.map((p) => {
-      if (p.startsWith('"') && p.endsWith('"')) {
-        return p.slice(1, -1);
-      }
-      return p;
-    });
+    const parsedParams = parseLaunchTokens(settings.launchParams);
 
     const execArgs = [];
     let seenCommand = false;
@@ -175,14 +169,7 @@ async function launchViaProton(args, settings, handleGameExit, assertCurrent = (
           "%command%",
           launchArgs.map((a) => `"${a}"`).join(" "),
         );
-        execArgs.push(
-          ...(expandedToken.match(/(?:[^\s"]+|"[^"]*")+/g) || []).map((p) => {
-            if (p.startsWith('"') && p.endsWith('"')) {
-              return p.slice(1, -1);
-            }
-            return p;
-          }),
-        );
+        execArgs.push(...parseLaunchTokens(expandedToken));
         seenCommand = true;
       } else {
         if (seenCommand && launchArgs.includes(token)) {
@@ -192,9 +179,8 @@ async function launchViaProton(args, settings, handleGameExit, assertCurrent = (
       }
     }
 
-    const envRegex = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/;
-    while (execArgs.length > 0 && envRegex.test(execArgs[0])) {
-      const match = execArgs[0].match(envRegex);
+    while (execArgs.length > 0 && LAUNCH_ENV_ASSIGNMENT.test(execArgs[0])) {
+      const match = execArgs[0].match(LAUNCH_ENV_ASSIGNMENT);
       env[match[1]] = match[2];
       execArgs.shift();
     }
@@ -204,69 +190,19 @@ async function launchViaProton(args, settings, handleGameExit, assertCurrent = (
     }
 
     console.log("Executing via spawn with %command% expansion");
-
-    await steamworksManager.lockAndDelayForLaunch();
-
-    const cmd = execArgs[0];
-    const argsList = execArgs.slice(1);
-    try {
-      assertCurrent();
-    } catch (error) {
-      steamworksManager.unlockForLaunch();
-      throw error;
-    }
-
-    return new Promise((resolve, reject) => {
-      const child = spawn(cmd, argsList, { env, stdio: "ignore" });
-      child.once("spawn", resolve);
-      child.once("error", (err) => {
-        steamworksManager.unlockForLaunch();
-        reject(err);
-      });
-      child.once("exit", (code) => {
-        steamworksManager.unlockForLaunch();
-        if (code !== 0 && code !== null) {
-          console.log(`Proton process exited with non-zero code (${code})`);
-          handleGameExit(new Error(`Process exited with code ${code}`));
-        } else {
-          console.log("Proton process exited cleanly.");
-        }
-      });
-    });
+    commandLine = execArgs;
   } else {
-    const wrappedArgs = launchArgs;
-
-    console.log(`Executing: ${wrappedArgs.join(" ")}`);
-
-    await steamworksManager.lockAndDelayForLaunch();
-    try {
-      assertCurrent();
-    } catch (error) {
-      steamworksManager.unlockForLaunch();
-      throw error;
-    }
-
-    return new Promise((resolve, reject) => {
-      const child = spawn(wrappedArgs[0], wrappedArgs.slice(1), {
-        env,
-        stdio: "ignore",
-      });
-      child.once("spawn", resolve);
-      child.once("error", (err) => {
-        steamworksManager.unlockForLaunch();
-        reject(err);
-      });
-      child.once("exit", (code) => {
-        steamworksManager.unlockForLaunch();
-        if (code !== 0 && code !== null) {
-          console.log(`Proton process exited with non-zero code (${code})`);
-          handleGameExit(new Error(`Process exited with code ${code}`));
-        } else {
-          console.log("Proton process exited cleanly.");
-        }
-      });
-    });
+    console.log(`Executing: ${launchArgs.join(" ")}`);
   }
+
+  return spawnWithLaunchLock({
+    command: commandLine[0],
+    args: commandLine.slice(1),
+    options: { env, stdio: "ignore" },
+    label: "Proton",
+    handleGameExit,
+    assertCurrent,
+  });
 }
 
 module.exports = {

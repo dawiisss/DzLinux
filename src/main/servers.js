@@ -4,6 +4,7 @@ const path = require("node:path");
 const { app } = require("electron");
 const { writeJsonAtomically } = require("./fileUtils");
 const { parseLegacy: parseFavoriteAddress } = require("./favoritesModel");
+const { isBoundedString, validateServerAddress } = require("./validation");
 
 const CACHE_FILE = path.join(app.getPath("userData"), "server_cache.json");
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -318,6 +319,40 @@ async function loadLocalCustomServers() {
     console.error("Failed to parse custom_servers.json:", err.message);
   }
   return [];
+}
+
+const MAX_SERVER_NAME_LENGTH = 200;
+
+// Hosted and custom lists are external input: drop entries whose address
+// could not be queried or launched instead of letting one bad row break the
+// whole list.
+function filterValidSourceServers(entries) {
+  const valid = entries
+    .map(normalizeSourceServer)
+    .filter(
+      (entry) =>
+        validateServerAddress(entry) &&
+        (entry.mods === undefined || Array.isArray(entry.mods)) &&
+        // A missing name falls back to "Unknown Server"; any other non-string
+        // would throw when the renderer searches the list.
+        (entry.name === undefined ||
+          entry.name === null ||
+          isBoundedString(entry.name, MAX_SERVER_NAME_LENGTH)),
+    );
+  if (valid.length !== entries.length) {
+    console.warn(
+      `Skipped ${entries.length - valid.length} hosted/custom server entries with an invalid address, name, or mod list.`,
+    );
+  }
+  return valid;
+}
+
+// 0 and "" mean "no query port" in hand-written lists, not an invalid server.
+function normalizeSourceServer(entry) {
+  if (entry && (entry.queryPort === 0 || entry.queryPort === "")) {
+    return { ...entry, queryPort: null };
+  }
+  return entry;
 }
 
 function buildPhonebookServers(allCustomData, modsMetadataCache, serversMap) {
@@ -643,7 +678,7 @@ async function fetchDayZServers(arg1, arg2) {
 
     if (isAborted()) return [];
 
-    const allCustomData = hostedData.concat(customData);
+    const allCustomData = filterValidSourceServers(hostedData.concat(customData));
     const sourceMap = new Map();
 
     // 3. Process custom and hosted servers (source-only)
@@ -686,4 +721,5 @@ module.exports = {
   fetchDayZServers,
   refreshServerModCache,
   axiosGetWithRetry,
+  filterValidSourceServers,
 };

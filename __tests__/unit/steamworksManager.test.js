@@ -209,4 +209,34 @@ describe("steamworksManager", () => {
 
     jest.useRealTimers();
   });
+
+  test("a failed lock is released so the worker can start again", async () => {
+    const steamworksManager = require("../../src/main/steamworksManager");
+    steamworksManager.init();
+    mockWorker.once.mockImplementationOnce(() => {
+      throw new Error("shutdown failed");
+    });
+
+    await expect(steamworksManager.lockAndDelayForLaunch()).rejects.toThrow("shutdown failed");
+
+    expect(steamworksManager.init()).toBe(true);
+  });
+
+  test("stays locked until every launch that locked it has unlocked", async () => {
+    const steamworksManager = require("../../src/main/steamworksManager");
+    steamworksManager.init();
+
+    const firstLock = steamworksManager.lockForLaunch();
+    mockWorker.emit("exit", 0, "SIGTERM");
+    await firstLock;
+    await steamworksManager.lockForLaunch();
+
+    steamworksManager.unlockForLaunch();
+    expect(steamworksManager.init()).toBe(false);
+
+    steamworksManager.unlockForLaunch();
+    steamworksManager.unlockForLaunch(); // extra unlocks do not go negative
+    mockWorker = createMockWorker();
+    expect(steamworksManager.init()).toBe(true);
+  });
 });

@@ -9,6 +9,7 @@ const {
   checkGameMode,
   buildModString,
   buildExtraParams,
+  getLaunchEnvAssignments,
   sanitizeArg,
 } = require("./game/prepareEnv");
 const { launchViaProton, scanProtonVersions } = require("./game/launchProton");
@@ -37,7 +38,11 @@ function handleGameExit(error) {
         .getRecentLogs()
         .then((logs) => {
           const latestLog = logs[0];
-          if (latestLog && latestLog.status !== "CLEAN") {
+          // A log older than this launch belongs to an earlier run, so it says
+          // nothing about why this process ended.
+          const isFromThisRun =
+            latestLog && (!error.startedAt || latestLog.mtime >= error.startedAt);
+          if (isFromThisRun && latestLog.status !== "CLEAN") {
             if (!windows[0].isDestroyed()) {
               windows[0].webContents.send("game-crashed", latestLog);
             }
@@ -174,6 +179,12 @@ async function prepareLaunch(ip, port, mods, assertCurrent) {
   if (settings.protonPath && settings.protonPath !== "default") {
     await launchViaProton(args, settings, handleGameExit, assertCurrent);
   } else {
+    const envAssignments = getLaunchEnvAssignments(settings);
+    if (envAssignments.length > 0) {
+      console.warn(
+        `Ignoring launch option environment variables (${envAssignments.map((a) => a.split("=")[0]).join(", ")}): they only apply when a custom Proton version is selected.`,
+      );
+    }
     await launchViaSteam(ip, port, modString, extraParams, handleGameExit, assertCurrent);
   }
 }

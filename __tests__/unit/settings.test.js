@@ -156,13 +156,13 @@ describe("settings", () => {
     expect(settings.queryConcurrency).toBe(500);
   });
 
-  test("saveSettings returns false when fs.promises.writeFile throws", async () => {
+  test("saveSettings returns false when opening the settings temp file throws", async () => {
     const { saveSettings } = require("../../src/main/settings");
 
     // Suppress console.error for this test so it doesn't clutter output
     jest.spyOn(console, "error").mockImplementation(() => {});
 
-    jest.spyOn(fs.promises, "writeFile").mockImplementation(() => {
+    jest.spyOn(fs.promises, "open").mockImplementation(() => {
       return Promise.reject(new Error("Disk full"));
     });
 
@@ -175,11 +175,25 @@ describe("settings", () => {
     );
   });
 
+  test("loading tightens the permissions of an existing settings file", async () => {
+    const settingsFile = path.join(tmpDir, "settings.json");
+    fs.writeFileSync(settingsFile, JSON.stringify({ theme: "vampire" }), { mode: 0o644 });
+    fs.chmodSync(settingsFile, 0o644);
+
+    require("../../src/main/settings").loadSettings();
+    expect(fs.statSync(settingsFile).mode & 0o777).toBe(0o600);
+
+    fs.chmodSync(settingsFile, 0o644);
+    jest.resetModules();
+    await require("../../src/main/settings").loadSettingsAsync();
+    expect(fs.statSync(settingsFile).mode & 0o777).toBe(0o600);
+  });
+
   test("a failed save does not replace the last persisted settings in memory", async () => {
     const { saveSettings, loadSettingsAsync } = require("../../src/main/settings");
     await saveSettings({ theme: "vampire", modDirectory: "/mods" });
     jest.spyOn(console, "error").mockImplementation(() => {});
-    jest.spyOn(fs.promises, "writeFile").mockRejectedValueOnce(new Error("Disk full"));
+    jest.spyOn(fs.promises, "open").mockRejectedValueOnce(new Error("Disk full"));
     expect(await saveSettings({ theme: "toxic", modDirectory: "/mods" })).toBe(false);
     expect((await loadSettingsAsync()).theme).toBe("vampire");
   });

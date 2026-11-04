@@ -3,8 +3,17 @@ const { execFile } = require("node:child_process");
 const steamPaths = require("../steamPaths");
 const { normalizeModId, normalizeMaxMem } = require("../validation");
 
+const LAUNCH_ENV_ASSIGNMENT = /^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/;
+
 function sanitizeArg(arg) {
   return String(arg).replace(/"/g, "");
+}
+
+/** Splits launch options on whitespace, keeping and unwrapping "quoted" tokens. */
+function parseLaunchTokens(launchParams) {
+  return (launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || []).map((token) =>
+    token.startsWith('"') && token.endsWith('"') ? token.slice(1, -1) : token,
+  );
 }
 
 function checkGameMode() {
@@ -41,6 +50,12 @@ function buildModString(settings, mods) {
   if (!modDir) {
     throw new Error(
       "Workshop mod directory is not configured. Please set the Workshop path in Settings.",
+    );
+  }
+  // DayZ splits -mod= on semicolons, so such a path would load the wrong mods.
+  if (modDir.includes(";")) {
+    throw new Error(
+      "The Workshop mod directory path contains a semicolon (;), which DayZ cannot load mods from. Move or rename the folder and update Settings.",
     );
   }
   return normalizedIds
@@ -89,18 +104,32 @@ async function buildEnvironment(settings, compatDataPath) {
   return env;
 }
 
+/**
+ * Returns the `NAME=value` tokens that precede %command% in the launch
+ * options. Only the direct Proton launch can apply them; a running Steam
+ * client starts the game with its own environment.
+ */
+function getLaunchEnvAssignments(settings) {
+  const launchParams = settings && settings.launchParams;
+  if (typeof launchParams !== "string" || !launchParams.includes("%command%")) {
+    return [];
+  }
+  const assignments = [];
+  // Same rule as the Proton launch: only leading tokens are assignments; after
+  // a wrapper such as gamemoderun they are ordinary arguments.
+  for (const token of parseLaunchTokens(launchParams)) {
+    if (!LAUNCH_ENV_ASSIGNMENT.test(token)) break;
+    assignments.push(token);
+  }
+  return assignments;
+}
+
 function buildExtraParams(settings) {
   if (!settings || typeof settings !== "object") return [];
   let extraParams = [];
 
   if (typeof settings.launchParams === "string" && settings.launchParams) {
-    const rawTokens = (
-      settings.launchParams.match(/(?:[^\s"]+|"[^"]*")+/g) || []
-    ).map((p) => {
-      if (p.startsWith('"') && p.endsWith('"'))
-        return p.substring(1, p.length - 1);
-      return p;
-    });
+    const rawTokens = parseLaunchTokens(settings.launchParams);
 
     if (!settings.launchParams.includes("%command%")) {
       extraParams = rawTokens;
@@ -132,9 +161,12 @@ function buildExtraParams(settings) {
 }
 
 module.exports = {
+  LAUNCH_ENV_ASSIGNMENT,
+  parseLaunchTokens,
   sanitizeArg,
   checkGameMode,
   buildModString,
   buildEnvironment,
   buildExtraParams,
+  getLaunchEnvAssignments,
 };

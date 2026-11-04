@@ -19,15 +19,44 @@ function isAppImage() {
   return !!process.env.APPIMAGE;
 }
 
+function splitVersion(version) {
+  const clean = String(version || "").replace(/^v/, "").split("+", 1)[0];
+  const dash = clean.indexOf("-");
+  return dash === -1
+    ? [clean, ""]
+    : [clean.slice(0, dash), clean.slice(dash + 1)];
+}
+
+// Semver precedence for pre-release tags: numeric identifiers compare
+// numerically, numeric sorts before alphanumeric, and a longer set of equal
+// leading identifiers wins (so beta.10 > beta.9 and rc.1 > rc).
+function comparePrerelease(pre1, pre2) {
+  const ids1 = pre1.split(".");
+  const ids2 = pre2.split(".");
+  for (let i = 0; i < Math.max(ids1.length, ids2.length); i++) {
+    if (ids1[i] === undefined) return -1;
+    if (ids2[i] === undefined) return 1;
+    const num1 = /^\d+$/.test(ids1[i]);
+    const num2 = /^\d+$/.test(ids2[i]);
+    if (num1 && num2) {
+      const diff = Number(ids1[i]) - Number(ids2[i]);
+      if (diff !== 0) return diff > 0 ? 1 : -1;
+    } else if (num1 !== num2) {
+      return num1 ? -1 : 1;
+    } else if (ids1[i] !== ids2[i]) {
+      return ids1[i] < ids2[i] ? -1 : 1;
+    }
+  }
+  return 0;
+}
+
 function compareVersions(v1, v2) {
   const parsePart = (p) => {
     const n = parseInt(p, 10);
     return isNaN(n) ? -1 : n;
   };
-  const clean1 = String(v1 || "").replace(/^v/, "");
-  const clean2 = String(v2 || "").replace(/^v/, "");
-  const [core1, pre1] = clean1.split("-", 2);
-  const [core2, pre2] = clean2.split("-", 2);
+  const [core1, pre1] = splitVersion(v1);
+  const [core2, pre2] = splitVersion(v2);
   const p1 = core1.split(".");
   const p2 = core2.split(".");
   for (let i = 0; i < Math.max(p1.length, p2.length); i++) {
@@ -38,7 +67,7 @@ function compareVersions(v1, v2) {
   }
   if (pre1 && !pre2) return -1;
   if (!pre1 && pre2) return 1;
-  if (pre1 && pre2 && pre1 !== pre2) return pre1.localeCompare(pre2);
+  if (pre1 && pre2) return comparePrerelease(pre1, pre2);
   return 0;
 }
 

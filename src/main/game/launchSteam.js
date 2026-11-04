@@ -1,6 +1,6 @@
-const { execFile } = require("node:child_process");
-const steamworksManager = require("../steamworksManager");
 const { sanitizeArg } = require("./prepareEnv");
+const { waitForGameEnd } = require("./gameProcess");
+const { spawnWithLaunchLock } = require("./processExit");
 
 async function launchViaSteam(ip, port, modString, extraParams, handleGameExit, assertCurrent = () => {}) {
   const steamArgs = ["-applaunch", "221100", "-noLauncher"];
@@ -18,29 +18,18 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit, 
 
   console.log(`Launching DayZ via steam with args: ${steamArgs.join(" ")}`);
 
-  await steamworksManager.lockAndDelayForLaunch();
-  try {
-    assertCurrent();
-  } catch (error) {
-    steamworksManager.unlockForLaunch();
-    throw error;
-  }
-
-  return new Promise((resolve, reject) => {
-    const child = execFile("steam", steamArgs, (error, _stdout, _stderr) => {
-      steamworksManager.unlockForLaunch();
-      if (error) {
-        console.error(`Error launching game: ${error.message}`);
-        handleGameExit(error);
-      } else {
-        console.log("Game launched successfully.");
-      }
-    });
-    child.once("spawn", resolve);
-    child.once("error", (err) => {
-      steamworksManager.unlockForLaunch();
-      reject(err);
-    });
+  // When Steam is not already running, this process becomes the Steam client
+  // itself. Its output is discarded instead of buffered (execFile's maxBuffer
+  // would kill the client) and it is detached so it outlives DzLinux. The
+  // Steamworks lock follows the game, not this process.
+  return spawnWithLaunchLock({
+    command: "steam",
+    args: steamArgs,
+    options: { stdio: "ignore", detached: true },
+    label: "Steam",
+    handleGameExit,
+    assertCurrent,
+    holdLock: waitForGameEnd,
   });
 }
 

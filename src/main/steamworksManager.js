@@ -7,7 +7,9 @@ const pendingRequests = new Map();
 const shutdownPromises = new WeakMap();
 let cachedProfileName = null;
 
-let isLockedForLaunch = false;
+// Counts launches that currently hold the Steamworks lock, so one game
+// exiting does not re-enable the worker while another is still running.
+let launchLockCount = 0;
 
 function rejectWorkerRequests(targetWorker, reason = "Steamworks worker exited") {
   for (const [id, entry] of pendingRequests.entries()) {
@@ -19,23 +21,28 @@ function rejectWorkerRequests(targetWorker, reason = "Steamworks worker exited")
 }
 
 function lockForLaunch() {
-  isLockedForLaunch = true;
+  launchLockCount++;
   return shutdown();
 }
 
 function unlockForLaunch() {
-  isLockedForLaunch = false;
+  if (launchLockCount > 0) launchLockCount--;
 }
 
 const STEAMWORKS_LAUNCH_LOCK_MS = 1500;
 
 async function lockAndDelayForLaunch() {
-  await lockForLaunch();
+  try {
+    await lockForLaunch();
+  } catch (error) {
+    unlockForLaunch();
+    throw error;
+  }
   await new Promise((r) => setTimeout(r, STEAMWORKS_LAUNCH_LOCK_MS));
 }
 
 function init() {
-  if (isLockedForLaunch) return false;
+  if (launchLockCount > 0) return false;
   if (worker) return true;
   try {
     const child = fork(path.join(__dirname, "steamworksWorker.js"));

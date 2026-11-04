@@ -11,10 +11,15 @@ export function serverPassesFilters(server, excludeCountryFilter = false) {
 
   const term = state.filters.nameLower;
   if (term) {
+    // Match against the full ip:port too, so a pasted address finds the
+    // server; the query port is included because some listings show it.
+    const ip = server.ip.toLowerCase();
     const matchesName =
       server.name.toLowerCase().includes(term) ||
-      server.ip.includes(term) ||
-      (server.port && server.port.toString().includes(term));
+      ip.includes(term) ||
+      (server.port && server.port.toString().includes(term)) ||
+      (server.port && `${ip}:${server.port}`.includes(term)) ||
+      (server.queryPort && `${ip}:${server.queryPort}`.includes(term));
     if (!matchesName) return false;
   }
 

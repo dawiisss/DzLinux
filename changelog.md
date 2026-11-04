@@ -10,6 +10,21 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [2.1.2] - 2026-11-04
+
+### Fixed
+
+- **Server Search by Address:** Searching the server list for a full `ip:port` address (for example `1.2.3.4:2302`) now finds the server. Previously only the name, IP, or port matched on their own, so only an IP-only search worked. Addresses using the server's query port also match.
+- **Steam Client Killed on Launch:** Launching through Steam when the Steam client was not already running could terminate the client once its output passed Node's 1 MB `execFile` buffer. `launchViaSteam()` now uses a detached `spawn` with output discarded, so the client outlives both the launch and DzLinux.
+- **Steamworks Launch Lock With Multiple Games:** The Steamworks launch lock is now a counter instead of a boolean, so one game exiting no longer re-enables the Steamworks worker while another launched game is still running. A failed lock or failed spawn no longer leaves the worker disabled, and each launch releases the lock exactly once even when a process emits both `error` and `exit`.
+- **Steamworks Lock Tied to the Steam Client:** Steam launches now hold the lock while the DayZ process is running instead of while the `steam` command is running. The worker no longer stays disabled until Steam quits after DzLinux started the client, and is no longer re-enabled during play when Steam was already open. If the game does not appear within three minutes, the lock is released.
+- **Signal Crashes Missed by Diagnostics:** Games killed by a signal (for example `SIGSEGV`, `SIGABRT`, or the OOM killer's `SIGKILL`) were logged as clean exits. Proton and Steam launches now share `src/main/game/processExit.js`, which runs crash diagnostics for non-zero exit codes and for any signal other than `SIGTERM`, `SIGINT`, or `SIGHUP`. The Diagnostics Card now only appears for a log written since that launch started, not for a crash from an earlier run.
+- **Pre-release Update Ordering:** `compareVersions()` now follows semver pre-release precedence, so `beta.10` sorts after `beta.9`. Hyphens inside a pre-release tag (`1.0.0-rc-2`) are kept and build metadata (`+build.5`) is ignored.
+- **Malformed Server List Entries:** Hosted and custom server entries with an invalid address, port, query port, name, or non-array mod list are now skipped with a logged warning instead of risking a failure that empties the whole server list. A query port of `0` or an empty string is treated as no query port.
+- **Settings File Durability and Permissions:** Atomic JSON writes now `fsync` the data before renaming it into place, and also `fsync` the containing directory where the filesystem supports it. `settings.json` is now owner-only (`0600`), including existing files the next time they are loaded, because it contains the Steam username and launch commands.
+- **Semicolons in the Mod Directory:** Launching with a Workshop mod directory whose path contains `;` now fails with a clear message instead of passing DayZ a `-mod=` list it would split incorrectly.
+- **Ignored Launch Option Variables With Steam:** `NAME=value` prefixes before `%command%` only take effect with a custom Proton version. Launching through Steam now logs which variables were ignored instead of dropping them silently.
+
 ## [2.1.1] - 2026-10-28
 
 ### Security

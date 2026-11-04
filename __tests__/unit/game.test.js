@@ -215,7 +215,19 @@ describe("game", () => {
     let mockGetAllWindows;
     let mockWebContentsSend;
     let mockGetRecentLogs;
-    let mockExecFile;
+    let mockSpawn;
+
+    // Fake detached Steam process: spawns immediately, then exits with the
+    // given code/signal on the next tick.
+    function steamChild({ code = 0, signal = null } = {}) {
+      return {
+        unref: jest.fn(),
+        once: (evt, handler) => {
+          if (evt === "spawn") handler();
+          if (evt === "exit") process.nextTick(() => handler(code, signal));
+        },
+      };
+    }
 
     beforeEach(() => {
       jest.resetModules();
@@ -257,10 +269,15 @@ describe("game", () => {
         getRecentLogs: mockGetRecentLogs,
       }));
 
-      mockExecFile = jest.fn();
+      mockSpawn = jest.fn();
       jest.doMock("child_process", () => ({
-        execFile: mockExecFile,
+        spawn: mockSpawn,
+        execFile: jest.fn(),
         exec: jest.fn(),
+      }));
+
+      jest.doMock("../../src/main/game/gameProcess", () => ({
+        waitForGameEnd: jest.fn(),
       }));
     });
 
@@ -269,15 +286,12 @@ describe("game", () => {
     });
 
     test("executes cleanly and does not call getRecentLogs", async () => {
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        cb(null, "stdout", "stderr"); // No error
-        return { once: (evt, handler) => { if (evt === 'spawn') handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild());
 
       const game = require("../../src/main/game");
       const launchPromise = game.launchDayZ("1.2.3.4", 2302, []);
 
-      await new Promise((r) => setTimeout(r, 10)); // let event loop run to trigger mockExecFile if timers weren't there
+      await new Promise((r) => setTimeout(r, 10)); // let the fake Steam process exit
 
       await launchPromise;
 
@@ -286,10 +300,7 @@ describe("game", () => {
 
     test("executes with error but no windows available", async () => {
       mockGetAllWindows.mockReturnValue([]);
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        cb(new Error("crash"), "stdout", "stderr");
-        return { once: (evt, handler) => { if (evt === 'error') handler(new Error("crash")); else if (evt === 'spawn') handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild({ code: 1 }));
 
       const game = require("../../src/main/game");
       const launchPromise = game.launchDayZ("1.2.3.4", 2302, []);
@@ -302,14 +313,9 @@ describe("game", () => {
     });
 
     test("executes with error and sends game-crashed IPC if log is CRASH", async () => {
-      const mockLog = { status: "CRASH", name: "crash.mdmp" };
+      const mockLog = { status: "CRASH", name: "crash.mdmp", mtime: Date.now() + 60000 };
       mockGetRecentLogs.mockResolvedValue([mockLog]);
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        const err = new Error("crash");
-        err.code = 1;
-        cb(err, "stdout", "stderr");
-        return { once: (evt, handler) => { if (evt === 'error') handler(err); else if (evt === 'spawn') handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild({ code: 1 }));
 
       const game = require("../../src/main/game");
       const launchPromise = game.launchDayZ("1.2.3.4", 2302, []);
@@ -323,15 +329,23 @@ describe("game", () => {
       expect(mockWebContentsSend).toHaveBeenCalledWith("game-crashed", mockLog);
     });
 
-    test("executes with error but does not send IPC if log is CLEAN", async () => {
-      const mockLog = { status: "CLEAN", name: "clean.log" };
+    test("does not send IPC for a crash log from before this launch", async () => {
+      const mockLog = { status: "CRASH", name: "old.mdmp", mtime: Date.now() - 60000 };
       mockGetRecentLogs.mockResolvedValue([mockLog]);
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        const err = new Error("crash");
-        err.code = 1;
-        cb(err, "stdout", "stderr");
-        return { once: (evt, handler) => { if (evt === 'error') handler(err); else if (evt === 'spawn') handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild({ signal: "SIGKILL" }));
+
+      const game = require("../../src/main/game");
+      await game.launchDayZ("1.2.3.4", 2302, []);
+      await new Promise((r) => setTimeout(r, 10));
+
+      expect(mockGetRecentLogs).toHaveBeenCalled();
+      expect(mockWebContentsSend).not.toHaveBeenCalled();
+    });
+
+    test("executes with error but does not send IPC if log is CLEAN", async () => {
+      const mockLog = { status: "CLEAN", name: "clean.log", mtime: Date.now() + 60000 };
+      mockGetRecentLogs.mockResolvedValue([mockLog]);
+      mockSpawn.mockImplementation(() => steamChild({ code: 1 }));
 
       const game = require("../../src/main/game");
       const launchPromise = game.launchDayZ("1.2.3.4", 2302, []);
@@ -349,12 +363,7 @@ describe("game", () => {
         .spyOn(console, "error")
         .mockImplementation(() => {});
       mockGetRecentLogs.mockRejectedValue(new Error("fs read error"));
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        const err = new Error("crash");
-        err.code = 1;
-        cb(err, "stdout", "stderr");
-        return { once: (evt, handler) => { if (evt === 'error') handler(err); else if (evt === 'spawn') handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild({ code: 1 }));
 
       const game = require("../../src/main/game");
       const launchPromise = game.launchDayZ("1.2.3.4", 2302, []);
@@ -374,17 +383,15 @@ describe("game", () => {
     });
 
     test("handles undefined or null port gracefully without throwing", async () => {
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        cb(null, "stdout", "stderr");
-        return { once: (evt, handler) => { if (evt === 'spawn') handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild());
 
       const game = require("../../src/main/game");
       await expect(game.launchDayZ("1.2.3.4", null, [])).resolves.not.toThrow();
-      expect(mockExecFile).toHaveBeenCalledWith(
+      await new Promise((r) => setTimeout(r, 10)); // let the fake Steam process exit
+      expect(mockSpawn).toHaveBeenCalledWith(
         "steam",
         expect.arrayContaining(["-connect=1.2.3.4", "-port=2302"]),
-        expect.any(Function),
+        expect.objectContaining({ stdio: "ignore", detached: true }),
       );
     });
 
@@ -413,14 +420,12 @@ describe("game", () => {
     });
 
     test("supports standalone quick launch without target and rejects partial or invalid targets", async () => {
-      mockExecFile.mockImplementation((cmd, args, cb) => {
-        cb(null, "stdout", "stderr");
-        return { once: (evt, handler) => { if (evt === "spawn") handler(); } };
-      });
+      mockSpawn.mockImplementation(() => steamChild());
 
       const game = require("../../src/main/game");
       await expect(game.launchDayZ("", "", ["123", { id: 456 }])).resolves.not.toThrow();
-      expect(mockExecFile).toHaveBeenCalledWith(
+      await new Promise((r) => setTimeout(r, 10)); // let the fake Steam process exit
+      expect(mockSpawn).toHaveBeenCalledWith(
         "steam",
         [
           "-applaunch",
@@ -428,15 +433,15 @@ describe("game", () => {
           "-noLauncher",
           "-mod=Z:\\tmp\\123;Z:\\tmp\\456",
         ],
-        expect.any(Function),
+        expect.objectContaining({ stdio: "ignore", detached: true }),
       );
 
-      mockExecFile.mockClear();
+      mockSpawn.mockClear();
       await expect(game.launchDayZ("", 0, [])).rejects.toThrow("Invalid arguments");
       await expect(game.launchDayZ("", 2302, [])).rejects.toThrow("Invalid arguments");
       await expect(game.launchDayZ("1.2.3.4", 0, [])).rejects.toThrow("Invalid arguments");
       await expect(game.launchDayZ("", "", ["bad-mod"])).rejects.toThrow("Invalid mod IDs");
-      expect(mockExecFile).not.toHaveBeenCalled();
+      expect(mockSpawn).not.toHaveBeenCalled();
     });
   });
 

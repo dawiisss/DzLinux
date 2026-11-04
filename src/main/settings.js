@@ -12,6 +12,7 @@ const {
 } = require("./validation");
 
 const settingsPath = path.join(app.getPath("userData"), "settings.json");
+const SETTINGS_FILE_MODE = 0o600;
 
 const defaultSettings = {
   playerName: "",
@@ -117,6 +118,8 @@ async function loadSettingsFromDisk() {
   settingsReadError = null;
   try {
     const data = await fs.promises.readFile(settingsPath, "utf8");
+    // Tighten files written by older versions without waiting for the next save.
+    await fs.promises.chmod(settingsPath, SETTINGS_FILE_MODE).catch(() => {});
     const parsed = JSON.parse(data);
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Invalid settings file");
     // Only merge known setting keys to prevent prototype pollution
@@ -310,7 +313,8 @@ async function persistSettings(safeSettings) {
     }
 
     // Write to disk and await
-    await writeJsonAtomically(settingsPath, safeSettings);
+    // Owner-only: settings include the Steam username and launch commands.
+    await writeJsonAtomically(settingsPath, safeSettings, { mode: SETTINGS_FILE_MODE });
     cachedSettings = { ...safeSettings };
     return true;
   } catch (e) {
@@ -333,6 +337,8 @@ function loadSettings() {
   try {
     if (fs.existsSync(settingsPath)) {
       const data = fs.readFileSync(settingsPath, "utf8");
+      // This path fills the cache at startup, so the async loader may never run.
+      try { fs.chmodSync(settingsPath, SETTINGS_FILE_MODE); } catch { /* best effort */ }
       const parsed = JSON.parse(data);
       if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
         throw new Error("Invalid settings file");

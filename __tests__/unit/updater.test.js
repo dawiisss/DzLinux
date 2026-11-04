@@ -72,6 +72,18 @@ describe("compareVersions", () => {
     expect(compareVersions("1.8.1", "1.8.1-beta.1")).toBe(1);
     expect(compareVersions("1.8.1-alpha.1", "1.8.1-beta.1")).toBe(-1);
   });
+
+  test("compares numeric pre-release identifiers numerically", () => {
+    expect(compareVersions("2.0.0-beta.10", "2.0.0-beta.9")).toBe(1);
+    expect(compareVersions("2.0.0-beta.9", "2.0.0-beta.10")).toBe(-1);
+    expect(compareVersions("2.0.0-rc.1", "2.0.0-rc")).toBe(1);
+    expect(compareVersions("2.0.0-1", "2.0.0-alpha")).toBe(-1);
+  });
+
+  test("keeps hyphens inside the pre-release tag and ignores build metadata", () => {
+    expect(compareVersions("1.0.0-rc-2", "1.0.0-rc-1")).toBe(1);
+    expect(compareVersions("1.0.0+build.5", "1.0.0")).toBe(0);
+  });
 });
 
 describe("isSystemInstall", () => {

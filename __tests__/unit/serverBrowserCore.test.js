@@ -55,6 +55,31 @@ describe("serverBrowserCore - serverPassesFilters", () => {
     expect(serverPassesFilters(server)).toBe(true);
   });
 
+  test("search matches a full ip:port address, including the query port", () => {
+    const server = {
+      realPing: 50,
+      failedPing: false,
+      players: 10,
+      maxPlayers: 60,
+      name: "DayZ US - Official",
+      ip: "1.1.1.1",
+      port: 2302,
+      queryPort: 27016,
+      country: "US",
+    };
+    const search = (term) => {
+      state.filters.nameLower = term;
+      return serverPassesFilters(server);
+    };
+    expect(search("1.1.1.1:2302")).toBe(true);
+    expect(search("1.1.1.1:23")).toBe(true);
+    expect(search("1.1.1.1:27016")).toBe(true);
+    expect(search("1.1.1.1")).toBe(true);
+    expect(search("1.1.1.1:2402")).toBe(false);
+    expect(search("2.2.2.2:2302")).toBe(false);
+    state.filters.nameLower = "";
+  });
+
   test("filters servers by specific country code", () => {
     const serverUS = {
       realPing: 50,

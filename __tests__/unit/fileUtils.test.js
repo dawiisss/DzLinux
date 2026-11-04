@@ -41,4 +41,12 @@ describe("atomic JSON persistence", () => {
     expect(JSON.parse(await fs.readFile(file, "utf8"))).toEqual({ index: 2 });
     expect(await fs.readdir(directory)).toEqual(["settings.json"]);
   });
+
+  test("creates the file with the requested permission mode", async () => {
+    const file = path.join(directory, "settings.json");
+    await writeJsonAtomically(file, { a: 1 }, { mode: 0o600 });
+    const stat = await fs.stat(file);
+    expect(stat.mode & 0o777).toBe(0o600);
+    expect(JSON.parse(await fs.readFile(file, "utf8"))).toEqual({ a: 1 });
+  });
 });

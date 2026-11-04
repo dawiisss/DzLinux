@@ -16,6 +16,54 @@ describe("servers", () => {
     );
   });
 
+  describe("filterValidSourceServers", () => {
+    test("drops entries with invalid addresses or mod lists", () => {
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+      const servers = require("../../src/main/servers");
+      const good = { ip: "1.2.3.4", port: 2302, mods: [] };
+      const result = servers.filterValidSourceServers([
+        good,
+        { port: 2302 },
+        { ip: 12345, port: 2302 },
+        { ip: "1.2.3.4", port: "abc" },
+        { ip: "1.2.3.4", port: 2302, queryPort: 70000 },
+        { ip: "1.2.3.4", port: 2302, mods: "123" },
+        null,
+      ]);
+      expect(result).toEqual([good]);
+      expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("Skipped 6"));
+      console.warn.mockRestore();
+    });
+
+    test("treats a query port of 0 or empty string as no query port", () => {
+      const servers = require("../../src/main/servers");
+      expect(
+        servers.filterValidSourceServers([
+          { ip: "1.2.3.4", port: 2302, queryPort: 0 },
+          { ip: "1.2.3.5", port: 2302, queryPort: "" },
+        ]),
+      ).toEqual([
+        { ip: "1.2.3.4", port: 2302, queryPort: null },
+        { ip: "1.2.3.5", port: 2302, queryPort: null },
+      ]);
+    });
+
+    test("drops non-string names but keeps missing ones", () => {
+      jest.spyOn(console, "warn").mockImplementation(() => {});
+      const servers = require("../../src/main/servers");
+      const unnamed = { ip: "1.2.3.4", port: 2302 };
+      const nullName = { ip: "1.2.3.5", port: 2302, name: null };
+      expect(
+        servers.filterValidSourceServers([
+          unnamed,
+          nullName,
+          { ip: "1.2.3.6", port: 2302, name: 123 },
+        ]),
+      ).toEqual([unnamed, nullName]);
+      console.warn.mockRestore();
+    });
+  });
+
   describe("axiosGetWithRetry", () => {
     test("returns data on first attempt", async () => {
       const mockAxios = { get: jest.fn().mockResolvedValue({ data: "ok" }) };

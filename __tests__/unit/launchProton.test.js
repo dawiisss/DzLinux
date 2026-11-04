@@ -106,6 +106,7 @@ describe("launchProton", () => {
       getSteamLibraryPathsAsync: jest.fn().mockResolvedValue([]),
     }));
     jest.doMock("../../src/main/game/prepareEnv", () => ({
+      ...jest.requireActual("../../src/main/game/prepareEnv"),
       buildEnvironment: mockBuildEnvironment,
     }));
     jest.doMock("../../src/main/game/configDxvk", () => ({

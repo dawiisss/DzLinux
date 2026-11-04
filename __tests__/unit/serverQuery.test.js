@@ -206,7 +206,7 @@ describe("serverQuery", () => {
       });
 
       const writeSpy = jest
-        .spyOn(fs.promises, "writeFile")
+        .spyOn(fs.promises, "open")
         .mockRejectedValue(new Error("EACCES"));
 
       try {
@@ -245,7 +245,7 @@ describe("serverQuery", () => {
 
       mockGameDig.GameDig.query.mockRejectedValue(new Error("timeout"));
       const writeSpy = jest
-        .spyOn(fs.promises, "writeFile")
+        .spyOn(fs.promises, "open")
         .mockRejectedValue(new Error("EACCES"));
 
       try {
