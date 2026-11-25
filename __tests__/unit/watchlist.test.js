@@ -35,6 +35,28 @@ beforeEach(() => {
 });
 
 describe("Watchlist repository and migrated policies", () => {
+  test("rejected edits preserve the claimed auto-join offer and a committed edit clears it", async () => {
+    const { createMonitor } = require("../../src/main/watchlistMonitor");
+    const entry = await repo.add({ ...config, autoJoin: true });
+    const monitor = createMonitor({
+      repo,
+      now: () => 100000,
+      query: async () => ({ status: "online", reportedPlayers: 1, reportedCapacity: 60 }),
+    });
+    try {
+      await monitor.configure({ watchlistRefreshEnabled: false });
+      await monitor.refresh();
+      const offer = monitor.claimAutoJoin(monitor.snapshot().autoJoin.offer.eventId, 1);
+      await expect(monitor.command("update", [entry.id, { name: "Stale" }, 0])).rejects.toThrow("This watch changed");
+      atomic.mockRejectedValueOnce(new Error("Write failed"));
+      await expect(monitor.command("update", [entry.id, { name: "Unsaved" }, 1])).rejects.toThrow("Write failed");
+      expect(monitor.snapshot().autoJoin.offer.offerId).toBe(offer.offerId);
+      await monitor.command("update", [entry.id, { name: "Saved" }, 1]);
+      expect(monitor.snapshot().autoJoin.offer).toBeNull();
+    } finally {
+      await monitor.stop();
+    }
+  });
   test("returns an empty versioned watchlist when no file or settings entries exist", async () => {
     expect(await repo.loadDocument()).toEqual({ schemaVersion: 2, revision: 1, entries: [] });
   });
@@ -47,7 +69,7 @@ describe("Watchlist repository and migrated policies", () => {
   test("migrates watchlist from settings if no standalone file exists", async () => {
     settings.loadSettingsAsync.mockResolvedValue({ watchlist: [legacy], theme: "dark" });
     expect((await repo.loadDocument()).entries).toHaveLength(1);
-    expect(settings.saveSettings).toHaveBeenCalledWith({ watchlist: [], theme: "dark" });
+    expect(settings.saveSettings).toHaveBeenCalledWith({ watchlist: [] });
   });
   test("writes a targeted watch mutation to the standalone file", async () => {
     const entry = await repo.add(config);

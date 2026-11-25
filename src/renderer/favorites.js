@@ -148,7 +148,7 @@ async function action(type, id) {
     else if (type === "pin") { forceOrder = true; saved(await api().update(id, { pinned: !entry.pinned }, entry.revision)); }
     else if (type === "copy") copyToClipboard(formatAddress(entry.ip, entry.port));
     else if (type === "refresh") await refresh([id]);
-    else if (type === "connect") await connectToServer(entry.ip, entry.port, { serverContext: resolveServer(entry), forceModQuery: true });
+    else if (type === "connect") await connectToServer(entry.ip, entry.port, { serverContext: resolveServer(entry) });
     else if (type === "expand") { state.expandedFavoriteId = state.expandedFavoriteId === id ? null : id; scheduleRender(); }
     else if (type === "remove") {
       if (await showConfirmModal("Remove " + (entry.label || entry.name || entry.ip) + " from Favorites? History and any Watchlist entry will remain.")) saved(await api().remove(id));
@@ -161,8 +161,11 @@ async function action(type, id) {
   } catch (error) { fail(error); }
 }
 async function saveView() {
-  state.settings.favoritesViewSort = filters.sort; state.settings.favoritesViewGroupId = filters.group;
-  try { if (await window.api.settings.save(state.settings) === false) throw new Error("The list changed, but the view preference could not be saved"); }
+  const patch = { favoritesViewSort: filters.sort, favoritesViewGroupId: filters.group };
+  try {
+    if (await window.api.settings.save(patch) === false) throw new Error("The list changed, but the view preference could not be saved");
+    Object.assign(state.settings, patch);
+  }
   catch (error) { fail(error); }
 }
 async function loadWatch() {

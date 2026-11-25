@@ -298,6 +298,38 @@ describe("game", () => {
       expect(mockGetRecentLogs).not.toHaveBeenCalled();
     });
 
+    test("reports a fresh DayZ crash after Steam has accepted the launch", async () => {
+      const now = Date.now();
+      const crash = { status: "CRASH", name: "dayz.mdmp", mtime: now + 1000 };
+      mockGetRecentLogs.mockResolvedValue([{ status: "CLEAN", mtime: now + 2000 }, crash]);
+      mockSpawn.mockImplementation(() => steamChild());
+
+      await require("../../src/main/game").launchDayZ("1.2.3.4", 2302, []);
+      const { waitForGameEnd } = require("../../src/main/game/gameProcess");
+      waitForGameEnd.mock.calls[0][0]("game-ended");
+      await Promise.resolve();
+
+      expect(mockWebContentsSend).toHaveBeenCalledWith("game-crashed", crash);
+      expect(require("../../src/main/steamworksManager").unlockForLaunch).toHaveBeenCalledTimes(1);
+    });
+
+    test("ignores ordinary warnings and old crash logs when the Steam game exits", async () => {
+      const now = Date.now();
+      mockGetRecentLogs.mockResolvedValue([
+        { status: "WARNING", mtime: now + 1000 },
+        { status: "CRASH", mtime: now - 1000 },
+      ]);
+      mockSpawn.mockImplementation(() => steamChild());
+
+      await require("../../src/main/game").launchDayZ("1.2.3.4", 2302, []);
+      const { waitForGameEnd } = require("../../src/main/game/gameProcess");
+      waitForGameEnd.mock.calls[0][0]("game-ended");
+      await Promise.resolve();
+
+      expect(mockGetRecentLogs).toHaveBeenCalledTimes(1);
+      expect(mockWebContentsSend).not.toHaveBeenCalled();
+    });
+
     test("executes with error but no windows available", async () => {
       mockGetAllWindows.mockReturnValue([]);
       mockSpawn.mockImplementation(() => steamChild({ code: 1 }));

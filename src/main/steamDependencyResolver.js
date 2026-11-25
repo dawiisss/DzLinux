@@ -1,144 +1,19 @@
 const axios = require("axios");
+const { createQueryLimiter } = require("./queryLimiter");
 
 const dependencyCache = new Map();
 const inFlightRequests = new Map();
+const requestSlots = createQueryLimiter(4);
 const MAX_DEPTH = 5;
-const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const MAX_GRAPH_NODES = 2000;
+const MAX_CHILDREN = 100;
+const MAX_TREE_NODES = 5000;
+const BATCH_SIZE = 50;
+const CACHE_TTL_MS = 60 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 1000;
 
-async function asyncPool(concurrency, iterable, iteratorFn) {
-  const ret = [];
-  const executing = new Set();
-  for (const item of iterable) {
-    const p = Promise.resolve().then(() => iteratorFn(item));
-    ret.push(p);
-    executing.add(p);
-    const clean = () => executing.delete(p);
-    p.then(clean).catch(clean);
-    if (executing.size >= concurrency) {
-      await Promise.race(executing);
-    }
-  }
-  return Promise.all(ret);
-}
-
-function makeNode(modId, name, children, flags = {}) {
-  return {
-    id: modId,
-    name: name || `Mod ${modId}`,
-    children: children || [],
-    ...flags,
-  };
-}
-
-async function fetchPublishedFileDetailsBatch(modIds) {
-  if (!modIds || !Array.isArray(modIds) || modIds.length === 0) return;
-
-  const now = Date.now();
-  const toFetch = [];
-  const toWait = [];
-
-  for (const rawId of modIds) {
-    if (!rawId) continue;
-    const modId = String(rawId);
-    const cached = dependencyCache.get(modId);
-    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
-      continue;
-    }
-    if (inFlightRequests.has(modId)) {
-      toWait.push(inFlightRequests.get(modId));
-    } else {
-      toFetch.push(modId);
-    }
-  }
-
-  const uniqueToFetch = Array.from(new Set(toFetch));
-
-  if (uniqueToFetch.length > 0) {
-    let resolveBatch;
-    const batchPromise = new Promise((resolve) => {
-      resolveBatch = resolve;
-    });
-
-    uniqueToFetch.forEach((id) => inFlightRequests.set(id, batchPromise));
-
-    const fetchWork = async () => {
-      try {
-        const chunkSize = 50;
-        for (let i = 0; i < uniqueToFetch.length; i += chunkSize) {
-          const chunk = uniqueToFetch.slice(i, i + chunkSize);
-          const formData = new URLSearchParams();
-          formData.append("itemcount", chunk.length.toString());
-          chunk.forEach((id, index) => {
-            formData.append(`publishedfileids[${index}]`, id);
-          });
-
-          try {
-            const response = await axios.post(
-              "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/",
-              formData.toString(),
-              {
-                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                timeout: 5000,
-              },
-            );
-
-            const detailsList = response.data?.response?.publishedfiledetails;
-            if (Array.isArray(detailsList)) {
-              for (let idx = 0; idx < detailsList.length; idx++) {
-                const details = detailsList[idx];
-                if (!details) continue;
-
-                const matchedChunkId = chunk.find(
-                  (id) => String(id) === String(details.publishedfileid),
-                );
-                const primaryId =
-                  matchedChunkId ||
-                  (details.publishedfileid
-                    ? String(details.publishedfileid)
-                    : chunk[idx]);
-
-                if (details.result === 1) {
-                  const childIds = Array.isArray(details.children)
-                    ? details.children
-                        .filter((c) => c && c.publishedfileid)
-                        .map((c) => String(c.publishedfileid))
-                    : [];
-                  const entry = {
-                    title: details.title || `Mod ${primaryId}`,
-                    childIds,
-                    sizeBytes: parseFileSize(details.file_size),
-                    timestamp: Date.now(),
-                  };
-                  if (primaryId) dependencyCache.set(primaryId, entry);
-                  if (details.publishedfileid) {
-                    dependencyCache.set(String(details.publishedfileid), entry);
-                  }
-                }
-              }
-            }
-          } catch {
-            // Ignore network errors
-          }
-        }
-      } finally {
-        uniqueToFetch.forEach((id) => inFlightRequests.delete(id));
-        resolveBatch();
-      }
-    };
-
-    toWait.push(fetchWork());
-  }
-
-  await Promise.all(toWait);
-
-  if (dependencyCache.size > MAX_CACHE_ENTRIES) {
-    const target = Math.floor(MAX_CACHE_ENTRIES * 0.9);
-    const iter = dependencyCache.keys();
-    while (dependencyCache.size > target) {
-      dependencyCache.delete(iter.next().value);
-    }
-  }
+function makeNode(id, name, children = [], flags = {}) {
+  return { id, name: name || `Mod ${id}`, children, ...flags };
 }
 
 function parseFileSize(value) {
@@ -148,62 +23,151 @@ function parseFileSize(value) {
   return Number.isSafeInteger(bytes) && bytes >= 0 ? bytes : null;
 }
 
-// Reuse the batched Workshop metadata cache without traversing dependencies.
+async function fetchChunk(ids, signal) {
+  const formData = new URLSearchParams({ itemcount: String(ids.length) });
+  ids.forEach((id, index) => formData.append(`publishedfileids[${index}]`, id));
+  const response = await requestSlots.run(() => axios.post(
+    "https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/",
+    formData.toString(),
+    { headers: { "Content-Type": "application/x-www-form-urlencoded" }, timeout: 5000, signal },
+  ), signal).catch(() => null);
+  signal?.throwIfAborted();
+
+  const entries = new Map();
+  const details = response?.data?.response?.publishedfiledetails;
+  const requested = new Set(ids);
+  if (!Array.isArray(details)) return entries;
+  for (const item of details) {
+    const id = String(item?.publishedfileid ?? "");
+    if (!requested.has(id) || item.result !== 1) continue;
+    const children = Array.isArray(item.children) ? item.children : [];
+    const childIds = [...new Set(children.slice(0, MAX_CHILDREN)
+      .filter(child => child?.publishedfileid)
+      .map(child => String(child.publishedfileid)))];
+    const entry = {
+      title: item.title || `Mod ${id}`,
+      childIds,
+      truncated: children.length > MAX_CHILDREN,
+      sizeBytes: parseFileSize(item.file_size),
+      timestamp: Date.now(),
+    };
+    entries.set(id, entry);
+    dependencyCache.delete(id);
+    dependencyCache.set(id, entry);
+  }
+  while (dependencyCache.size > MAX_CACHE_ENTRIES) {
+    dependencyCache.delete(dependencyCache.keys().next().value);
+  }
+  return entries;
+}
+
+async function fetchPublishedFileDetailsBatch(modIds, signal) {
+  const entries = new Map();
+  if (!Array.isArray(modIds)) return entries;
+  signal?.throwIfAborted();
+  const pending = new Set();
+  const missing = [];
+  const now = Date.now();
+  for (const id of new Set(modIds.filter(Boolean).map(String))) {
+    const cached = dependencyCache.get(id);
+    if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+      entries.set(id, cached);
+    } else if (!signal && inFlightRequests.has(id)) {
+      pending.add(inFlightRequests.get(id));
+    } else {
+      missing.push(id);
+    }
+  }
+
+  for (let index = 0; index < missing.length; index += BATCH_SIZE) {
+    const chunk = missing.slice(index, index + BATCH_SIZE);
+    const request = fetchChunk(chunk, signal);
+    // Cancellable jobs own their HTTP requests. Download-size callers can share
+    // uncancellable work without inheriting another caller's cancellation.
+    if (!signal) {
+      chunk.forEach(id => inFlightRequests.set(id, request));
+      const release = () => {
+        for (const id of chunk) {
+          if (inFlightRequests.get(id) === request) inFlightRequests.delete(id);
+        }
+      };
+      void request.then(release, release);
+    }
+    pending.add(request);
+  }
+  const requested = new Set(modIds.map(String));
+  for (const batch of await Promise.all(pending)) {
+    for (const [id, entry] of batch) {
+      if (requested.has(id)) entries.set(id, entry);
+    }
+  }
+  signal?.throwIfAborted();
+  return entries;
+}
+
 async function getModDownloadSizes(modIds) {
   const ids = [...new Set(modIds.map(String))];
-  await fetchPublishedFileDetailsBatch(ids);
-  return ids.map(id => {
-    const cached = dependencyCache.get(id);
-    return {
-      id,
-      sizeBytes: cached && Date.now() - cached.timestamp < CACHE_TTL_MS
-        ? cached.sizeBytes : null,
-    };
-  });
+  const entries = await fetchPublishedFileDetailsBatch(ids);
+  return ids.map(id => ({ id, sizeBytes: entries.get(id)?.sizeBytes ?? null }));
 }
 
-async function resolveDependencies(modId, depth = 0, visited = new Set()) {
-  const idStr = String(modId);
-
-  if (depth >= MAX_DEPTH) {
-    return makeNode(idStr, `Mod ${idStr} (max depth)`, [], { truncated: true });
+async function collectDependencies(roots, signal) {
+  const graph = new Map();
+  const queued = new Set(roots);
+  let frontier = roots;
+  for (let depth = 0; depth < MAX_DEPTH && frontier.length; depth++) {
+    const details = await fetchPublishedFileDetailsBatch(frontier, signal);
+    const next = [];
+    for (const id of frontier) {
+      const entry = details.get(id);
+      graph.set(id, entry);
+      if (!entry || depth + 1 === MAX_DEPTH) continue;
+      for (const childId of entry.childIds) {
+        if (queued.has(childId) || queued.size >= MAX_GRAPH_NODES) continue;
+        queued.add(childId);
+        next.push(childId);
+      }
+    }
+    frontier = next;
   }
-
-  if (visited.has(idStr)) {
-    return makeNode(idStr, `Mod ${idStr} (circular)`, [], { circular: true });
-  }
-  visited.add(idStr);
-
-  let cached = dependencyCache.get(idStr);
-  if (!cached || Date.now() - cached.timestamp >= CACHE_TTL_MS) {
-    await fetchPublishedFileDetailsBatch([idStr]);
-    cached = dependencyCache.get(idStr);
-  }
-
-  if (!cached) {
-    return makeNode(idStr, `Mod ${idStr}`, [], {
-      error: "Failed to fetch from Steam API",
-    });
-  }
-
-  const result = makeNode(idStr, cached.title);
-
-  if (cached.childIds && cached.childIds.length > 0) {
-    await fetchPublishedFileDetailsBatch(cached.childIds);
-
-    const childResults = await asyncPool(4, cached.childIds, (childId) =>
-      resolveDependencies(childId, depth + 1, new Set(visited)),
-    );
-    result.children = childResults.filter((c) => c && c.id);
-  }
-
-  return result;
+  return graph;
 }
 
-async function resolveBatchDependencies(modIds) {
-  if (!modIds || !Array.isArray(modIds)) return [];
-  await fetchPublishedFileDetailsBatch(modIds);
-  return await asyncPool(4, modIds, (id) => resolveDependencies(id));
+async function resolveBatchDependencies(modIds, { signal } = {}) {
+  if (!Array.isArray(modIds)) return [];
+  const roots = [...new Set(modIds.map(String))].slice(0, MAX_GRAPH_NODES);
+  const graph = await collectDependencies(roots, signal);
+  let remaining = MAX_TREE_NODES - roots.length;
+
+  function buildTree(id, depth, ancestors, expanded) {
+    const entry = graph.get(id);
+    if (ancestors.has(id)) return makeNode(id, entry?.title, [], { circular: true });
+    if (depth >= MAX_DEPTH || !graph.has(id)) return makeNode(id, entry?.title, [], { truncated: true });
+    if (!entry) return makeNode(id, null, [], { error: "Failed to fetch from Steam API" });
+    if (expanded.has(id)) return makeNode(id, entry.title, [], { shared: true });
+
+    const tree = makeNode(id, entry.title);
+    ancestors.add(id);
+    expanded.add(id);
+    for (const childId of entry.childIds) {
+      if (remaining === 0) {
+        tree.truncated = true;
+        break;
+      }
+      remaining--;
+      tree.children.push(buildTree(childId, depth + 1, ancestors, expanded));
+    }
+    if (entry.truncated) tree.truncated = true;
+    ancestors.delete(id);
+    return tree;
+  }
+
+  return roots.map(id => buildTree(id, 0, new Set(), new Set()));
+}
+
+async function resolveDependencies(modId) {
+  const [tree] = await resolveBatchDependencies([modId]);
+  return tree;
 }
 
 function getFlatList(tree) {

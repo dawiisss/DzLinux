@@ -10,7 +10,7 @@ depends=('libxss' 'nss' 'gtk3' 'libnotify')
 provides=('dzlinux')
 conflicts=('dzlinux')
 source=("https://github.com/dawiisss/DzLinux/releases/download/v${pkgver}/dzlinux-${pkgver}.tar.gz")
-sha256sums=('SKIP')
+sha256sums=('55b14cb080692c40d4af7992515c63fdc0e081f13fc277e9c391391411236628')
 
 package() {
   install -d "${pkgdir}/opt/dzlinux"

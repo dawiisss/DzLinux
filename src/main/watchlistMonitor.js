@@ -201,12 +201,11 @@ function createMonitor({ repo = repository, query = (ip, port, queryPort, signal
     const [id, value, expectedRevision] = args;
     if (action !== "add" && (typeof id !== "string" || id.length > 100)) throw new Error("Invalid watch ID");
     if (action === "add") await repo.add(id);
-    else if (action === "remove") { invalidate(id); await repo.remove(id); observations.delete(id); }
+    else if (action === "remove") { await repo.remove(id); observations.delete(id); }
     else if (action === "update") {
       const config = sanitizeConfig(value, true);
       // Server identity is immutable; edits cannot silently repoint a watch.
       if (["ip", "port"].some((key) => key in config)) throw new Error("Watch address cannot be edited");
-      invalidate(id);
       await repo.update(id, (entry) => {
         if (entry.configRevision !== expectedRevision) throw new Error("This watch changed. Reopen it to edit the latest version.");
         if (config.condition && JSON.stringify(config.condition) !== JSON.stringify(entry.condition)) {
@@ -219,7 +218,6 @@ function createMonitor({ repo = repository, query = (ip, port, queryPort, signal
       if (!["setEnabled", "snooze", "wake", "rearm"].includes(action)) throw new Error("Unknown watch command");
       if (action === "setEnabled" && typeof value !== "boolean") throw new Error("Invalid enabled setting");
       if (action === "snooze" && value !== 900) throw new Error("Invalid snooze duration");
-      invalidate(id);
       await repo.update(id, (entry) => {
         entry.configRevision++;
         if (action === "setEnabled") { entry.enabled = value; entry.pausedReason = value ? null : "user"; entry.snoozedUntil = null; }
@@ -235,6 +233,7 @@ function createMonitor({ repo = repository, query = (ip, port, queryPort, signal
         }
       });
     }
+    if (action !== "add") invalidate(id);
     await load();
     // Restart the query batch so newly enabled/edited watches are checked now,
     // without discarding other watches' outage continuity or countdowns.

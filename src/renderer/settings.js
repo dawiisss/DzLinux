@@ -583,7 +583,10 @@ export async function initSettings() {
         );
         return;
       }
-      const exists = await window.api.ui.checkPathExists(selectedPath);
+      const exists = await window.api.game.verifyProton(selectedPath).catch((error) => {
+        console.error("Could not verify Proton path:", error);
+        return false;
+      });
       if (exists) {
         showToast(
           "Proton path verified — compatibility layer found",
@@ -592,7 +595,7 @@ export async function initSettings() {
         );
       } else {
         showToast(
-          "Proton path not found. Check your compatibilitytools.d directory.",
+          "Proton executable unavailable. Check its path and execute permission.",
           "#ff5a5f",
           "alert",
         );

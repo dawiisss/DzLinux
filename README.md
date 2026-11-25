@@ -23,7 +23,7 @@ Run this command in your terminal to automatically detect your system and instal
 curl -sSL https://raw.githubusercontent.com/dawiisss/DzLinux/main/install.sh | bash
 ```
 
-This command can also be used to update the version if you are using .deb / .rpm
+The installer uses `jq` or Python 3 to read GitHub release metadata and requires a SHA-256 checksum for the download. Run the same command to update an installation created by this script. A portable AppImage in a writable directory can update from inside DzLinux.
 
 ---
 

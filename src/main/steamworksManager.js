@@ -63,6 +63,15 @@ function init() {
       }
       rejectWorkerRequests(child, "Steamworks worker exited");
     });
+    child.on("error", (error) => {
+      console.error("Steamworks worker error:", error);
+      if (worker === child && !child.pid) worker = null;
+      rejectWorkerRequests(child, error.message);
+    });
+    child.on("disconnect", () => {
+      rejectWorkerRequests(child, "Steamworks worker disconnected");
+      if (worker === child) void shutdown().catch((error) => console.error("Steamworks shutdown failed:", error));
+    });
     return true;
   } catch (e) {
     console.error("Failed to spawn steamworks worker", e);
@@ -98,7 +107,6 @@ function shutdown() {
         worker = null;
       }
       rejectWorkerRequests(targetWorker, "Steamworks worker exited");
-      shutdownPromises.delete(targetWorker);
       resolve();
     };
 
@@ -106,6 +114,7 @@ function shutdown() {
       finalize();
     };
 
+    targetWorker.once("exit", onExit);
     forceKill = setTimeout(() => {
       forceKill = null;
       try {
@@ -114,7 +123,6 @@ function shutdown() {
       finalize();
     }, 2000);
 
-    targetWorker.once("exit", onExit);
     try {
       targetWorker.kill("SIGTERM");
     } catch {
@@ -122,6 +130,8 @@ function shutdown() {
     }
   });
   shutdownPromises.set(targetWorker, promise);
+  const clearShutdown = () => shutdownPromises.delete(targetWorker);
+  void promise.then(clearShutdown, clearShutdown);
   return promise;
 }
 
@@ -150,7 +160,18 @@ async function sendRequest(type, payload) {
         reject(err);
       },
     });
-    activeWorker.send({ id, type, payload });
+    const onSend = (error) => {
+      if (!error) return;
+      const request = pendingRequests.get(id);
+      if (!request) return;
+      pendingRequests.delete(id);
+      request.reject(error);
+    };
+    try {
+      activeWorker.send({ id, type, payload }, onSend);
+    } catch (error) {
+      onSend(error);
+    }
   });
 }
 

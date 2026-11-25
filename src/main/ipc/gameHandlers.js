@@ -66,6 +66,10 @@ function registerGameHandlers() {
   ipcMain.handle("scan-proton-versions", (_event, refresh) =>
     gameManager.scanProtonVersions(refresh === true),
   );
+  ipcMain.handle("verify-proton-path", async (_event, selectedPath) => {
+    const { protonPath } = await require("../settings").loadSettingsAsync();
+    return require("../game/launchProton").verifyProtonPath(selectedPath, protonPath);
+  });
 }
 
 module.exports = {

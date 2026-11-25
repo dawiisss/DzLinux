@@ -782,6 +782,26 @@ main {
   color: var(--accent);
 }
 
+.table-text-button {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  padding: 0;
+  text-align: inherit;
+  text-transform: inherit;
+}
+
+.table-text-button:enabled {
+  cursor: pointer;
+}
+
+.table-text-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
 .sort-indicator {
   margin-left: 4px;
   font-size: 0.65rem;

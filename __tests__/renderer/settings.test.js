@@ -101,6 +101,31 @@ describe("renderer settings reconciliation and startup history", () => {
     };
   });
 
+  test("disabling filter auto-save writes only that preference", async () => {
+    const { toggleFilterMenu } = jest.requireActual("../../src/renderer/ui-behavior.js");
+    state.settings.autoSaveFilters = true;
+    toggleFilterMenu();
+    document.getElementById("chk-auto-save-filters").click();
+    await flush();
+    expect(window.api.settings.save).toHaveBeenCalledWith({ autoSaveFilters: false });
+    expect(state.settings.autoSaveFilters).toBe(false);
+  });
+
+  test("server sort buttons update the header's announced sort direction", () => {
+    const { initUIBehavior } = jest.requireActual("../../src/renderer/ui-behavior.js");
+    state.sort = { column: "players", direction: "desc" };
+    initUIBehavior();
+    const name = document.getElementById("th-name");
+    const players = document.getElementById("th-players");
+    expect(players.getAttribute("aria-sort")).toBe("descending");
+    const button = name.querySelector("button");
+    button.focus();
+    expect(document.activeElement).toBe(button);
+    button.click();
+    expect(name.getAttribute("aria-sort")).toBe("ascending");
+    expect(players.hasAttribute("aria-sort")).toBe(false);
+  });
+
   test("clearing Workshop path and saving reconciles rediscovered path into DOM and state (R18)", async () => {
     await initSettings();
     const modDirInput = document.getElementById("modDirectory");

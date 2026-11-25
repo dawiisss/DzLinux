@@ -63,7 +63,7 @@ export function initContextMenu() {
     };
 
     addMenuItem("Quick Connect", PLUG_SVG, () => {
-      document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server, options: { forceModQuery: Boolean(row.closest("#favorites")) } } }));
+      document.dispatchEvent(new CustomEvent("dzlinux:connect-server", { detail: { server } }));
     });
 
     const isFav = state.favoritesSet.has(favoriteKey(server.ip, server.port));

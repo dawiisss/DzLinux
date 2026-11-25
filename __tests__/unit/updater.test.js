@@ -25,6 +25,9 @@ jest.mock("electron-updater", () => ({
 }));
 
 const { compareVersions, isSystemInstall, isAppImage } = require("../../src/main/updater");
+const fs = require("node:fs/promises");
+const os = require("node:os");
+const path = require("node:path");
 
 describe("compareVersions", () => {
   test("equal versions return 0", () => {
@@ -324,35 +327,46 @@ describe("checkForUpdates", () => {
   const { checkForUpdates } = require("../../src/main/updater");
   const { autoUpdater } = require("electron-updater");
   const originalAppImage = process.env.APPIMAGE;
+  let tempDir;
+  let appImage;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     jest.clearAllMocks();
     delete process.env.APPIMAGE;
     autoUpdater.checkForUpdates.mockResolvedValue({ updateInfo: { version: "2.0.0" } });
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "dzlinux-update-test-"));
+    appImage = path.join(tempDir, "DzLinux.AppImage");
+    await fs.writeFile(appImage, "fixture");
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     jest.restoreAllMocks();
     if (originalAppImage === undefined) delete process.env.APPIMAGE;
     else process.env.APPIMAGE = originalAppImage;
+    await fs.rm(tempDir, { recursive: true, force: true });
   });
 
   test("waits for metadata and returns the updater's version and release notes", async () => {
-    process.env.APPIMAGE = "/tmp/DzLinux.AppImage";
+    process.env.APPIMAGE = appImage;
     jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0" } });
     electron.app.getVersion.mockReturnValue("1.0.0");
     let finishMetadata;
-    autoUpdater.checkForUpdates.mockImplementation(() => new Promise(resolve => { finishMetadata = resolve; }));
+    let startMetadata;
+    const metadataStarted = new Promise(resolve => { startMetadata = resolve; });
+    autoUpdater.checkForUpdates.mockImplementation(() => new Promise(resolve => {
+      finishMetadata = resolve;
+      startMetadata();
+    }));
     let settled = false;
     const check = checkForUpdates().then(result => { settled = true; return result; });
-    await Promise.resolve();
+    await metadataStarted;
     expect(settled).toBe(false);
     finishMetadata({ updateInfo: { version: "2.0.1", releaseNotes: [{ note: "Fix A" }, { note: "Fix B" }] } });
     expect(await check).toMatchObject({ kind: "available", updateInfo: { version: "2.0.1", releaseNotes: "Fix A\nFix B" } });
   });
 
   test("metadata failure reports an error instead of offering a download", async () => {
-    process.env.APPIMAGE = "/tmp/DzLinux.AppImage";
+    process.env.APPIMAGE = appImage;
     jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0" } });
     electron.app.getVersion.mockReturnValue("1.0.0");
     autoUpdater.checkForUpdates.mockRejectedValue(new Error("Metadata unavailable"));
@@ -360,7 +374,7 @@ describe("checkForUpdates", () => {
   });
 
   test("does not offer an update absent from updater metadata", async () => {
-    process.env.APPIMAGE = "/tmp/DzLinux.AppImage";
+    process.env.APPIMAGE = appImage;
     jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0" } });
     electron.app.getVersion.mockReturnValue("1.0.0");
     autoUpdater.checkForUpdates.mockResolvedValue({ updateInfo: { version: "1.0.0" } });
@@ -408,9 +422,7 @@ describe("checkForUpdates", () => {
   });
 
   test("returns available with null downloadUrl and triggers autoUpdater on AppImage", async () => {
-    const originalAppImage = process.env.APPIMAGE;
-    process.env.APPIMAGE = "/path/to/AppImage";
-    const { autoUpdater } = require("electron-updater");
+    process.env.APPIMAGE = appImage;
 
     jest.spyOn(axios, "get").mockResolvedValue({
       data: {
@@ -429,11 +441,16 @@ describe("checkForUpdates", () => {
     expect(result.updateInfo.downloadUrl).toBeNull();
     expect(autoUpdater.checkForUpdates).toHaveBeenCalled();
 
-    // cleanup
-    if (originalAppImage === undefined) {
-      delete process.env.APPIMAGE;
-    } else {
-      process.env.APPIMAGE = originalAppImage;
-    }
+  });
+
+  test("offers the release page for an AppImage in a protected directory", async () => {
+    const releaseUrl = "https://github.com/dawiisss/DzLinux/releases/tag/v2.0.0";
+    process.env.APPIMAGE = appImage;
+    jest.spyOn(fs, "access").mockRejectedValue(Object.assign(new Error("Permission denied"), { code: "EACCES" }));
+    jest.spyOn(axios, "get").mockResolvedValue({ data: { tag_name: "v2.0.0", html_url: releaseUrl } });
+    electron.app.getVersion.mockReturnValue("1.0.0");
+
+    await expect(checkForUpdates()).resolves.toMatchObject({ kind: "available", updateInfo: { downloadUrl: releaseUrl } });
+    expect(autoUpdater.checkForUpdates).not.toHaveBeenCalled();
   });
 });

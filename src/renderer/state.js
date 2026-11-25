@@ -19,6 +19,7 @@ export const state = {
 
   // Server browser
   allServers: [],
+  hostedListAvailable: true,
   serverDataRevision: 0,
   filters: {
     name: "",
@@ -165,7 +166,7 @@ export function setFiltersFromSettings(settings) {
   state.flags.hideLocked = settings.flagHideLocked || false;
 }
 
-export async function saveFiltersToSettings() {
+export async function saveFiltersToSettings({ enableAutoSave = false } = {}) {
   if (!state.settings) return;
   const filterPatch = {
     filterName: state.filters.name,
@@ -180,9 +181,9 @@ export async function saveFiltersToSettings() {
     flagHistoryOnly: state.flags.historyOnly,
     flagHideLocked: state.flags.hideLocked,
   };
-  Object.assign(state.settings, filterPatch);
-
-  if (window.api && window.api.settings && window.api.settings.save) {
-    await window.api.settings.save(filterPatch);
+  if (enableAutoSave) filterPatch.autoSaveFilters = true;
+  if (window.api?.settings?.save && await window.api.settings.save(filterPatch) === false) {
+    throw new Error("Could not save server filters");
   }
+  Object.assign(state.settings, filterPatch);
 }

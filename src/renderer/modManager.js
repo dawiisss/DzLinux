@@ -691,19 +691,17 @@ export async function triggerSteamworksSync(modId, modName, statusLabel) {
   }
 }
 
-export function getFlatListFromTree(tree) {
-  const list = [];
-  const seen = new Set();
+function summarizeDependencyTree(tree, installedSet) {
+  const missing = new Set();
+  let incomplete = false;
   function traverse(node) {
     if (!node || !node.id) return;
-    if (!seen.has(node.id)) {
-      seen.add(node.id);
-      list.push({ id: node.id, name: node.name });
-    }
+    if (node.error || node.truncated || node.circular) incomplete = true;
+    if (node.id !== tree.id && !installedSet.has(node.id)) missing.add(node.id);
     for (const child of node.children || []) traverse(child);
   }
   traverse(tree);
-  return list;
+  return { missing, incomplete };
 }
 
 export function buildDependencyTree(container, node, prefix, installedSet) {
@@ -727,14 +725,16 @@ export function buildDependencyTree(container, node, prefix, installedSet) {
       extraInfo = `<span style="color:#ff5a5f;font-size:0.7rem;"> [Error: ${escapeHtml(child.error)}]</span>`;
     } else if (child.truncated) {
       statusIcon = "alert";
-      statusLabel = "Max depth reached";
+      statusLabel = "Scan limit reached";
       statusColor = "#ffb703";
-      extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Max depth reached]</span>`;
+      extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Scan limit reached]</span>`;
     } else if (child.circular) {
       statusIcon = "refresh";
       statusLabel = "Circular reference";
       statusColor = "#ffb703";
       extraInfo = `<span style="color:#ffb703;font-size:0.7rem;"> [Circular reference]</span>`;
+    } else if (child.shared) {
+      extraInfo = `<span style="color:var(--text-muted);font-size:0.7rem;"> [Listed above]</span>`;
     }
 
     const line = document.createElement("div");
@@ -756,142 +756,181 @@ export async function initModManager() {
     .getElementById("refreshModsBtn")
     .addEventListener("click", () => loadInstalledMods({ force: true }));
 
-  document
-    .getElementById("checkDepsBtn")
-    .addEventListener("click", async () => {
-      const depsContainer = document.getElementById("dependencyTreeContainer");
-      depsContainer.style.display = "block";
-      depsContainer.innerHTML =
-        "<div style=\"color:var(--accent);font-family:'Share Tech Mono',monospace;padding:15px;\">Resolving Dependency Trees...</div>";
+  const depsContainer = document.getElementById("dependencyTreeContainer");
+  let activeScan = null;
+  let nextScanId = 0;
+  const cancelScan = () => {
+    if (activeScan === null) return;
+    window.api.deps.cancelBatch(activeScan);
+    activeScan = null;
+  };
+  document.addEventListener("dzlinux:tab-changed", ({ detail }) => {
+    if (detail?.tab !== "mods" && activeScan !== null) {
+      cancelScan();
+      depsContainer.style.display = "none";
+    }
+  });
+  document.getElementById("checkDepsBtn").addEventListener("click", async () => {
+    cancelScan();
+    const requestId = ++nextScanId;
+    activeScan = requestId;
+    depsContainer.style.display = "block";
+    depsContainer.innerHTML =
+      "<div style=\"color:var(--accent);font-family:'Share Tech Mono',monospace;padding:15px;\">Resolving dependencies…</div>";
 
-      await refreshLocalModsCache();
+    try {
+      const installedScan = await refreshLocalModsCache();
+      if (activeScan !== requestId) return;
+      const installedComplete = installedScan?.status === "complete" && !installedScan.stale;
       if (state.localMods.length === 0) {
-        depsContainer.innerHTML =
-          '<div style="color:var(--text-dim);padding:15px;">No Mods To Analyze.</div>';
+        const emptyNotice = document.createElement("div");
+        emptyNotice.style.color = "var(--text-dim)";
+        emptyNotice.style.padding = "15px";
+        emptyNotice.textContent = installedComplete || installedScan?.reason === "not-configured"
+          ? "No mods to analyze." : "Could not verify installed mods.";
+        depsContainer.replaceChildren(emptyNotice);
         return;
       }
+      const result = await window.api.deps.resolveBatch(
+        state.localMods.map((m) => m.id), requestId,
+      );
+      if (activeScan !== requestId || !result) return;
+      const { trees, omittedRoots } = result;
+      depsContainer.replaceChildren();
 
-      try {
-        const trees = await window.api.deps.resolveBatch(
-          state.localMods.map((m) => m.id),
-        );
-        depsContainer.replaceChildren();
+      const missingDepsSet = new Set();
+      let hasErrors = omittedRoots > 0 || trees.length === 0 || !installedComplete;
+      const installedSet = state.localModsSet;
 
-        const missingDepsSet = new Set();
-        let hasErrors = false;
-        const installedSet = state.localModsSet;
+      trees.forEach((tree) => {
+        if (!tree || !tree.id) return;
+        const { missing, incomplete } = summarizeDependencyTree(tree, installedSet);
+        if (incomplete) hasErrors = true;
+        const card = document.createElement("div");
+        card.style.background = "var(--bg-card)";
+        card.style.border = "1px solid var(--border)";
+        card.style.borderRadius = "6px";
+        card.style.padding = "12px 16px";
+        card.style.marginBottom = "8px";
 
-        trees.forEach((tree) => {
-          if (!tree || !tree.id) return;
-          if (tree.error || tree.truncated || tree.circular) hasErrors = true;
-          const card = document.createElement("div");
-          card.style.background = "var(--bg-card)";
-          card.style.border = "1px solid var(--border)";
-          card.style.borderRadius = "6px";
-          card.style.padding = "12px 16px";
-          card.style.marginBottom = "8px";
+        let statusIndicator = "";
+        let statusColor = "";
+        let depsText = `${tree.children.length} Dep${tree.children.length !== 1 ? "s" : ""}`;
+        if (tree.error) {
+          statusColor = "#ff5a5f";
+          statusIndicator = `<app-icon name="alert" aria-hidden="true"></app-icon> API error`;
+          depsText = "Failed";
+        } else if (incomplete) {
+          statusColor = "#ffb703";
+          statusIndicator = `<app-icon name="alert" aria-hidden="true"></app-icon> Incomplete`;
+        } else if (missing.size > 0) {
+          statusColor = "#ff5a5f";
+          statusIndicator = `${missing.size} Missing`;
+        } else {
+          statusColor = "var(--accent-green)";
+          statusIndicator = `<app-icon name="check" aria-hidden="true"></app-icon> Verified`;
+        }
 
-          const flatList = getFlatListFromTree(tree);
-          const missingChildren = flatList.filter(
-            (c) => c.id !== tree.id && !installedSet.has(c.id),
-          );
+        const expandable = tree.children.length > 0;
+        const header = document.createElement(expandable ? "button" : "div");
+        if (expandable) {
+          header.type = "button";
+          header.className = "table-text-button";
+          header.style.width = "100%";
+          header.setAttribute("aria-expanded", "false");
+        }
+        header.style.display = "flex";
+        header.style.justifyContent = "space-between";
+        header.style.alignItems = "center";
+        header.innerHTML = `
+        <span style="font-weight:600;color:var(--text-main);font-size:0.9rem;">
+          ${escapeHtml(tree.name || `Mod ${tree.id}`)}
+          <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;margin-left:8px;">(${escapeHtml(String(tree.id))})</span>
+        </span>
+        <span style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:0.75rem;color:var(--text-muted);font-family:'Share Tech Mono',monospace;">${depsText}</span>
+          <span style="font-size:0.75rem;color:${statusColor};font-weight:700;">${statusIndicator}</span>
+        </span>
+      `;
+        card.appendChild(header);
 
-          let statusIndicator = "";
-          let statusColor = "";
-          let depsText = `${tree.children.length} Dep${tree.children.length !== 1 ? "s" : ""}`;
-          if (tree.error) {
-            statusColor = "#ff5a5f";
-            statusIndicator = `<app-icon name="alert" aria-hidden="true"></app-icon> API error`;
-            depsText = "Failed";
-          } else if (tree.truncated) {
-            statusColor = "#ffb703";
-            statusIndicator = `<app-icon name="alert" aria-hidden="true"></app-icon> Truncated (max depth)`;
-          } else if (tree.circular) {
-            statusColor = "#ffb703";
-            statusIndicator = `<app-icon name="refresh" aria-hidden="true"></app-icon> Circular ref`;
-          } else if (missingChildren.length > 0) {
-            statusColor = "#ff5a5f";
-            statusIndicator = `${missingChildren.length} Missing`;
-          } else {
-            statusColor = "var(--accent-green)";
-            statusIndicator = `<app-icon name="check" aria-hidden="true"></app-icon> OK`;
-          }
+        if (expandable) {
+          const treeDiv = document.createElement("div");
+          treeDiv.style.marginTop = "10px";
+          treeDiv.hidden = true;
+          card.appendChild(treeDiv);
 
-          const header = document.createElement("div");
-          header.style.display = "flex";
-          header.style.justifyContent = "space-between";
-          header.style.alignItems = "center";
-          header.style.cursor =
-            tree.children.length > 0 || tree.error ? "pointer" : "default";
-          header.innerHTML = `
-          <div style="font-weight:600;color:var(--text-main);font-size:0.9rem;">
-            ${escapeHtml(tree.name || `Mod ${tree.id}`)}
-            <span style="color:var(--text-muted);font-weight:400;font-size:0.75rem;margin-left:8px;">(${escapeHtml(String(tree.id))})</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:0.75rem;color:var(--text-muted);font-family:'Share Tech Mono',monospace;">${depsText}</span>
-            <span style="font-size:0.75rem;color:${statusColor};font-weight:700;">${statusIndicator}</span>
-          </div>
-        `;
-          card.appendChild(header);
-
-          if (tree.children.length > 0 && !tree.error) {
-            const treeDiv = document.createElement("div");
-            treeDiv.style.marginTop = "10px";
-            treeDiv.style.display = "none";
-            buildDependencyTree(treeDiv, tree, "", installedSet);
-            card.appendChild(treeDiv);
-
-            header.addEventListener("click", () => {
-              const isVisible = treeDiv.style.display !== "none";
-              treeDiv.style.display = isVisible ? "none" : "block";
-            });
-          }
-
-          depsContainer.appendChild(card);
-
-          missingChildren.forEach((c) => {
-            missingDepsSet.add(c.id);
+          header.addEventListener("click", () => {
+            if (!treeDiv.hasChildNodes()) buildDependencyTree(treeDiv, tree, "", installedSet);
+            treeDiv.hidden = !treeDiv.hidden;
+            header.setAttribute("aria-expanded", String(!treeDiv.hidden));
           });
-        });
-
-        const totalMissingDeps = missingDepsSet.size;
-
-        if (totalMissingDeps > 0) {
-          const warningBanner = document.createElement("div");
-          warningBanner.style.marginTop = "12px";
-          warningBanner.style.padding = "10px 15px";
-          warningBanner.style.background = "rgba(255,90,95,0.1)";
-          warningBanner.style.border = "1px solid #ff5a5f";
-          warningBanner.style.borderRadius = "4px";
-          warningBanner.style.color = "#ff5a5f";
-          warningBanner.style.fontSize = "0.85rem";
-          warningBanner.style.fontWeight = "700";
-          warningBanner.innerHTML = `<app-icon name="alert" aria-hidden="true"></app-icon> ${totalMissingDeps} Missing transitive dependencies detected — Subscribe via Workshop to resolve`;
-          depsContainer.insertBefore(warningBanner, depsContainer.firstChild);
         }
 
-        if (!hasErrors && totalMissingDeps === 0) {
-          const okBanner = document.createElement("div");
-          okBanner.style.marginTop = "12px";
-          okBanner.style.padding = "10px 15px";
-          okBanner.style.background = "rgba(46,196,182,0.1)";
-          okBanner.style.border = "1px solid var(--accent-green)";
-          okBanner.style.borderRadius = "4px";
-          okBanner.style.color = "var(--accent-green)";
-          okBanner.style.fontSize = "0.85rem";
-          okBanner.style.fontWeight = "700";
-          okBanner.style.fontFamily = "'Share Tech Mono', monospace";
-          okBanner.innerHTML = `<app-icon name="check" aria-hidden="true"></app-icon> All dependencies satisfied`;
-          depsContainer.insertBefore(okBanner, depsContainer.firstChild);
+        depsContainer.appendChild(card);
 
-          setTimeout(() => {
-            depsContainer.style.display = "none";
-          }, 3000);
-        }
-      } catch (e) {
-        depsContainer.innerHTML = `<div style="color:#ff5a5f;padding:15px;">Failed to resolve dependencies: ${escapeHtml(e.message)}</div>`;
-        console.error("Dependency resolver error:", e);
+        for (const id of missing) missingDepsSet.add(id);
+      });
+
+      const totalMissingDeps = missingDepsSet.size;
+
+      if (hasErrors) {
+        const notice = document.createElement("div");
+        notice.style.marginTop = "12px";
+        notice.style.marginBottom = "8px";
+        notice.style.padding = "10px 15px";
+        notice.style.background = "rgba(255,183,3,0.1)";
+        notice.style.border = "1px solid #ffb703";
+        notice.style.borderRadius = "4px";
+        notice.style.color = "#ffb703";
+        notice.style.fontSize = "0.85rem";
+        notice.style.fontWeight = "700";
+        const icon = document.createElement("app-icon");
+        icon.setAttribute("name", "alert");
+        icon.setAttribute("aria-hidden", "true");
+        notice.appendChild(icon);
+        notice.appendChild(document.createTextNode(
+          omittedRoots > 0
+            ? ` Dependency check incomplete. ${omittedRoots} installed mods could not be included.`
+            : " Dependency check incomplete. Some requirements could not be verified.",
+        ));
+        depsContainer.prepend(notice);
       }
-    });
+
+      if (totalMissingDeps > 0) {
+        const warningBanner = document.createElement("div");
+        warningBanner.style.marginTop = "12px";
+        warningBanner.style.padding = "10px 15px";
+        warningBanner.style.background = "rgba(255,90,95,0.1)";
+        warningBanner.style.border = "1px solid #ff5a5f";
+        warningBanner.style.borderRadius = "4px";
+        warningBanner.style.color = "#ff5a5f";
+        warningBanner.style.fontSize = "0.85rem";
+        warningBanner.style.fontWeight = "700";
+        warningBanner.innerHTML = `<app-icon name="alert" aria-hidden="true"></app-icon> ${totalMissingDeps} Missing transitive dependencies detected — Subscribe via Workshop to resolve`;
+        depsContainer.insertBefore(warningBanner, depsContainer.firstChild);
+      }
+
+      if (!hasErrors && totalMissingDeps === 0) {
+        const okBanner = document.createElement("div");
+        okBanner.style.marginTop = "12px";
+        okBanner.style.padding = "10px 15px";
+        okBanner.style.background = "rgba(46,196,182,0.1)";
+        okBanner.style.border = "1px solid var(--accent-green)";
+        okBanner.style.borderRadius = "4px";
+        okBanner.style.color = "var(--accent-green)";
+        okBanner.style.fontSize = "0.85rem";
+        okBanner.style.fontWeight = "700";
+        okBanner.style.fontFamily = "'Share Tech Mono', monospace";
+        okBanner.innerHTML = `<app-icon name="check" aria-hidden="true"></app-icon> All dependencies satisfied`;
+        depsContainer.insertBefore(okBanner, depsContainer.firstChild);
+      }
+    } catch (e) {
+      if (activeScan !== requestId) return;
+      depsContainer.innerHTML = `<div style="color:#ff5a5f;padding:15px;">Failed to resolve dependencies: ${escapeHtml(e.message)}</div>`;
+      console.error("Dependency resolver error:", e);
+    } finally {
+      if (activeScan === requestId) activeScan = null;
+    }
+  });
 }

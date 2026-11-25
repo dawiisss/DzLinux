@@ -82,10 +82,14 @@ test("a slow older server query cannot launch after a newer selection", async ()
 
 test("an older mod verification cannot open a modal over a newer connection", async () => {
   const slow = deferred();
+  const started = deferred();
   state.allServers = [{ ip: "1.2.3.4", port: 2302, mods: [{ id: "123", name: "A" }] }];
-  window.api.game.checkRequired.mockImplementationOnce(() => slow.promise);
+  window.api.game.checkRequired.mockImplementationOnce(() => {
+    started.resolve();
+    return slow.promise;
+  });
   const first = connectToServer("1.2.3.4", 2302);
-  await Promise.resolve();
+  await started.promise;
   await connectToServer("2.3.4.5", 2302);
   slow.resolve({ missingMods: [{ id: "123", name: "A" }], hasAllMods: false });
   await first;
@@ -117,6 +121,7 @@ test("cancelling while the final mod scan is pending prevents automatic launch",
   try {
     const mod = { id: "123", name: "A" };
     state.allServers = [{ ip: "1.2.3.4", port: 2302, mods: [mod] }];
+    window.api.servers.queryMods.mockResolvedValue([mod]);
     window.api.steamworks = { downloadInfo: jest.fn().mockResolvedValue(null) };
     window.api.game.checkRequired.mockResolvedValueOnce({ missingMods: [mod], hasAllMods: false });
     const scan = deferred();
@@ -135,12 +140,12 @@ test("cancelling while the final mod scan is pending prevents automatic launch",
   }
 });
 
-test("History reconnect always queries fresh requirements despite cached browser mods", async () => {
+test("Server Browser Connect always queries fresh requirements despite cached mods", async () => {
   const stale = [{ id: "111", name: "Old mod" }];
   const fresh = [{ id: "222", name: "New mod" }];
   state.allServers = [{ ip: "1.2.3.4", port: 2302, queryPort: 27016, mods: stale }];
   window.api.servers.queryMods.mockResolvedValue(fresh);
-  await connectToServer("1.2.3.4", 2302, { forceModQuery: true });
+  await connectToServer("1.2.3.4", 2302);
   expect(window.api.servers.queryMods).toHaveBeenCalledWith("1.2.3.4", 2302, 27016, expect.any(String));
   expect(window.api.game.checkRequired).toHaveBeenCalledWith(fresh);
   expect(window.api.game.launch).toHaveBeenCalledWith("1.2.3.4", 2302, fresh);
@@ -149,14 +154,14 @@ test("History reconnect always queries fresh requirements despite cached browser
 test("a successful empty fresh list launches vanilla without cached mods", async () => {
   state.allServers = [{ ip: "1.2.3.4", port: 2302, mods: [{ id: "111", name: "Old mod" }] }];
   window.api.servers.queryMods.mockResolvedValue([]);
-  await connectToServer("1.2.3.4", 2302, { forceModQuery: true });
+  await connectToServer("1.2.3.4", 2302);
   expect(window.api.game.launch).toHaveBeenCalledWith("1.2.3.4", 2302, []);
 });
 
 test.each([null, "invalid"])("failed or invalid fresh requirements stop the join: %s", async (result) => {
   state.allServers = [{ ip: "1.2.3.4", port: 2302, mods: [{ id: "111" }] }];
   window.api.servers.queryMods.mockResolvedValue(result);
-  await connectToServer("1.2.3.4", 2302, { forceModQuery: true });
+  await connectToServer("1.2.3.4", 2302);
   expect(window.api.game.checkRequired).not.toHaveBeenCalled();
   expect(window.api.game.launch).not.toHaveBeenCalled();
 });
@@ -165,7 +170,7 @@ test("History context supplies identity and query port when a server is absent f
   state.settings.enableHistory = true;
   window.api.history = { record: jest.fn().mockResolvedValue(null) };
   const context = { ip: "1.2.3.4", port: 2302, queryPort: 27016, name: "Historical server", map: "enoch" };
-  await connectToServer("1.2.3.4", 2302, { forceModQuery: true, serverContext: context });
+  await connectToServer("1.2.3.4", 2302, { serverContext: context });
   expect(window.api.servers.queryMods).toHaveBeenCalledWith("1.2.3.4", 2302, 27016, expect.any(String));
   expect(window.api.history.record).toHaveBeenCalledWith(expect.objectContaining({ name: "Historical server", map: "enoch", queryPort: 27016 }));
 });
@@ -230,7 +235,7 @@ test("cancelled fresh queries cannot launch and release their queued query", asy
   const query = deferred();
   window.api.servers.cancelPingRequest = jest.fn();
   window.api.servers.queryMods.mockReturnValue(query.promise);
-  const connection = connectToServer("1.2.3.4", 2302, { forceModQuery: true });
+  const connection = connectToServer("1.2.3.4", 2302);
   await Promise.resolve();
   await Promise.resolve();
   const requestId = state.currentModQueryRequestId;

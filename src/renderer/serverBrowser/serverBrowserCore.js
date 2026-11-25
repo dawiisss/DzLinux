@@ -6,8 +6,7 @@ import { MAP_NORMALIZE, EU_COUNTRIES } from "../utils.js";
 // The optional excludeCountryFilter flag allows other components (like dropdown population)
 // to query server feasibility without considering current country filter state.
 export function serverPassesFilters(server, excludeCountryFilter = false) {
-  if (server.realPing === undefined) return false;
-  if (server.failedPing || server.realPing === -1) return false;
+  if (state.hostedListAvailable && (server.realPing === undefined || server.failedPing || server.realPing === -1)) return false;
 
   const term = state.filters.nameLower;
   if (term) {

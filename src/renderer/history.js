@@ -214,7 +214,7 @@ async function joinAgain(record) {
   pendingJoinId = recordId(record);
   renderHistoryTable();
   try {
-    await connectToServer(record.ip, record.port, { serverContext: record, forceModQuery: true });
+    await connectToServer(record.ip, record.port, { serverContext: record });
   } catch (error) {
     showToast("Could not join server: " + error.message, "var(--accent-red)", "alert");
   } finally {

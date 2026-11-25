@@ -50,7 +50,7 @@ async function action(type, id) {
     const entry = current?.entries.find((item) => item.id === id);
     if (!entry) return;
     if (type === "edit") { openWatchEditor(entry, entry); return; }
-    if (type === "connect") { await connectToServer(entry.ip, entry.port, { serverContext: entry, forceModQuery: true }); return; }
+    if (type === "connect") { await connectToServer(entry.ip, entry.port, { serverContext: entry }); return; }
     if (type === "copy") { copyToClipboard(entry.ip + ":" + entry.port); return; }
     if (type === "remove") {
       if (!await showConfirmModal("Remove the watch for " + (entry.name || entry.ip) + "?")) return;

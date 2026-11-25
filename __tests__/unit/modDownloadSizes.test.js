@@ -27,6 +27,7 @@ test("overlapping cards share in-flight Workshop requests", async () => {
   axios.post.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
   const first = getModDownloadSizes(["1", "2"]);
   const second = getModDownloadSizes(["2"]);
+  await Promise.resolve();
   finish(response([item("1", 100), item("2", 200)]));
   expect(await first).toHaveLength(2);
   expect(await second).toEqual([{ id: "2", sizeBytes: 200 }]);

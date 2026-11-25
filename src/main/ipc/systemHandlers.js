@@ -4,11 +4,11 @@
 const { ipcMain, shell, BrowserWindow } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
-const { autoUpdater, checkForUpdates, isSystemInstall } = require("../updater");
+const { autoUpdater, checkForUpdates, isSystemInstall, canUpdateAppImage } = require("../updater");
 const logParser = require("../logParser");
 const systemCheck = require("../systemCheck");
 const { getLogFilePath } = require("../logger");
-const { isAllowedPath } = require("./pathGuard");
+const { resolveAllowedPath } = require("./pathGuard");
 const { isBoundedString } = require("../validation");
 
 function registerSystemHandlers() {
@@ -34,7 +34,8 @@ function registerSystemHandlers() {
     }
     return result;
   });
-  ipcMain.handle("download-update", () => {
+  ipcMain.handle("download-update", async () => {
+    if (!(await canUpdateAppImage())) throw new Error("Update this installation from the release page.");
     return autoUpdater
       .downloadUpdate()
       .then(() => true)
@@ -43,7 +44,8 @@ function registerSystemHandlers() {
         return false;
       });
   });
-  ipcMain.handle("install-update", () => {
+  ipcMain.handle("install-update", async () => {
+    if (!(await canUpdateAppImage())) throw new Error("Update this installation from the release page.");
     autoUpdater.quitAndInstall();
   });
 
@@ -58,21 +60,15 @@ function registerSystemHandlers() {
   });
 
   ipcMain.handle("check-path-exists", async (_event, filePath) => {
-    if (!(await isAllowedPath(filePath))) return false;
-    try {
-      await fs.promises.access(path.resolve(filePath));
-      return true;
-    } catch {
-      return false;
-    }
+    return (await resolveAllowedPath(filePath)) !== null;
   });
 
   ipcMain.handle("get-disk-space", async (_event, dirPath) => {
-    if (!(await isAllowedPath(dirPath)) || !dirPath.startsWith("/")) {
-      return null;
-    }
+    if (typeof dirPath !== "string" || !path.isAbsolute(dirPath)) return null;
+    const allowedPath = await resolveAllowedPath(dirPath);
+    if (!allowedPath) return null;
     try {
-      const stats = await fs.promises.statfs(dirPath);
+      const stats = await fs.promises.statfs(allowedPath);
       const total = stats.blocks * stats.bsize;
       const free = stats.bavail * stats.bsize;
       const used = total - stats.bfree * stats.bsize;

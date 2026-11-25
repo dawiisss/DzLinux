@@ -96,11 +96,15 @@ test.each(["unreachable", "rejected"])("a %s query replaces the loader with an e
 });
 
 test("finishing a collapsed query does not reopen it", async () => {
-  document.getElementById("row-test-server").click();
+  const disclosure = document.querySelector("#row-test-server button.mod-details-toggle");
+  expect(disclosure.getAttribute("aria-expanded")).toBe("true");
+  disclosure.click();
+  expect(disclosure.getAttribute("aria-expanded")).toBe("false");
   resolveQuery([{ id: "123", name: "CF" }]);
   await settleQuery();
   expect(document.getElementById("detail-test-server")).toBeNull();
-  document.getElementById("row-test-server").click();
+  disclosure.click();
+  expect(disclosure.getAttribute("aria-controls")).toBe("detail-test-server");
   expect(document.getElementById("detail-test-server").textContent).toContain("CF");
   expect(window.api.servers.queryMods).toHaveBeenCalledTimes(1);
 });
@@ -338,8 +342,9 @@ test("R13: favorite-placeholder to hosted-row transition preserves expanded deta
   const connectBtn = row.querySelector(".btn-connect");
   connectBtn.focus();
 
-  window.api.servers.fetch = jest.fn().mockResolvedValue([
-    {
+  window.api.servers.fetch = jest.fn().mockResolvedValue({
+    hostedAvailable: true,
+    servers: [{
       id: "custom-192-0-2-55-2302",
       isFavoritePlaceholder: false,
       name: "Now Hosted Server",
@@ -350,8 +355,8 @@ test("R13: favorite-placeholder to hosted-row transition preserves expanded deta
       maxPlayers: 60,
       mods: [{ id: "123", name: "CF" }],
       modded: true,
-    },
-  ]);
+    }],
+  });
   window.api.servers.ping = jest.fn();
 
   await refreshServers(true);

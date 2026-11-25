@@ -78,6 +78,22 @@ describe("logParser", () => {
   }
 
   describe("getRecentLogs", () => {
+    test("finds newer logs in another library and ignores symlinked duplicates", async () => {
+      createLogFile("old.rpt", "Old log");
+      const configured = path.join(tmpDir, "steamapps/compatdata/221100/pfx/drive_c/users/steamuser/AppData/Local/DayZ");
+      await fs.promises.utimes(path.join(configured, "old.rpt"), 1, 1);
+      const secondary = path.join(tmpDir, "secondary");
+      const alias = path.join(tmpDir, "alias");
+      await fs.promises.mkdir(secondary);
+      await fs.promises.writeFile(path.join(secondary, "new.mdmp"), "New crash log");
+      await fs.promises.symlink(secondary, alias);
+      const steamPaths = require("../../src/main/steamPaths");
+      jest.spyOn(steamPaths, "getDayzLogsCandidatePathsAsync").mockResolvedValue([secondary, alias]);
+      const logParser = require("../../src/main/logParser");
+      const logs = await logParser.getRecentLogs();
+      expect(logs.map(log => log.name)).toEqual(["new.mdmp", "old.rpt"]);
+      expect(await logParser.getLogsDirectory()).toBe(secondary);
+    });
     test.each(["EACCES", "ENOENT", "ENOTDIR"])("continues to a readable library after directory enumeration fails with %s", async (code) => {
       const configured = path.join(tmpDir, "steamapps/compatdata/221100/pfx/drive_c/users/steamuser/AppData/Local/DayZ");
       const unreadableFallback = path.join(tmpDir, "unreadable");
@@ -330,7 +346,9 @@ describe("logParser", () => {
 
       const readdirSpy = jest.spyOn(fs.promises, "readdir");
       const snapshot = await logParser.getDiagnosticsSnapshot();
-      expect(readdirSpy).toHaveBeenCalledTimes(1);
+      const checked = readdirSpy.mock.calls.map(([directory]) => directory);
+      expect(checked).toContain(path.join(tmpDir, "steamapps/compatdata/221100/pfx/drive_c/users/steamuser/AppData/Local/DayZ"));
+      expect(new Set(checked).size).toBe(checked.length);
       expect(snapshot.logs).toHaveLength(3);
       expect(snapshot.summary).toEqual(summary);
     });

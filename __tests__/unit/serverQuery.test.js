@@ -395,6 +395,17 @@ describe("serverQuery", () => {
       await serverQuery.getCacheWriteQueue();
     });
 
+    test("connect queries continue past a response without rules and accept a confirmed empty list", async () => {
+      const { serverQuery, mockGameDig } = loadFreshServerQuery();
+      mockGameDig.GameDig.query
+        .mockResolvedValueOnce({ ...onlineState, raw: {} })
+        .mockResolvedValueOnce({ ...onlineState, raw: { dayzMods: {} } });
+      const result = await serverQuery.queryServerGameDig("1.2.3.4", 2302, 27015, undefined, { requireMods: true });
+      expect(result).toMatchObject({ queryPort: 2302, mods: [] });
+      expect(triedPorts(mockGameDig)).toEqual([27015, 2302]);
+      await serverQuery.getCacheWriteQueue();
+    });
+
     test("tries CDN and cached ports before scanning fallbacks", async () => {
       const { serverQuery, mockGameDig } = loadFreshServerQuery();
       seedCacheFile({

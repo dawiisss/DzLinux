@@ -263,7 +263,7 @@ export function updateStatsInlineSync() {
   const allPinged = state.allServers.filter(
     (s) => s.realPing !== undefined && s.realPing !== -1 && !s.failedPing
   );
-  const filteredCount = allPinged.filter((s) => serverPassesFilters(s)).length;
+  const filteredCount = state.allServers.filter((s) => serverPassesFilters(s)).length;
   const totalEl = document.getElementById("statTotalServers");
   if (totalEl) totalEl.textContent = allPinged.length;
   const playersEl = document.getElementById("statTotalPlayers");
@@ -582,8 +582,19 @@ export function refreshServers(isBackground = false) {
       await refreshLocalModsCache();
       if (myGeneration !== state.bgPing.generation) return;
 
-      const finalServers = await window.api.servers.fetch(myGeneration);
+      const { servers: finalServers, hostedAvailable } = await window.api.servers.fetch(myGeneration);
       if (myGeneration !== state.bgPing.generation) return;
+      const availabilityChanged = state.hostedListAvailable !== hostedAvailable;
+      state.hostedListAvailable = hostedAvailable;
+      if (!hostedAvailable && state.allServers.length > 0) {
+        setFooterStatus(false);
+        if (availabilityChanged) {
+          markServerDataChanged();
+          document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+        }
+        void startBackgroundPinging().catch((error) => console.error("Server ping sweep failed:", error));
+        return;
+      }
 
       const previousByAddress = new Map();
       for (const existing of state.allServers) {
@@ -724,11 +735,18 @@ export function refreshServers(isBackground = false) {
         markServerDataChanged();
         document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
       }
-      setFooterStatus(true);
+      setFooterStatus(hostedAvailable);
+      if (hostedAvailable) updateFooterTimestamp();
     } catch (e) {
       if (myGeneration !== state.bgPing.generation) return;
       console.error("Failed to refresh servers", e);
+      const availabilityChanged = state.hostedListAvailable !== false;
+      state.hostedListAvailable = false;
       setFooterStatus(false);
+      if (availabilityChanged && state.allServers.length > 0) {
+        markServerDataChanged();
+        document.dispatchEvent(new CustomEvent("dzlinux:render-servers"));
+      }
     } finally {
       if (inFlightRefreshPromise === runPromise) {
         inFlightRefreshPromise = null;
@@ -742,7 +760,6 @@ export function refreshServers(isBackground = false) {
           btn.removeAttribute("aria-busy");
         }
         updateRefreshProgressIndicator();
-        updateFooterTimestamp();
         startCountdown();
       }
     }

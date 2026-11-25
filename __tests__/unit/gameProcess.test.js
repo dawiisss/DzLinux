@@ -66,6 +66,7 @@ describe("gameProcess", () => {
       removeProcess(4);
       await waitUntil(() => onEnded.mock.calls.length > 0);
       expect(onEnded).toHaveBeenCalledTimes(1);
+      expect(onEnded).toHaveBeenCalledWith("game-ended");
     });
 
     test("gives up when the game never starts", async () => {
@@ -73,6 +74,7 @@ describe("gameProcess", () => {
       waitForGameEnd(onEnded, { procDir, pollIntervalMs: 5, startTimeoutMs: 0 });
       await waitUntil(() => onEnded.mock.calls.length > 0);
       expect(onEnded).toHaveBeenCalledTimes(1);
+      expect(onEnded).toHaveBeenCalledWith("start-timeout");
     });
 
     test("stops waiting when the process list is unavailable", async () => {
@@ -80,6 +82,7 @@ describe("gameProcess", () => {
       waitForGameEnd(onEnded, { procDir: path.join(procDir, "missing"), pollIntervalMs: 5 });
       await waitUntil(() => onEnded.mock.calls.length > 0);
       expect(onEnded).toHaveBeenCalledTimes(1);
+      expect(onEnded).toHaveBeenCalledWith("proc-unavailable");
     });
   });
 });

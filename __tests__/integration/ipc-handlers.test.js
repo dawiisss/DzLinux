@@ -94,7 +94,7 @@ describe("IPC handler registration", () => {
       saveSettings: jest.fn(() => true),
     }));
     jest.doMock("../../src/main/servers", () => ({
-      fetchDayZServers: jest.fn(() => Promise.resolve([])),
+      fetchDayZServers: jest.fn().mockResolvedValue({ servers: [], hostedAvailable: true }),
     }));
     jest.doMock("../../src/main/favorites", () => ({}));
     jest.doMock("../../src/main/favoritesQueries", () => ({ events: new (require("node:events").EventEmitter)() }));

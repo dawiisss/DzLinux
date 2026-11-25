@@ -4,7 +4,7 @@ const path = require("node:path");
 const { app } = require("electron");
 const { writeJsonAtomically } = require("./fileUtils");
 const { parseLegacy: parseFavoriteAddress } = require("./favoritesModel");
-const { isBoundedString, validateServerAddress } = require("./validation");
+const { isBoundedString, isValidModId, isValidPort, validateServerAddress } = require("./validation");
 
 const CACHE_FILE = path.join(app.getPath("userData"), "server_cache.json");
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -33,16 +33,15 @@ async function loadServerCache() {
     if (
       data.schemaVersion === 2 &&
       data.timestamp &&
-      Date.now() - data.timestamp < CACHE_TTL_MS &&
       Array.isArray(data.servers)
     ) {
-      return data.servers
-        .filter((s) => s && s.isFavoritePlaceholder !== true)
+      const servers = data.servers
+        .filter((s) => s && s.isFavoritePlaceholder !== true && hasValidSourceAddress(s))
         .map((s, idx) => ({
           id: `custom-${s.ip.replace(/\./g, "-")}-${s.port}`,
           isFavoritePlaceholder: false,
           originalIndex: idx,
-          name: s.name || "Unknown Server",
+          name: optionalText(s.name) || "Unknown Server",
           ip: s.ip,
           port: s.port,
           queryPort: s.queryPort || null,
@@ -51,19 +50,20 @@ async function loadServerCache() {
           reportedPlayers: Number.isInteger(s.reportedPlayers) && s.reportedPlayers >= 0 ? s.reportedPlayers : null,
           reportedCapacity: Number.isInteger(s.reportedCapacity) && s.reportedCapacity > 0 ? s.reportedCapacity : null,
           status: s.status || "offline",
-          mods: Array.isArray(s.mods) ? [...s.mods] : [],
+          mods: normalizeSourceMods(s.mods),
           customList: s.customList !== false,
           ping: s.ping,
-          country: s.country || "",
+          country: optionalText(s.country, 20) || "",
           thirdPerson: s.thirdPerson !== false,
           modded: s.modded !== false,
-          time: s.time || "",
-          map: s.map || "",
+          time: optionalText(s.time, 20) || "",
+          map: optionalText(s.map, 100) || "",
           password: s.password === true,
           monetized: s.monetized,
           realPing: s.realPing,
           failedPing: s.failedPing,
         }));
+      return { servers, fresh: Date.now() - data.timestamp < CACHE_TTL_MS };
     }
   } catch (e) {
     if (e.code !== "ENOENT") {
@@ -162,10 +162,10 @@ async function loadModsMetadataCache() {
       for (const [key, entry] of Object.entries(data.entries)) {
         // Only include entries that haven't expired yet
         if (
-          entry.timestamp &&
+          entry?.timestamp &&
           now - entry.timestamp < MODS_METADATA_CACHE_TTL
         ) {
-          validEntries.set(key, entry);
+          validEntries.set(key, { ...normalizeSourceMetadata(entry), timestamp: entry.timestamp });
         }
       }
       console.log(
@@ -208,7 +208,7 @@ async function refreshServerModCache(ip, port, queryPort) {
 
     console.log(`Refreshing mods cache for ${key} via GameDig...`);
     const { queryServerGameDig } = require("./serverQuery");
-    const result = await queryServerGameDig(ip, port, queryPort);
+    const result = await queryServerGameDig(ip, port, queryPort, undefined, { requireMods: true });
 
     // Failure is not evidence that a server is vanilla. Preserve the cache.
     if (!result || !Array.isArray(result.mods)) return null;
@@ -217,7 +217,7 @@ async function refreshServerModCache(ip, port, queryPort) {
       const cache = await loadModsMetadataCache();
       const entry = {
         timestamp: Date.now(),
-        mods: Array.isArray(result.mods) ? result.mods : [],
+        mods: normalizeSourceMods(result.mods),
         country: cache.get(key)?.country || "",
         thirdPerson: result.thirdPerson,
         password: !!result.password,
@@ -263,43 +263,22 @@ async function fetchHostedServers() {
   const fallbackUrl =
     "https://raw.githubusercontent.com/dawiisss/DzLinux/main/hosted_servers.json";
 
-  try {
-    console.log(`Loading hosted servers from ${primaryUrl}...`);
-    const hostedRes = await axiosGetWithRetry(
-      primaryUrl,
-      {
-        timeout: 5000,
-        headers: {
-          "Cache-Control": "no-cache",
-          "Accept-Encoding": "identity",
-        },
-      },
-      2,
-    );
-    if (Array.isArray(hostedRes.data)) {
-      return hostedRes.data;
-    }
-  } catch {
-    console.warn(
-      `Primary CDN failed, falling back to raw github: ${fallbackUrl}`,
-    );
+  for (const [url, headers] of [
+    [primaryUrl, { "Cache-Control": "no-cache", "Accept-Encoding": "identity" }],
+    [fallbackUrl, undefined],
+  ]) {
     try {
-      const hostedFallbackRes = await axiosGetWithRetry(
-        fallbackUrl,
-        { timeout: 5000 },
-        2,
-      );
-      if (Array.isArray(hostedFallbackRes.data)) {
-        return hostedFallbackRes.data;
+      const { data } = await axiosGetWithRetry(url, { timeout: 5000, headers }, 2);
+      if (Array.isArray(data)) {
+        const valid = filterValidSourceServers(data);
+        if (valid.length > 0) return valid;
       }
-    } catch (fallbackErr) {
-      console.error(
-        "Failed to fetch hosted servers from both primary and fallback URLs:",
-        fallbackErr.message,
-      );
+      console.warn(`Invalid hosted server list from ${url}`);
+    } catch (error) {
+      console.warn(`Failed to load hosted servers from ${url}:`, error.message);
     }
   }
-  return [];
+  return null;
 }
 
 async function loadLocalCustomServers() {
@@ -323,6 +302,35 @@ async function loadLocalCustomServers() {
 
 const MAX_SERVER_NAME_LENGTH = 200;
 
+function optionalText(value, maxLength = MAX_SERVER_NAME_LENGTH) {
+  return isBoundedString(value, maxLength) ? value : undefined;
+}
+
+function hasValidSourceAddress(entry) {
+  const validPort = (port) => (typeof port === "number" || typeof port === "string") && isValidPort(port);
+  return validateServerAddress(entry) && validPort(entry.port) &&
+    (entry.queryPort == null || validPort(entry.queryPort));
+}
+
+function normalizeSourceMods(mods) {
+  return Array.isArray(mods) ? mods.filter((mod) => isValidModId(mod?.id)).map((mod) => ({
+    id: String(mod.id), name: optionalText(mod.name) || `Mod ${mod.id}`,
+  })) : [];
+}
+
+function normalizeSourceMetadata(entry) {
+  const metadata = {};
+  for (const [field, limit] of [["country", 20], ["time", 20], ["map", 100]]) {
+    const value = optionalText(entry[field], limit);
+    if (value !== undefined) metadata[field] = value;
+  }
+  for (const field of ["thirdPerson", "modded", "password"]) {
+    if (typeof entry[field] === "boolean") metadata[field] = entry[field];
+  }
+  if (Array.isArray(entry.mods)) metadata.mods = normalizeSourceMods(entry.mods);
+  return metadata;
+}
+
 // Hosted and custom lists are external input: drop entries whose address
 // could not be queried or launched instead of letting one bad row break the
 // whole list.
@@ -331,14 +339,21 @@ function filterValidSourceServers(entries) {
     .map(normalizeSourceServer)
     .filter(
       (entry) =>
-        validateServerAddress(entry) &&
+        hasValidSourceAddress(entry) &&
         (entry.mods === undefined || Array.isArray(entry.mods)) &&
         // A missing name falls back to "Unknown Server"; any other non-string
         // would throw when the renderer searches the list.
         (entry.name === undefined ||
           entry.name === null ||
           isBoundedString(entry.name, MAX_SERVER_NAME_LENGTH)),
-    );
+    )
+    .map(({ ip, port, queryPort, name, ...metadata }) => ({
+      ip,
+      port,
+      ...(queryPort !== undefined && { queryPort }),
+      ...(name !== undefined && { name }),
+      ...normalizeSourceMetadata(metadata),
+    }));
   if (valid.length !== entries.length) {
     console.warn(
       `Skipped ${entries.length - valid.length} hosted/custom server entries with an invalid address, name, or mod list.`,
@@ -478,14 +493,14 @@ function injectFavoritesPlaceholders(servers, favorites, serversMap) {
   }
 }
 
-async function fetchAndApplyMonetization(servers) {
+async function fetchAndApplyMonetization(servers, allowNetwork = true) {
   try {
     let monetizedSet = await loadMonetizationCache();
     if (monetizedSet) {
       console.log(
         `Using cached monetization list (${monetizedSet.size} servers).`,
       );
-    } else {
+    } else if (allowNetwork) {
       console.log("Fetching Monetization List from GitHub...");
       try {
         const ghRes = await axios.get(
@@ -518,6 +533,7 @@ async function fetchAndApplyMonetization(servers) {
       );
     }
 
+    if (!monetizedSet) return;
     servers.forEach((s) => {
       if (monetizedSet.has(`${s.ip}:${s.port}`)) {
         s.monetized = true;
@@ -558,14 +574,14 @@ async function saveVerifiedIpsCache(verifiedServers) {
   }
 }
 
-async function fetchAndApplyVerifiedIps(servers) {
+async function fetchAndApplyVerifiedIps(servers, allowNetwork) {
   try {
     let verifiedServers = await loadVerifiedIpsCache();
     if (verifiedServers) {
       console.log(
         `Using cached verified IPs list (${verifiedServers.length} servers).`,
       );
-    } else {
+    } else if (allowNetwork) {
       console.log("Fetching Verified IPs List...");
       const res = await axios.get(
         "https://raw.githubusercontent.com/dawiisss/DzLinux/main/verified_ips.json",
@@ -599,7 +615,7 @@ async function fetchAndApplyVerifiedIps(servers) {
 
 let currentGenerationId = null;
 
-async function projectUserServerView(sourceServers, settings, isAborted) {
+async function projectUserServerView(sourceServers, settings, isAborted, allowNetwork) {
   const serversMap = new Map();
   const projected = sourceServers.map((s, idx) => {
     const clone = {
@@ -621,12 +637,12 @@ async function projectUserServerView(sourceServers, settings, isAborted) {
   // Reuse the independent monetization cache without changing source cache age.
   const placeholders = projected.filter((server) => server.isFavoritePlaceholder);
   if (placeholders.length > 0) {
-    await fetchAndApplyMonetization(placeholders);
+    await fetchAndApplyMonetization(placeholders, allowNetwork);
     if (isAborted()) return [];
   }
 
   if (settings?.enableTrustScore !== false) {
-    await fetchAndApplyVerifiedIps(projected);
+    await fetchAndApplyVerifiedIps(projected, allowNetwork);
     if (isAborted()) return [];
   }
 
@@ -638,83 +654,46 @@ async function fetchDayZServers(arg1, arg2) {
   const generationId = typeof arg1 === "function" ? arg2 : arg1;
   currentGenerationId = generationId;
   const isAborted = () => generationId !== undefined && currentGenerationId !== generationId;
+  const cancelled = { servers: [], hostedAvailable: false };
 
-  try {
-    if (isAborted()) return [];
-    const settingsManager = require("./settings");
-    const [cachedSource, settings] = await Promise.all([
-      loadServerCache(),
-      settingsManager.loadSettingsAsync(),
-    ]);
-    if (isAborted()) return [];
-
-    // 1. Warm Server cache: project user favorites and trust policy without refetching source
-    if (cachedSource) {
-      console.log(`Using cached server list (${cachedSource.length} servers).`);
-      const projected = await projectUserServerView(
-        cachedSource,
-        settings,
-        isAborted,
-      );
-      if (isAborted()) return [];
-      if (onBatchReceived && projected.length > 0) {
-        onBatchReceived(projected, generationId);
-      }
-      return projected;
-    }
-
-    const modsMetadataCache = await loadModsMetadataCache();
-    if (isAborted()) return [];
-
-    console.log(
-      "Fetching servers from Hosted List and Custom List (Phonebook Pattern)...",
-    );
-
-    // 2. Fetch data sources concurrently
-    const [hostedData, customData] = await Promise.all([
-      fetchHostedServers(),
-      loadLocalCustomServers(),
-    ]);
-
-    if (isAborted()) return [];
-
-    const allCustomData = filterValidSourceServers(hostedData.concat(customData));
-    const sourceMap = new Map();
-
-    // 3. Process custom and hosted servers (source-only)
-    const sourceServers = buildPhonebookServers(
-      allCustomData,
-      modsMetadataCache,
-      sourceMap,
-    );
-
-    // 4. Monetization check & Tagging on source servers
-    await fetchAndApplyMonetization(sourceServers);
-    if (isAborted()) return [];
-
-    // 5. Save source-only list to cache asynchronously (generation-gated)
-    if (sourceServers.length > 0) {
-      await saveServerCache(sourceServers, isAborted);
-    }
-    if (isAborted()) return [];
-
-    // 6. Project user-specific favorites and trust score policy
-    const projected = await projectUserServerView(
-      sourceServers,
-      settings,
-      isAborted,
-    );
-    if (isAborted()) return [];
-
-    if (onBatchReceived && projected.length > 0) {
-      onBatchReceived(projected, generationId);
-    }
-
-    return projected;
-  } catch (e) {
-    console.error("Failed to fetch DayZ servers", e.message);
-    return [];
+  async function finish(source, settings, hostedAvailable) {
+    const servers = await projectUserServerView(source, settings, isAborted, hostedAvailable);
+    if (isAborted()) return cancelled;
+    if (onBatchReceived && servers.length) onBatchReceived(servers, generationId);
+    return { servers, hostedAvailable };
   }
+
+  const settingsManager = require("./settings");
+  const [cachedSource, settings] = await Promise.all([
+    loadServerCache(),
+    settingsManager.loadSettingsAsync(),
+  ]);
+  if (isAborted()) return cancelled;
+  if (cachedSource?.fresh) return finish(cachedSource.servers, settings, true);
+
+  const [hostedData, customData, modsMetadataCache] = await Promise.all([
+    fetchHostedServers(),
+    loadLocalCustomServers(),
+    loadModsMetadataCache(),
+  ]);
+  if (isAborted()) return cancelled;
+
+  const custom = filterValidSourceServers(customData);
+  if (hostedData === null) {
+    const fallback = cachedSource?.servers?.length
+      ? cachedSource.servers
+      : buildPhonebookServers(custom, modsMetadataCache, new Map());
+    return finish(fallback, settings, false);
+  }
+
+  const sourceServers = buildPhonebookServers(hostedData.concat(custom), modsMetadataCache, new Map());
+  await fetchAndApplyMonetization(sourceServers);
+  if (isAborted()) return cancelled;
+  if (sourceServers.length > 0) {
+    await saveServerCache(sourceServers, isAborted);
+  }
+  if (isAborted()) return cancelled;
+  return finish(sourceServers, settings, true);
 }
 
 module.exports = {

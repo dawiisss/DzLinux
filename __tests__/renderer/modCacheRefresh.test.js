@@ -195,3 +195,31 @@ test.each(["complete", "rejected", "cancelled"])("a superseded same-root %s scan
   await newRun;
   expect([...state.localModsSet]).toEqual(["current"]);
 });
+
+test("the dependency scan reports a nested lookup failure and renders details on demand", async () => {
+  const { initModManager } = jest.requireActual("../../src/renderer/modManager.js");
+  state.settings = { modDirectory: "/fixture/mods" };
+  document.body.innerHTML = '<button id="refreshModsBtn"></button><button id="checkDepsBtn"></button><div id="dependencyTreeContainer"></div>';
+  window.api = {
+    mods: { getInstalled: async () => [{ id: "1" }, { id: "2" }] },
+    deps: {
+      resolveBatch: jest.fn().mockResolvedValue({
+        trees: [
+          { id: "1", name: "Parent", children: [{ id: "2", name: "Child", children: [], error: "Lookup failed" }] },
+          { id: "2", name: "Child", children: [] },
+        ],
+        omittedRoots: 0,
+      }),
+      cancelBatch: jest.fn(),
+    },
+  };
+  await initModManager();
+  document.getElementById("checkDepsBtn").click();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const results = document.getElementById("dependencyTreeContainer");
+  expect(results.textContent).toContain("Dependency check incomplete");
+  expect(results.textContent).not.toContain("All dependencies satisfied");
+  expect(results.textContent).not.toContain("Lookup failed");
+  results.querySelector("button").click();
+  expect(results.textContent).toContain("Lookup failed");
+});

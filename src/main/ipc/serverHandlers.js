@@ -21,7 +21,7 @@ function registerServerHandlers() {
       return null;
     }
     if (typeof requestId !== "string" || requestId.length > 200) {
-      const result = await queryServerGameDig(ip, port, queryPort);
+      const result = await queryServerGameDig(ip, port, queryPort, undefined, { requireMods: true });
       return result && Array.isArray(result.mods) ? result.mods : null;
     }
     const existing = activePingRequests.get(requestId);
@@ -31,7 +31,7 @@ function registerServerHandlers() {
     const request = new AbortController();
     activePingRequests.set(requestId, request);
     try {
-      const result = await queryServerGameDig(ip, port, queryPort, request.signal);
+      const result = await queryServerGameDig(ip, port, queryPort, request.signal, { requireMods: true });
       return request.signal.aborted || !Array.isArray(result?.mods) ? null : result.mods;
     } finally {
       if (activePingRequests.get(requestId) === request) {

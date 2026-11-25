@@ -92,6 +92,24 @@ async function scanProtonVersions(refresh = false) {
   return unique;
 }
 
+async function verifyProtonPath(selectedPath, configuredPath) {
+  if (typeof selectedPath !== "string" || !path.isAbsolute(selectedPath)) return false;
+  try {
+    if (selectedPath !== configuredPath) {
+      let versions = await scanProtonVersions();
+      if (!versions.some((version) => version.path === selectedPath)) {
+        versions = await scanProtonVersions(true);
+        if (!versions.some((version) => version.path === selectedPath)) return false;
+      }
+    }
+    const executable = await fs.promises.realpath(selectedPath);
+    await fs.promises.access(executable, fs.constants.X_OK);
+    return (await fs.promises.stat(executable)).isFile();
+  } catch {
+    return false;
+  }
+}
+
 async function launchViaProton(args, settings, handleGameExit, assertCurrent = () => {}) {
   if (!settings.protonPath || typeof settings.protonPath !== "string") {
     throw new Error(
@@ -136,7 +154,7 @@ async function launchViaProton(args, settings, handleGameExit, assertCurrent = (
   }
 
   const env = await buildEnvironment(settings, compatDataPath);
-  await configureDxvk(settings, compatDataPath, env);
+  configureDxvk(settings, env);
 
   const prefix = [];
   const launchParamsStr = settings.launchParams || "";
@@ -208,6 +226,7 @@ async function launchViaProton(args, settings, handleGameExit, assertCurrent = (
 module.exports = {
   scanProtonVersions,
   launchViaProton,
+  verifyProtonPath,
   _clearCache: () => {
     cachedProtonVersions = null;
   },

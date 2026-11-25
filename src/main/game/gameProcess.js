@@ -32,8 +32,8 @@ async function isGameRunning(procDir = "/proc") {
 }
 
 /**
- * Calls `onEnded` once the game has started and exited, or once it has failed
- * to appear within the start timeout. The `steam` command cannot be used for
+ * Calls `onEnded` with the outcome of monitoring the DayZ process.
+ * The `steam` command cannot be used for
  * this: it exits immediately when forwarding to a running client, and otherwise
  * lives as long as the client does.
  */
@@ -46,15 +46,16 @@ function waitForGameEnd(onEnded, {
   let seen = false;
 
   const poll = async () => {
-    let running = false;
+    let running;
     try {
       running = await isGameRunning(procDir);
     } catch {
-      seen = true; // Process list unavailable: nothing more can be learned.
+      onEnded("proc-unavailable");
+      return;
     }
     if (running) seen = true;
     if (!running && (seen || Date.now() >= deadline)) {
-      onEnded();
+      onEnded(seen ? "game-ended" : "start-timeout");
       return;
     }
     setTimeout(poll, pollIntervalMs).unref();

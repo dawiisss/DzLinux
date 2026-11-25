@@ -69,6 +69,7 @@ beforeAll(async () => {
   window.api = {
     servers: { queryMods: jest.fn(), refreshModCache: jest.fn(), cancelPingRequest: jest.fn() },
     mods: { getDownloadSizes: jest.fn().mockResolvedValue([]) },
+    settings: { save: jest.fn().mockResolvedValue(true) },
     favorites: {
       getSnapshot: jest.fn().mockResolvedValue({ revision: 0, dataRevision: 0, entries: [], groups: [], observations: {} }),
       onChanged: callback => { onChanged = callback; return () => {}; },
@@ -117,6 +118,15 @@ afterEach(async () => {
 afterAll(() => {
   window.dispatchEvent(new Event("beforeunload"));
   jest.restoreAllMocks();
+});
+
+test("changing Favorites sort writes only Favorites view preferences", async () => {
+  state.settings.playerName = "Old snapshot";
+  const sort = document.getElementById("favoritesSort");
+  sort.value = "name";
+  sort.dispatchEvent(new Event("change"));
+  await settle();
+  expect(window.api.settings.save).toHaveBeenCalledWith({ favoritesViewSort: "name", favoritesViewGroupId: "all" });
 });
 
 test("one automatic query updates expanded details in Browser and Favorites", async () => {

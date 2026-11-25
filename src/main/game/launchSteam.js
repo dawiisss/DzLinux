@@ -2,7 +2,7 @@ const { sanitizeArg } = require("./prepareEnv");
 const { waitForGameEnd } = require("./gameProcess");
 const { spawnWithLaunchLock } = require("./processExit");
 
-async function launchViaSteam(ip, port, modString, extraParams, handleGameExit, assertCurrent = () => {}) {
+async function launchViaSteam(ip, port, modString, extraParams, { handleGameExit, inspectGameLogs, assertCurrent }) {
   const steamArgs = ["-applaunch", "221100", "-noLauncher"];
   if (ip) {
     const portStr = port !== undefined && port !== null ? String(port) : "2302";
@@ -29,7 +29,14 @@ async function launchViaSteam(ip, port, modString, extraParams, handleGameExit, 
     label: "Steam",
     handleGameExit,
     assertCurrent,
-    holdLock: waitForGameEnd,
+    holdLock: (release) => {
+      const startedAt = Date.now();
+      waitForGameEnd((reason) => {
+        release();
+        // A short-lived crash may happen between polls and leave only a log.
+        if (reason !== "proc-unavailable") inspectGameLogs(startedAt);
+      });
+    },
   });
 }
 

@@ -127,6 +127,7 @@ describe("steamworksManager", () => {
       expect.objectContaining({
         type: "getUserProfile",
       }),
+      expect.any(Function),
     );
 
     const sentMsg = mockWorker.send.mock.calls[0][0];
@@ -153,6 +154,28 @@ describe("steamworksManager", () => {
 
     const result = await requestPromise;
     expect(result).toBe(false);
+  });
+
+  test("a failed worker spawn settles the request and allows the next one to restart", async () => {
+    const replacement = createMockWorker();
+    forkSpy.mockReturnValueOnce(mockWorker).mockReturnValueOnce(replacement);
+    const steamworksManager = require("../../src/main/steamworksManager");
+
+    const first = steamworksManager.getModState("123");
+    mockWorker.emit("error", new Error("Worker could not start"));
+    await expect(first).resolves.toBeNull();
+
+    const next = steamworksManager.getModState("456");
+    const [{ id }] = replacement.send.mock.calls[0];
+    replacement.emit("message", { id, result: 4 });
+    await expect(next).resolves.toBe(4);
+    expect(forkSpy).toHaveBeenCalledTimes(2);
+  });
+
+  test("IPC send failure resolves through the caller's fallback", async () => {
+    const steamworksManager = require("../../src/main/steamworksManager");
+    mockWorker.send.mockImplementation((_message, callback) => callback(new Error("Send failed")));
+    await expect(steamworksManager.getDownloadProgress("123")).resolves.toBeNull();
   });
 
   test("worker exit rejects pending requests", async () => {

@@ -11,6 +11,7 @@ import { debounce, countryToFlag, EU_COUNTRIES, isValidIpOrHost, isValidPort } f
 import { hideContextMenu, setCurrentContextMenu } from "./contextMenu.js";
 import { showToast } from "./feedback.js";
 import { connectToServer } from "./serverBrowser/serverBrowserTable.js";
+import { setServerRowExpanded } from "./serverRow.js";
 
 // Set storing currently selected country codes in the filter dropdown
 
@@ -104,7 +105,7 @@ export function switchTab(tabId) {
     document.querySelectorAll('[id^="detail-"]').forEach((el) => el.remove());
     document
       .querySelectorAll(".server-row.expanded")
-      .forEach((el) => el.classList.remove("expanded"));
+      .forEach((el) => setServerRowExpanded(el, false));
   }
 
   document
@@ -514,8 +515,9 @@ export function toggleFilterMenu() {
     iconSpan.innerHTML = `<app-icon name="${iconName}" style="width: 1rem; height: 1rem; vertical-align: middle;"></app-icon>`;
     item.appendChild(iconSpan);
     item.appendChild(document.createTextNode(` ${label}`));
-    item.addEventListener("click", () => {
-      onClick();
+    item.addEventListener("click", async () => {
+      try { await onClick(); }
+      catch (error) { showToast(error.message, "#ff5a5f", "alert"); }
     });
     menu.appendChild(item);
     return item;
@@ -551,20 +553,25 @@ export function toggleFilterMenu() {
   checkbox.style.cursor = "pointer";
 
   checkbox.addEventListener("change", async () => {
-    if (state.settings) {
-      state.settings.autoSaveFilters = checkbox.checked;
-        try {
-          if (checkbox.checked) {
-            await saveFiltersToSettings();
-            showToast("Auto-save enabled and filters saved", "#2ec4b6", "save");
-          } else {
-            await window.api.settings.save(state.settings);
-            showToast("Auto-save disabled", "#ff9f1c", "save");
-          }
-        } catch (err) {
-          console.error("Failed to save auto-save preference:", err);
-          showToast("Could not save auto-save preference", "#ff5a5f", "alert");
+    if (!state.settings) return;
+    checkbox.disabled = true;
+    try {
+      if (checkbox.checked) {
+        await saveFiltersToSettings({ enableAutoSave: true });
+        showToast("Auto-save enabled and filters saved", "#2ec4b6", "save");
+      } else {
+        if (await window.api.settings.save({ autoSaveFilters: false }) === false) {
+          throw new Error("Could not save auto-save preference");
+        }
+        state.settings.autoSaveFilters = false;
+        showToast("Auto-save disabled", "#ff9f1c", "save");
       }
+    } catch (error) {
+      checkbox.checked = state.settings.autoSaveFilters === true;
+      console.error("Failed to save auto-save preference:", error);
+      showToast("Could not save auto-save preference", "#ff5a5f", "alert");
+    } finally {
+      checkbox.disabled = false;
     }
   });
 
@@ -589,6 +596,18 @@ export function toggleFilterMenu() {
 }
 
 // --- Sorting ---
+function updateSortHeaders() {
+  document.querySelectorAll(".server-table th.sortable").forEach((header) => {
+    const active = header.id === `th-${state.sort.column}`;
+    const ascending = state.sort.direction === "asc";
+    header.classList.toggle("sort-active", active);
+    if (active) header.setAttribute("aria-sort", ascending ? "ascending" : "descending");
+    else header.removeAttribute("aria-sort");
+    const indicator = header.querySelector(".sort-indicator");
+    if (indicator) indicator.textContent = active ? (ascending ? "▲" : "▼") : "";
+  });
+}
+
 export function handleSort(column) {
   if (state.sort.column === column) {
     state.sort.direction = state.sort.direction === "asc" ? "desc" : "asc";
@@ -597,17 +616,7 @@ export function handleSort(column) {
     state.sort.direction =
       column === "name" || column === "ip" ? "asc" : "desc";
   }
-  document.querySelectorAll(".server-table th.sortable").forEach((th) => {
-    th.classList.remove("sort-active");
-    const ind = th.querySelector(".sort-indicator");
-    if (ind) ind.textContent = "";
-  });
-  const activeTh = document.getElementById("th-" + column);
-  if (activeTh) {
-    activeTh.classList.add("sort-active");
-    const ind = activeTh.querySelector(".sort-indicator");
-    if (ind) ind.textContent = state.sort.direction === "asc" ? "▲" : "▼";
-  }
+  updateSortHeaders();
   triggerFiltering();
 }
 
@@ -638,13 +647,7 @@ export function initUIBehavior() {
     searchInput.addEventListener("input", doSearch);
   }
 
-  // Set initial sort indicator
-  const th = document.getElementById("th-players");
-  if (th) {
-    th.classList.add("sort-active");
-    const ind = th.querySelector(".sort-indicator");
-    if (ind) ind.textContent = "▼";
-  }
+  updateSortHeaders();
 
   // Global hotkeys: Ctrl+F (focus search) and Ctrl+R (refresh list)
   window.addEventListener("keydown", (e) => {

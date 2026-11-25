@@ -7,6 +7,75 @@ const { state } = require("../../src/renderer/state.js");
 const { applyPingResult } = require("../../src/renderer/utils.js");
 const { startBackgroundPinging, refreshServers } = require("../../src/renderer/serverBrowser/serverBrowserRender.js");
 
+test("an outage keeps visible servers and refresh time while continuing live pings", async () => {
+  jest.useFakeTimers();
+  try {
+    document.body.innerHTML = `
+      <span id="footerStatusText">Connected</span>
+      <span id="footerLastRefresh">Last refresh: 09:00:00</span>
+      <div id="connectionBanner"></div>
+    `;
+    state.settings = { autoRefreshEnabled: false };
+    const hosted = { id: "hosted", name: "Test server", ip: "192.0.2.10", port: 2302, realPing: 20 };
+    state.allServers = [hosted];
+    window.api = { servers: {
+      fetch: jest.fn().mockResolvedValue({
+        hostedAvailable: false,
+        servers: [{ id: "local", ip: "192.0.2.20", port: 2302 }],
+      }),
+      ping: jest.fn().mockResolvedValue({ ping: 22, players: 12 }),
+      cancelPingGeneration: jest.fn(),
+    } };
+
+    await refreshServers(true);
+    await jest.advanceTimersByTimeAsync(0);
+
+    expect(state.allServers).toEqual([hosted]);
+    expect(window.api.servers.ping).toHaveBeenCalledWith(hosted.ip, hosted.port, undefined, expect.any(String));
+    expect(hosted).toMatchObject({ realPing: 22, players: 12 });
+    expect(document.getElementById("footerStatusText").textContent).toBe("Offline");
+    expect(document.getElementById("footerLastRefresh").textContent).toBe("Last refresh: 09:00:00");
+  } finally {
+    state.hostedListAvailable = true;
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  }
+});
+
+test("a rejected server fetch marks hostedListAvailable false and re-renders cached servers", async () => {
+  jest.useFakeTimers();
+  const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+  const renderSpy = jest.fn();
+  document.addEventListener("dzlinux:render-servers", renderSpy);
+  try {
+    document.body.innerHTML = `
+      <span id="footerStatusText">Connected</span>
+      <div id="connectionBanner"></div>
+    `;
+    state.settings = { autoRefreshEnabled: false };
+    state.hostedListAvailable = true;
+    state.allServers = [{ id: "cached", name: "Cached", ip: "192.0.2.30", port: 2302 }];
+    window.api = {
+      servers: {
+        fetch: jest.fn().mockRejectedValue(new Error("IPC failed")),
+        cancelPingGeneration: jest.fn(),
+      },
+    };
+
+    await refreshServers(true);
+
+    expect(state.hostedListAvailable).toBe(false);
+    expect(document.getElementById("footerStatusText").textContent).toBe("Offline");
+    expect(renderSpy).toHaveBeenCalledTimes(1);
+  } finally {
+    document.removeEventListener("dzlinux:render-servers", renderSpy);
+    errorSpy.mockRestore();
+    state.hostedListAvailable = true;
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  }
+});
+
 test("lightweight ping results preserve known Workshop mods and their category", () => {
   const server = { mods: [{ id: "123", name: "Cached mod" }], modded: true };
   applyPingResult(server, { ping: 20, players: 37, mods: null, modded: false });
@@ -81,7 +150,7 @@ test("R10: single-response server refresh preserves measurements already receive
             reportedPlayers: 17,
             reportedCapacity: 80,
           });
-          return [unqueried];
+          return { servers: [unqueried], hostedAvailable: true };
         }),
         ping: jest.fn(),
       },
@@ -141,7 +210,7 @@ test("R11: overlapping manual and auto-refresh with unchanged inputs coalesce in
     await Promise.resolve();
     expect(window.api.servers.fetch).toHaveBeenCalledTimes(1);
 
-    resolveFetch([{ id: "custom-1-1-1-1-2302", ip: "1.1.1.1", port: 2302, name: "One" }]);
+    resolveFetch({ servers: [{ id: "custom-1-1-1-1-2302", ip: "1.1.1.1", port: 2302, name: "One" }], hostedAvailable: true });
     await Promise.all([autoPromise, manualPromise]);
 
     expect(window.api.servers.fetch).toHaveBeenCalledTimes(1);
@@ -199,9 +268,10 @@ test("R12: stale refresh generation completion or failure cannot overwrite newer
     expect(window.api.servers.cancelPingGeneration).toHaveBeenCalled();
 
     // Resolve second (newer) refresh first
-    pendingFetches[1].resolve([
-      { id: "custom-2-2-2-2-2302", ip: "2.2.2.2", port: 2302, name: "Newer Server" },
-    ]);
+    pendingFetches[1].resolve({
+      servers: [{ id: "custom-2-2-2-2-2302", ip: "2.2.2.2", port: 2302, name: "Newer Server" }],
+      hostedAvailable: true,
+    });
     await secondRun;
     expect(state.allServers).toHaveLength(1);
     expect(state.allServers[0].ip).toBe("2.2.2.2");
@@ -250,7 +320,7 @@ test("R10: 15,000 synthetic rows ingest in a single pass with unique entries", a
   try {
     window.api = {
       servers: {
-        fetch: jest.fn().mockResolvedValue(synthetic),
+        fetch: jest.fn().mockResolvedValue({ servers: synthetic, hostedAvailable: true }),
         ping: jest.fn(),
       },
     };
@@ -289,7 +359,7 @@ test("clicking Refresh preserves live A2S server names/metadata instead of rever
   let pingCount = 0;
   window.api = {
     servers: {
-      fetch: jest.fn(async () => [{ ...phonebookEntry }]),
+      fetch: jest.fn(async () => ({ servers: [{ ...phonebookEntry }], hostedAvailable: true })),
       ping: jest.fn(async () => {
         pingCount++;
         return {

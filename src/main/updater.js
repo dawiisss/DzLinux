@@ -1,6 +1,8 @@
 const { autoUpdater } = require("electron-updater");
 const { app } = require("electron");
 const axios = require("axios");
+const fs = require("node:fs");
+const path = require("node:path");
 
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = false;
@@ -8,15 +10,35 @@ autoUpdater.logger = console;
 
 const REPO_OWNER = "dawiisss";
 const REPO_NAME = "DzLinux";
+const RELEASE_PAGE = `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases/latest`;
 
 function isSystemInstall() {
-  if (!app.isPackaged) return false;
+  if (!app.isPackaged || isAppImage()) return false;
   const appPath = app.getAppPath();
   return appPath.startsWith("/opt/") || appPath.startsWith("/usr/");
 }
 
 function isAppImage() {
   return !!process.env.APPIMAGE;
+}
+
+async function canUpdateAppImage() {
+  const image = process.env.APPIMAGE;
+  if (!image || !path.isAbsolute(image)) return false;
+  try {
+    const directory = path.dirname(image);
+    const [parent, imageEntry] = await Promise.all([
+      fs.promises.stat(directory),
+      fs.promises.lstat(image),
+      fs.promises.access(directory, fs.constants.W_OK | fs.constants.X_OK),
+    ]);
+    if (!imageEntry.isFile() && !imageEntry.isSymbolicLink()) return false;
+    // In a sticky directory only the directory owner, entry owner or root can replace the image.
+    const uid = process.getuid?.();
+    return !(parent.mode & 0o1000) || uid === 0 || uid === parent.uid || uid === imageEntry.uid;
+  } catch {
+    return false;
+  }
 }
 
 function splitVersion(version) {
@@ -84,7 +106,7 @@ async function checkForUpdates() {
       return { kind: "not-available", currentVersion };
     }
 
-    const isApp = isAppImage();
+    const isApp = await canUpdateAppImage();
     let appImageInfo;
     if (isApp) {
       const checked = await autoUpdater.checkForUpdates();
@@ -94,16 +116,17 @@ async function checkForUpdates() {
       }
       latestVersion = appImageInfo.version;
     }
+    const downloadUrl = isApp ? null : data.html_url || RELEASE_PAGE;
 
     return {
       kind: "available",
       currentVersion,
-      downloadUrl: isApp ? null : data.html_url,
+      downloadUrl,
       updateInfo: {
         version: latestVersion,
         releaseNotes: appImageInfo ? normalizeReleaseNotes(appImageInfo.releaseNotes) : data.body || "",
         releaseDate: appImageInfo?.releaseDate || data.published_at,
-        downloadUrl: isApp ? null : data.html_url,
+        downloadUrl,
       },
     };
   } catch (err) {
@@ -165,4 +188,5 @@ module.exports = {
   compareVersions,
   isSystemInstall,
   isAppImage,
+  canUpdateAppImage,
 };

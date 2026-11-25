@@ -160,6 +160,40 @@ describe("steamDependencyResolver", () => {
   });
 
   describe("resolveBatchDependencies", () => {
+    test("expands each shared dependency once per tree", async () => {
+      const children = { "1": ["2", "3"], "2": ["4"], "3": ["4"], "4": ["5"], "5": [] };
+      const axios = setupMock();
+      axios.post.mockImplementation(async (_url, body) => {
+        const ids = [...new URLSearchParams(body).values()].slice(1);
+        return { data: { response: { publishedfiledetails: ids.map(id => ({
+          result: 1, publishedfileid: id,
+          children: children[id].map(child => ({ publishedfileid: child })),
+        })) } } };
+      });
+      const { resolveDependencies } = require("../../src/main/steamDependencyResolver");
+      const tree = await resolveDependencies("1");
+      expect(tree.children[0].children[0].children[0].id).toBe("5");
+      expect(tree.children[1].children[0]).toMatchObject({ id: "4", shared: true, children: [] });
+    });
+
+    test("abort removes queued Workshop requests and stops traversal", async () => {
+      const axios = setupMock();
+      const controller = new AbortController();
+      let markStarted;
+      const started = new Promise(resolve => { markStarted = resolve; });
+      axios.post.mockImplementation((_url, _body, { signal }) => {
+        if (axios.post.mock.calls.length === 4) markStarted();
+        return new Promise((_resolve, reject) =>
+          signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
+      });
+      const { resolveBatchDependencies } = require("../../src/main/steamDependencyResolver");
+      const roots = Array.from({ length: 500 }, (_, index) => String(index + 1));
+      const pending = resolveBatchDependencies(roots, { signal: controller.signal });
+      await started;
+      controller.abort();
+      await expect(pending).rejects.toMatchObject({ name: "AbortError" });
+      expect(axios.post).toHaveBeenCalledTimes(4);
+    });
     test("resolves multiple mods", async () => {
       setupMock({
         data: {

@@ -577,8 +577,7 @@
               fill="none"
               stroke="currentColor"
             ></app-icon>
-            Connection lost — Server list may be stale. Check your network
-            connection.
+            Hosted server list unavailable. Saved server details may be out of date.
           </span>
         </div>
         <!-- Stats Bar -->
@@ -620,30 +619,26 @@
                   <th class="col-security" style="width: 40px; text-align: center" title="Server Security & Trust Score">
                     <app-icon name="shield" style="width: 1rem; height: 1rem; vertical-align: middle; color: var(--text-muted);"></app-icon>
                   </th>
-                  <th class="sortable" id="th-name">
-                    Server Name
-                    <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-name" scope="col">
+                    <button class="table-text-button" type="button">Server Name<span class="sort-indicator" aria-hidden="true"></span></button>
                   </th>
-                  <th class="sortable" id="th-players" style="width: 110px">
-                    Players
-                    <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-players" scope="col" style="width: 110px">
+                    <button class="table-text-button" type="button">Players<span class="sort-indicator" aria-hidden="true"></span></button>
                   </th>
                   <th
                     class="sortable"
                     id="th-mods"
+                    scope="col"
                     style="width: 80px; text-align: center"
                   >
-                    Mods
-                    <span class="sort-indicator"></span>
+                    <button class="table-text-button" type="button">Mods<span class="sort-indicator" aria-hidden="true"></span></button>
                   </th>
-                  <th class="sortable" id="th-ping" style="width: 80px">
-                    Ping
-                    <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-ping" scope="col" style="width: 80px">
+                    <button class="table-text-button" type="button">Ping<span class="sort-indicator" aria-hidden="true"></span></button>
                   </th>
                   <th style="width: 250px">Metadata</th>
-                  <th class="sortable" id="th-ip" style="width: 220px">
-                    IP Address
-                    <span class="sort-indicator"></span>
+                  <th class="sortable" id="th-ip" scope="col" style="width: 220px">
+                    <button class="table-text-button" type="button">IP Address<span class="sort-indicator" aria-hidden="true"></span></button>
                   </th>
                   <th style="width: 170px; text-align: right">Action</th>
                 </tr>
@@ -1900,7 +1895,7 @@
             </div>
             <div class="form-group" style="margin-top: 15px">
               <label for="dxvkConfig"
-                >Custom DXVK Configuration (dxvk.conf)</label
+                >Custom DXVK Configuration (DXVK_CONFIG)</label
               >
               <textarea
                 id="dxvkConfig"

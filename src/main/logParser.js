@@ -3,134 +3,59 @@ const path = require("node:path");
 const settingsManager = require("./settings");
 const steamPaths = require("./steamPaths");
 
-/**
- * Finds an enumerable DayZ logs directory and retains its listing for this snapshot.
- *
- * @remarks
- * DayZ writes its `.rpt` logs into its Windows `AppData/Local/DayZ` folder. When running under Proton,
- * this directory is nested deeply inside Steam's `compatdata` prefix. We traverse upwards from the
- * known Mod Directory to locate it, and provide fallbacks for Flatpak or alternative Steam installations.
- *
- * @returns {Promise<{directory: string, files: string[]}|null>} The first readable directory and its files.
- */
 async function discoverLogs() {
-  const attempted = new Set();
-  const tryDirectory = async (directory) => {
-    if (attempted.has(directory)) return null;
-    attempted.add(directory);
+  const candidates = new Set();
+  const settings = await settingsManager.loadSettingsAsync();
+  const modDirectory = typeof settings?.modDirectory === "string" ? settings.modDirectory.trim() : "";
+  if (modDirectory && await fs.promises.access(modDirectory).then(() => true, () => false)) {
+    // Steam normally stores these mods under steamapps/workshop/content/221100.
+    const steamapps = path.resolve(modDirectory, "..", "..", "..");
+    candidates.add(path.join(steamapps, "compatdata", "221100", "pfx", "drive_c",
+      "users", "steamuser", "AppData", "Local", "DayZ"));
+  }
+  for (const directory of await steamPaths.getDayzLogsCandidatePathsAsync()) {
+    candidates.add(directory);
+  }
+
+  let firstReadable = null;
+  const logs = [];
+  const seenDirectories = new Set();
+  for (const directory of candidates) {
+    const canonical = await fs.promises.realpath(directory).catch(() => directory);
+    if (seenDirectories.has(canonical)) continue;
+    seenDirectories.add(canonical);
+    let files;
     try {
-      return { directory, files: await fs.promises.readdir(directory) };
+      files = await fs.promises.readdir(directory);
     } catch (error) {
       if (error.code !== "ENOENT" && error.code !== "ENOTDIR") {
         console.warn(`Unable to enumerate logs in ${directory}:`, error.message);
       }
-      return null;
+      continue;
     }
-  };
-  const settings = await settingsManager.loadSettingsAsync();
-  const configuredModDir =
-    settings && typeof settings.modDirectory === "string"
-      ? settings.modDirectory.trim()
-      : "";
-
-  if (configuredModDir) {
-    const modDirExists = await fs.promises
-      .access(configuredModDir)
-      .then(() => true)
-      .catch(() => false);
-    if (modDirExists) {
-      // Typical structure: steamapps/workshop/content/221100
-      // We want: steamapps/compatdata/221100/pfx/drive_c/users/steamuser/AppData/Local/DayZ
-      // Traverse up 3 levels to get to steamapps
-      const steamappsPath = path.resolve(configuredModDir, "..", "..", "..");
-      const dayzPrefixPath = path.join(
-        steamappsPath,
-        "compatdata",
-        "221100",
-        "pfx",
-        "drive_c",
-        "users",
-        "steamuser",
-        "AppData",
-        "Local",
-        "DayZ",
-      );
-
-      const discovered = await tryDirectory(dayzPrefixPath);
-      if (discovered) return discovered;
+    firstReadable ??= directory;
+    const logNames = files.filter((name) => /\.(log|rpt|mdmp)$/i.test(name));
+    for (let index = 0; index < logNames.length; index += 32) {
+      const batch = await Promise.all(logNames.slice(index, index + 32).map(async (name) => {
+        const filePath = path.join(directory, name);
+        const stat = await fs.promises.stat(filePath).catch(() => null);
+        return stat?.isFile() ? { name, path: filePath, mtime: stat.mtimeMs, date: stat.mtime } : null;
+      }));
+      logs.push(...batch.filter(Boolean));
     }
   }
-
-  const searchPaths =
-    typeof steamPaths.getDayzLogsCandidatePathsAsync === "function"
-      ? await steamPaths.getDayzLogsCandidatePathsAsync()
-      : steamPaths.getDayzLogsCandidatePaths();
-
-  for (const p of searchPaths) {
-    const discovered = await tryDirectory(p);
-    if (discovered) return discovered;
-  }
-
-  return null;
+  logs.sort((a, b) => b.mtime - a.mtime);
+  return { firstReadable, recent: logs.slice(0, 15) };
 }
 
 async function getLogsDirectory() {
-  return (await discoverLogs())?.directory || null;
+  const { firstReadable, recent } = await discoverLogs();
+  return recent.length ? path.dirname(recent[0].path) : firstReadable;
 }
 
-/**
- * Retrieves and sorts the 15 most recent log files from the Proton prefix.
- *
- * @remarks
- * Filters for `.log`, `.rpt` (DayZ standard text logs), and `.mdmp` (Minidump) files.
- * Each file is automatically analyzed for common crash signatures before being returned.
- *
- * @returns {Promise<Array<Object>>} An array of analyzed log objects, sorted newest to oldest.
- */
 async function getRecentLogs() {
-  const discovered = await discoverLogs();
-  if (!discovered) return [];
-  const { directory: logsDir, files } = discovered;
-
-  try {
-    const logFiles = files.filter(
-      (f) =>
-        f.toLowerCase().endsWith(".log") ||
-        f.toLowerCase().endsWith(".rpt") ||
-        f.toLowerCase().endsWith(".mdmp"),
-    );
-
-    const fileDetails = await Promise.all(
-      logFiles.map(async (file) => {
-        const filePath = path.join(logsDir, file);
-        try {
-          const stat = await fs.promises.stat(filePath);
-          return {
-            name: file,
-            path: filePath,
-            mtime: stat.mtimeMs,
-            date: stat.mtime,
-          };
-        } catch {
-          return null;
-        }
-      })
-    );
-
-    const validDetails = fileDetails.filter((d) => d !== null);
-
-    // Sort descending by time
-    validDetails.sort((a, b) => b.mtime - a.mtime);
-
-    // Take the top 15 logs
-    const recentLogs = validDetails.slice(0, 15);
-
-    // Analyze each log in parallel
-    return Promise.all(recentLogs.map((log) => analyzeLog(log)));
-  } catch (e) {
-    console.error("Failed to read logs directory:", e);
-    return [];
-  }
+  const { recent } = await discoverLogs();
+  return Promise.all(recent.map(analyzeLog));
 }
 
 /**

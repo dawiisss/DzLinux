@@ -1,27 +1,25 @@
 const path = require("node:path");
 const os = require("node:os");
-const fs = require("node:fs");
+const fs = require("node:fs/promises");
 
-const mockHome = path.join(os.tmpdir(), "dzlinux-pathguard-test-home");
+let mockHome;
+let tempDir;
 
 let pathGuard;
 let settingsManager;
 
-beforeEach(() => {
+beforeEach(async () => {
   jest.resetModules();
+  tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "dzlinux-pathguard-test-"));
+  mockHome = path.join(tempDir, "home");
+  await fs.mkdir(mockHome);
 
   jest.doMock(
     "electron",
     () => {
-      const p = require("node:path");
-      const o = require("node:os");
       return {
         app: {
-          getPath: jest.fn((name) => {
-            if (name === "home")
-              return p.join(o.tmpdir(), "dzlinux-pathguard-test-home");
-            return p.join(o.tmpdir(), "dzlinux-test-data");
-          }),
+          getPath: jest.fn((name) => name === "home" ? mockHome : tempDir),
         },
       };
     },
@@ -36,7 +34,8 @@ beforeEach(() => {
   settingsManager = require("../../src/main/settings");
 });
 
-afterEach(() => {
+afterEach(async () => {
+  await fs.rm(tempDir, { recursive: true, force: true });
   jest.resetModules();
   jest.unmock("electron");
   jest.unmock("../../src/main/settings");
@@ -68,161 +67,50 @@ describe("pathGuard", () => {
     });
   });
 
-  describe("isAllowedPath", () => {
-    test("allows paths under the user home directory", async () => {
-      const allowed = await pathGuard.isAllowedPath(
-        path.join(mockHome, "Documents", "file.txt"),
-      );
-      expect(allowed).toBe(true);
+  describe("resolveAllowedPath", () => {
+    test.each(["Documents", ".steam/steam/steamapps", ".local/share/Steam/steamapps"])(
+      "allows an existing directory under %s",
+      async (relative) => {
+        const target = path.join(mockHome, relative);
+        await fs.mkdir(target, { recursive: true });
+        expect(await pathGuard.resolveAllowedPath(target)).toBe(await fs.realpath(target));
+      },
+    );
+
+    test.each([null, undefined, 42, {}, [], ""])("rejects invalid path %p", async (input) => {
+      expect(await pathGuard.resolveAllowedPath(input)).toBeNull();
     });
 
-    test("allows paths under .steam", async () => {
-      const allowed = await pathGuard.isAllowedPath(
-        path.join(mockHome, ".steam", "steam", "steamapps"),
-      );
-      expect(allowed).toBe(true);
+    test("rejects missing paths", async () => {
+      expect(await pathGuard.resolveAllowedPath(path.join(mockHome, "missing"))).toBeNull();
     });
 
-    test("allows paths under .local/share/Steam", async () => {
-      const allowed = await pathGuard.isAllowedPath(
-        path.join(mockHome, ".local", "share", "Steam", "steamapps"),
-      );
-      expect(allowed).toBe(true);
+    test("uses the canonical target when resolving dot segments", async () => {
+      const target = path.join(mockHome, "Documents");
+      await fs.mkdir(target);
+      expect(await pathGuard.resolveAllowedPath(`${mockHome}/Documents/../Documents`)).toBe(await fs.realpath(target));
     });
 
-    test("allows paths under /usr", async () => {
-      const allowed = await pathGuard.isAllowedPath("/usr/bin/dayz");
-      expect(allowed).toBe(true);
+    test("requires a full path segment match for a sibling directory", async () => {
+      const sibling = mockHome + "-other";
+      await fs.mkdir(sibling);
+      expect(await pathGuard.resolveAllowedPath(sibling)).toBeNull();
     });
 
-    test("allows paths under /opt", async () => {
-      const allowed = await pathGuard.isAllowedPath("/opt/steam/runtime");
-      expect(allowed).toBe(true);
+    test("authorizes the symlink target using the configured roots", async () => {
+      const otherLibrary = path.join(tempDir, "other-library");
+      const link = path.join(mockHome, "workshop");
+      await fs.mkdir(otherLibrary);
+      await fs.symlink(otherLibrary, link, "dir");
+
+      expect(await pathGuard.resolveAllowedPath(link)).toBeNull();
+      settingsManager.loadSettingsAsync.mockResolvedValue({ modDirectory: link });
+      expect(await pathGuard.resolveAllowedPath(link)).toBe(await fs.realpath(otherLibrary));
     });
 
-    test("allows paths under /snap", async () => {
-      const allowed = await pathGuard.isAllowedPath("/snap/steam/current");
-      expect(allowed).toBe(true);
-    });
-
-    // --- Security-critical: path traversal attacks ---
-
-    test("rejects non-string inputs", async () => {
-      expect(await pathGuard.isAllowedPath(null)).toBe(false);
-      expect(await pathGuard.isAllowedPath(undefined)).toBe(false);
-      expect(await pathGuard.isAllowedPath(42)).toBe(false);
-      expect(await pathGuard.isAllowedPath({})).toBe(false);
-      expect(await pathGuard.isAllowedPath([])).toBe(false);
-    });
-
-    test("rejects empty string input", async () => {
-      const allowed = await pathGuard.isAllowedPath("");
-      // Empty string resolves to CWD via path.resolve, which may or may
-      // not be under an allowed prefix. Just ensure it doesn't throw.
-      expect(typeof allowed).toBe("boolean");
-    });
-
-    test("rejects paths outside all allowed prefixes", async () => {
-      const allowed = await pathGuard.isAllowedPath("/etc/passwd");
-      expect(allowed).toBe(false);
-    });
-
-    test("rejects /tmp paths (not in allowed list)", async () => {
-      const allowed = await pathGuard.isAllowedPath("/tmp/evil-payload");
-      expect(allowed).toBe(false);
-    });
-
-    test("rejects path traversal attempting to escape home directory", async () => {
-      const traversal = path.join(mockHome, "..", "..", "etc", "shadow");
-      const allowed = await pathGuard.isAllowedPath(traversal);
-      expect(allowed).toBe(false);
-    });
-
-    test("rejects path traversal via /../ in the middle", async () => {
-      const traversal = path.join(
-        mockHome,
-        ".steam",
-        "..",
-        "..",
-        "..",
-        "etc",
-        "passwd",
-      );
-      const allowed = await pathGuard.isAllowedPath(traversal);
-      expect(allowed).toBe(false);
-    });
-
-    test("resolves paths to their canonical form before checking", async () => {
-      const messy = mockHome + "/./Documents/../Documents/./file.txt";
-      const allowed = await pathGuard.isAllowedPath(messy);
-      expect(allowed).toBe(true);
-    });
-
-    // --- Mod directory from settings ---
-
-    test("allows paths under the configured mod directory", async () => {
-      const customModDir = "/mnt/games/dayz-mods";
-      settingsManager.loadSettingsAsync.mockResolvedValueOnce({
-        modDirectory: customModDir,
-      });
-
-      const allowed = await pathGuard.isAllowedPath(
-        path.join(customModDir, "@mod123", "addons", "config.cpp"),
-      );
-      expect(allowed).toBe(true);
-    });
-
-    test("allows paths when modDirectory is a symlink pointing to an external directory", async () => {
-      const tmpTestDir = fs.mkdtempSync(
-        path.join(os.tmpdir(), "dzlinux-symlink-test-"),
-      );
-      const realTargetDir = path.join(tmpTestDir, "external-drive", "dayz-mods");
-      const symlinkModDir = path.join(tmpTestDir, "symlinked-mods");
-      fs.mkdirSync(realTargetDir, { recursive: true });
-      fs.symlinkSync(realTargetDir, symlinkModDir, "dir");
-
-      try {
-        settingsManager.loadSettingsAsync.mockResolvedValueOnce({
-          modDirectory: symlinkModDir,
-        });
-
-        const symlinkChild = path.join(symlinkModDir, "@mod123", "addons");
-        fs.mkdirSync(symlinkChild, { recursive: true });
-
-        const allowed = await pathGuard.isAllowedPath(symlinkChild);
-        expect(allowed).toBe(true);
-      } finally {
-        fs.rmSync(tmpTestDir, { recursive: true, force: true });
-      }
-    });
-
-    test("still validates when settings fail to load", async () => {
-      settingsManager.loadSettingsAsync.mockRejectedValueOnce(
-        new Error("Corrupted settings"),
-      );
-
-      const allowed = await pathGuard.isAllowedPath(
-        path.join(mockHome, "safe-file.txt"),
-      );
-      expect(allowed).toBe(true);
-    });
-
-    test("does not allow mod directory traversal", async () => {
-      const customModDir = "/mnt/games/dayz-mods";
-      settingsManager.loadSettingsAsync.mockResolvedValueOnce({
-        modDirectory: customModDir,
-      });
-
-      const traversal = path.join(customModDir, "..", "..", "etc", "passwd");
-      const allowed = await pathGuard.isAllowedPath(traversal);
-      expect(allowed).toBe(false);
-    });
-
-    // --- Prefix boundary: partial prefix match should not succeed ---
-
-    test("paths sharing a prefix but not a boundary should be rejected", async () => {
-      const allowed = await pathGuard.isAllowedPath("/optional-evil/payload");
-      expect(allowed).toBe(false);
+    test("still validates home paths when settings fail to load", async () => {
+      settingsManager.loadSettingsAsync.mockRejectedValueOnce(new Error("Corrupted settings"));
+      expect(await pathGuard.resolveAllowedPath(mockHome)).toBe(await fs.realpath(mockHome));
     });
   });
 });

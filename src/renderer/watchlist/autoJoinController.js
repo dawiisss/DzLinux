@@ -44,7 +44,7 @@ export function createAutoJoinController() {
           }
           state.consumed = true; dialog.close();
           await connectToServer(result.server.ip, result.server.port, {
-            serverContext: result.server, forceModQuery: true, automaticConnectionId: result.connectionId,
+            serverContext: result.server, automaticConnectionId: result.connectionId,
           });
         } catch (failure) {
           dialog.close(); showToast(failure.message || "Auto-join cancelled", "var(--accent-red)", "alert");

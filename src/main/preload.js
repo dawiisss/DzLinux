@@ -58,6 +58,7 @@ contextBridge.exposeInMainWorld("api", {
     checkRequired: (requiredMods) =>
       ipcRenderer.invoke("check-mods", requiredMods),
     scanProton: (refresh = false) => ipcRenderer.invoke("scan-proton-versions", refresh),
+    verifyProton: (selectedPath) => ipcRenderer.invoke("verify-proton-path", selectedPath),
     checkGameMode: () => ipcRenderer.invoke("check-gamemode"),
   },
 
@@ -173,8 +174,9 @@ contextBridge.exposeInMainWorld("api", {
 
   deps: {
     resolve: (modId) => ipcRenderer.invoke("resolve-mod-dependencies", modId),
-    resolveBatch: (modIds) =>
-      ipcRenderer.invoke("resolve-mod-dependencies-batch", modIds),
+    resolveBatch: (modIds, requestId) =>
+      ipcRenderer.invoke("resolve-mod-dependencies-batch", modIds, requestId),
+    cancelBatch: (requestId) => ipcRenderer.send("cancel-mod-dependency-scan", requestId),
   },
 
   ui: {

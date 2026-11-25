@@ -89,11 +89,13 @@ describe("launchProton", () => {
     mockConfigureDxvk = jest.fn().mockResolvedValue();
 
     jest.doMock("fs", () => ({
+      constants: { X_OK: 1 },
       promises: {
         access: mockAccess,
         stat: mockStat,
         readdir: mockReaddir,
         writeFile: mockWriteFile,
+        realpath: async file => file,
       },
     }));
     jest.doMock("child_process", () => ({ spawn: mockSpawn }));
@@ -122,6 +124,21 @@ describe("launchProton", () => {
   });
 
   describe("scanProtonVersions", () => {
+    test("verifies an executable discovered in a secondary Steam library", async () => {
+      const library = "/mnt/steam-library";
+      const common = path.join(library, "steamapps", "common");
+      const dir = path.join(common, "Proton Secondary");
+      const executable = path.join(dir, "proton");
+      require("../../src/main/steamPaths").getSteamLibraryPathsAsync.mockResolvedValue([library]);
+      mockAccess.mockImplementation(async file => {
+        if (file !== common && file !== executable) throw new Error("ENOENT");
+      });
+      mockReaddir.mockResolvedValue(["Proton Secondary"]);
+      mockStat.mockImplementation(async file => ({ isDirectory: () => file === dir, isFile: () => file === executable }));
+      expect(await launchProton.verifyProtonPath(executable, "default")).toBe(true);
+      expect(await launchProton.verifyProtonPath("/other/proton", "default")).toBe(false);
+      expect(mockAccess).toHaveBeenCalledWith(executable, 1);
+    });
     test("discovers secondary-library Proton and refreshes a cached scan", async () => {
       const steamPaths = require("../../src/main/steamPaths");
       steamPaths.getSteamLibraryPathsAsync.mockResolvedValue(["/mnt/games/Steam"]);
@@ -282,7 +299,6 @@ describe("launchProton", () => {
       );
       expect(mockConfigureDxvk).toHaveBeenCalledWith(
         settings,
-        compatDataPath,
         { MOCK_ENV: "1" },
       );
       expect(mockSpawn).toHaveBeenCalledWith(

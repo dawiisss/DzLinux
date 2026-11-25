@@ -23,15 +23,10 @@ function getAllowedPathPrefixes() {
   return allowedPathPrefixes;
 }
 
-async function isAllowedPath(filePath) {
-  if (typeof filePath !== "string") return false;
-  let resolved;
-  try {
-    resolved = await fs.promises.realpath(filePath);
-  } catch {
-    resolved = path.resolve(filePath);
-  }
-  const logical = path.resolve(filePath);
+async function resolveAllowedPath(filePath) {
+  if (typeof filePath !== "string" || !filePath) return null;
+  const target = await fs.promises.realpath(filePath).catch(() => null);
+  if (!target) return null;
 
   const rawPrefixes = [...getAllowedPathPrefixes()];
   try {
@@ -47,33 +42,19 @@ async function isAllowedPath(filePath) {
     // Fallback if settings fail to load
   }
 
-  const allowedPrefixes = new Set();
-  await Promise.all(
-    rawPrefixes.map(async (raw) => {
-      const resolvedPrefix = path.resolve(raw);
-      allowedPrefixes.add(resolvedPrefix);
-      try {
-        const real = await fs.promises.realpath(resolvedPrefix);
-        allowedPrefixes.add(real);
-      } catch {
-        // Path might not exist on disk, ignore
-      }
-    }),
+  const allowedPrefixes = await Promise.all(
+    rawPrefixes.map((root) => fs.promises.realpath(root).catch(() => null)),
   );
 
-  return Array.from(allowedPrefixes).some((prefix) => {
-    for (const target of [resolved, logical]) {
-      if (target === prefix) return true;
-      const boundaryPrefix = prefix.endsWith(path.sep)
-        ? prefix
-        : prefix + path.sep;
-      if (target.startsWith(boundaryPrefix)) return true;
-    }
-    return false;
+  const allowed = allowedPrefixes.some((root) => {
+    if (!root) return false;
+    const relative = path.relative(root, target);
+    return relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
   });
+  return allowed ? target : null;
 }
 
 module.exports = {
   getAllowedPathPrefixes,
-  isAllowedPath,
+  resolveAllowedPath,
 };

@@ -71,6 +71,27 @@ export function updatePingCell(pingCell, server, isFavoritesView = false) {
   }
 }
 
+export function setServerRowExpanded(row, expanded) {
+  if (!row) return;
+  row.classList.toggle("expanded", expanded);
+  const button = row.querySelector(".mod-details-toggle");
+  if (!button) return;
+  button.setAttribute("aria-expanded", String(expanded));
+  if (expanded) button.setAttribute("aria-controls", row.id.replace(/^(fav-)?row-/, "$1detail-"));
+  else button.removeAttribute("aria-controls");
+}
+
+function updateWorkshopToggle(row, server) {
+  const button = row.querySelector(".mod-details-toggle");
+  if (!button) return;
+  const count = String(getServerModCount(server));
+  if (button.textContent !== count) button.textContent = count;
+  const expanded = state.expandedServerId === server.id;
+  button.disabled = !expanded && !(server.mods?.length || server.modded);
+  button.setAttribute("aria-label", `Workshop details for ${server.name || server.ip}`);
+  setServerRowExpanded(row, expanded);
+}
+
 export function updateServerRowPresentation(tr, server, isFavoritesView = false) {
   if (!tr || !server) return;
   tr._serverModel = server;
@@ -82,7 +103,6 @@ export function updateServerRowPresentation(tr, server, isFavoritesView = false)
 
   tr.classList.toggle("has-mods", canExpand);
   tr.classList.toggle("no-mods", !canExpand);
-  tr.classList.toggle("expanded", state.expandedServerId === server.id);
 
   const starBtn = tr.querySelector(".star-btn");
   if (starBtn) {
@@ -139,13 +159,7 @@ export function updateServerRowPresentation(tr, server, isFavoritesView = false)
     updatePlayerCell(playerCell, server);
   }
 
-  const modCount = tr.querySelector(".server-mod-count");
-  if (modCount) {
-    const nextCount = String(getServerModCount(server));
-    if (modCount.textContent !== nextCount) {
-      modCount.textContent = nextCount;
-    }
-  }
+  updateWorkshopToggle(tr, server);
 
   const pingCellId = isFavoritesView
     ? `fav-ping-cell-${server.id}`
@@ -186,9 +200,8 @@ function updateVisibleModRows(server) {
       const expandable = Boolean(server.mods?.length || server.modded);
       row.classList.toggle("has-mods", expandable);
       row.classList.toggle("no-mods", !expandable);
+      updateWorkshopToggle(row, server);
     }
-    const count = row?.querySelector(".server-mod-count");
-    if (count) count.textContent = getServerModCount(server);
 
     if (state.expandedServerId !== server.id) continue;
     const detail = document.getElementById(`${prefix}detail-${server.id}`);
@@ -443,7 +456,7 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
     tr.classList.add("force-hover");
   }
 
-  tr.addEventListener("click", async (e) => {
+  tr.addEventListener("click", (e) => {
     if (
       e.target.closest(".star-btn") ||
       e.target.closest(".btn-ping") ||
@@ -454,16 +467,16 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
     }
     const currentServer = tr._serverModel || server;
     if (currentServer._removed) return;
-    if (!canExpand && !currentServer.mods?.length && !currentServer.modded) return;
+    const currentlyExpanded = state.expandedServerId === currentServer.id;
+    if (!currentlyExpanded && !currentServer.mods?.length && !currentServer.modded) return;
 
     if (isFavoritesView) {
-      const currentlyExpanded = state.expandedServerId === currentServer.id;
       state.expandedServerId = currentlyExpanded ? null : currentServer.id;
       document.dispatchEvent(new CustomEvent("dzlinux:render-favorites"));
     } else {
-      if (state.expandedServerId === currentServer.id) {
+      if (currentlyExpanded) {
         state.expandedServerId = null;
-        tr.classList.remove("expanded");
+        updateWorkshopToggle(tr, currentServer);
         const detailRow = document.getElementById(`detail-${currentServer.id}`);
         if (detailRow) detailRow.remove();
       } else {
@@ -475,10 +488,10 @@ function createRowSkeleton(server, isFavoritesView, canExpand) {
           const oldTr = document.getElementById(
             `row-${state.expandedServerId}`,
           );
-          if (oldTr) oldTr.classList.remove("expanded");
+          setServerRowExpanded(oldTr, false);
         }
         state.expandedServerId = currentServer.id;
-        tr.classList.add("expanded");
+        updateWorkshopToggle(tr, currentServer);
         tr.after(buildDetailRow(currentServer, false));
       }
     }
@@ -735,7 +748,10 @@ export function buildServerRow(server, isFavoritesView = false) {
   tdMods.className = "server-mod-count";
   tdMods.style.textAlign = "center";
   tdMods.style.fontFamily = "'Share Tech Mono', monospace";
-  tdMods.textContent = getServerModCount(server);
+  const workshopToggle = document.createElement("button");
+  workshopToggle.type = "button";
+  workshopToggle.className = "table-text-button mod-details-toggle";
+  tdMods.appendChild(workshopToggle);
 
   // Ping
   const tdPing = buildPingCell(tr, server, isFavoritesView, pingCellId);
@@ -788,9 +804,8 @@ export function buildServerRow(server, isFavoritesView = false) {
   tr.appendChild(tdMetadata);
   tr.appendChild(tdIp);
   tr.appendChild(tdAction);
-
   if (server.realPing >= 0 && !server.failedPing) void loadServerMods(server);
-  tdMods.textContent = getServerModCount(server);
+  updateWorkshopToggle(tr, server);
 
   return tr;
 }

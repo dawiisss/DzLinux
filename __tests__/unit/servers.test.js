@@ -17,6 +17,16 @@ describe("servers", () => {
   });
 
   describe("filterValidSourceServers", () => {
+    test("normalizes optional metadata and ignores derived fields in source entries", () => {
+      const { filterValidSourceServers } = require("../../src/main/servers");
+      expect(filterValidSourceServers([{
+        ip: "192.0.2.20", port: 2302, name: "Test server", country: ["GB"], map: 42,
+        mods: [null, { id: 12, name: "CF" }, { id: "invalid" }],
+        password: false, id: "override", failedPing: true,
+      }])).toEqual([{
+        ip: "192.0.2.20", port: 2302, name: "Test server", mods: [{ id: "12", name: "CF" }], password: false,
+      }]);
+    });
     test("drops entries with invalid addresses or mod lists", () => {
       jest.spyOn(console, "warn").mockImplementation(() => {});
       const servers = require("../../src/main/servers");
@@ -129,7 +139,8 @@ describe("servers", () => {
 
       const servers = require("../../src/main/servers");
       const batch = jest.fn();
-      const result = await servers.fetchDayZServers(batch);
+      const { servers: result, hostedAvailable } = await servers.fetchDayZServers(batch);
+      expect(hostedAvailable).toBe(true);
       expect(result).toHaveLength(2 + placeholderCount);
       expect(result).toEqual(expect.arrayContaining([
         expect.objectContaining({ ip: "1.2.3.4", name: "Hosted server" }),
@@ -137,7 +148,7 @@ describe("servers", () => {
       ]));
       expect(batch).toHaveBeenCalledWith(result, undefined);
       expect(_fs.readFileSync(settingsFile, "utf8")).toBe(original);
-      const cached = await servers.fetchDayZServers();
+      const { servers: cached } = await servers.fetchDayZServers();
       const measurements = entries => entries.map(({ ip, port, name, reportedPlayers, reportedCapacity }) => ({ ip, port, name, reportedPlayers, reportedCapacity }));
       expect(measurements(cached)).toEqual(measurements(result));
       expect(cached.filter(entry => entry.isFavoritePlaceholder)).toHaveLength(placeholderCount);
@@ -156,19 +167,46 @@ describe("servers", () => {
         schemaVersion: 2, timestamp: Date.now(),
         servers: [{ ip: "1.2.3.4", port: 2302, name: "Cached server", players: 0, maxPlayers: 60, ...reported }],
       }));
-      const result = await require("../../src/main/servers").fetchDayZServers();
+      const { servers: result } = await require("../../src/main/servers").fetchDayZServers();
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({ players: 0, maxPlayers: 60, reportedPlayers, reportedCapacity });
     });
 
-    test("returns empty array when both CDNs fail", async () => {
-      const mockAxios = { get: jest.fn().mockRejectedValue(new Error("fail")) };
+    test("reports an outage and uses the last good cache when both sources fail", async () => {
+      const failure = Object.assign(new Error("fail"), { response: { status: 403 } });
+      const mockAxios = { get: jest.fn().mockRejectedValue(failure) };
       jest.doMock("axios", () => mockAxios);
 
+      const directory = "/tmp/dzlinux-test-data";
+      const cacheFile = _path.join(directory, "server_cache.json");
+      const previousCache = JSON.stringify({
+        schemaVersion: 2, timestamp: Date.now() - 6 * 60 * 1000,
+        servers: [{ ip: "1.2.3.4", port: 2302 }],
+      });
+      _fs.mkdirSync(directory, { recursive: true });
+      _fs.writeFileSync(cacheFile, previousCache);
+      _fs.writeFileSync(_path.join(directory, "custom_servers.json"), JSON.stringify([{ ip: "2.3.4.5", port: 2302 }]));
+
       const servers = require("../../src/main/servers");
-      const result = await servers.fetchDayZServers();
-      expect(result).toEqual([]);
-      await new Promise((r) => setTimeout(r, 100));
+      await expect(servers.fetchDayZServers()).resolves.toMatchObject({
+        hostedAvailable: false, servers: [expect.objectContaining({ ip: "1.2.3.4" })],
+      });
+      expect(mockAxios.get).toHaveBeenCalledTimes(2);
+      expect(_fs.readFileSync(cacheFile, "utf8")).toBe(previousCache);
+    });
+
+    test("shows local servers on an offline first run without caching a partial list", async () => {
+      const directory = "/tmp/dzlinux-test-data";
+      _fs.mkdirSync(directory, { recursive: true });
+      _fs.writeFileSync(_path.join(directory, "custom_servers.json"), JSON.stringify([{ ip: "2.3.4.5", port: 2302 }]));
+      const failure = Object.assign(new Error("fail"), { response: { status: 403 } });
+      jest.doMock("axios", () => ({ get: jest.fn().mockRejectedValue(failure) }));
+
+      const servers = require("../../src/main/servers");
+      await expect(servers.fetchDayZServers()).resolves.toMatchObject({
+        hostedAvailable: false, servers: [expect.objectContaining({ ip: "2.3.4.5" })],
+      });
+      expect(_fs.existsSync(_path.join(directory, "server_cache.json"))).toBe(false);
     });
 
     test("fetches servers from primary CDN", async () => {
@@ -183,7 +221,7 @@ describe("servers", () => {
 
       const servers = require("../../src/main/servers");
       const batchSpy = jest.fn();
-      const result = await servers.fetchDayZServers(batchSpy);
+      const { servers: result } = await servers.fetchDayZServers(batchSpy);
 
       expect(result.length).toBeGreaterThanOrEqual(1);
       expect(batchSpy).toHaveBeenCalled();
@@ -205,9 +243,41 @@ describe("servers", () => {
       jest.doMock("axios", () => mockAxios);
 
       const servers = require("../../src/main/servers");
-      const result = await servers.fetchDayZServers();
+      const { servers: result } = await servers.fetchDayZServers();
       expect(result.length).toBeGreaterThanOrEqual(1);
       await new Promise((r) => setTimeout(r, 100));
+    });
+
+    test.each([["object", {}], ["empty array", []], ["invalid rows", [{ name: "Missing address" }]]])("tries GitHub when the primary returns %s", async (_description, invalid) => {
+      const hosted = { ip: "5.6.7.8", port: 2302, name: "Fallback Server" };
+      const get = jest.fn(async (url) => ({
+        data: !url.endsWith("hosted_servers.json") ? [] : url.includes("jsdelivr.net") ? invalid : [hosted],
+      }));
+      jest.doMock("axios", () => ({ get }));
+
+      const servers = require("../../src/main/servers");
+      await expect(servers.fetchDayZServers()).resolves.toMatchObject({
+        hostedAvailable: true, servers: [expect.objectContaining(hosted)],
+      });
+    });
+
+    test("preserves the last good cache when both hosted sources return an empty list", async () => {
+      const directory = "/tmp/dzlinux-test-data";
+      const cacheFile = _path.join(directory, "server_cache.json");
+      const previousCache = JSON.stringify({
+        schemaVersion: 2, timestamp: Date.now() - 6 * 60 * 1000,
+        servers: [{ ip: "1.2.3.4", port: 2302, name: "Cached Server" }],
+      });
+      _fs.mkdirSync(directory, { recursive: true });
+      _fs.writeFileSync(cacheFile, previousCache);
+      jest.doMock("axios", () => ({ get: jest.fn(async () => ({ data: [] })) }));
+
+      const servers = require("../../src/main/servers");
+      await expect(servers.fetchDayZServers()).resolves.toMatchObject({
+        hostedAvailable: false,
+        servers: [expect.objectContaining({ ip: "1.2.3.4", name: "Cached Server" })],
+      });
+      expect(_fs.readFileSync(cacheFile, "utf8")).toBe(previousCache);
     });
 
     test("R09: warm cache reflects favorite additions/removals and trust score toggles without refetching hosted list", async () => {
@@ -255,7 +325,7 @@ describe("servers", () => {
       const servers = require("../../src/main/servers");
 
       // 1. Cold fetch: 1 hosted + 1 local + 1 fav placeholder, trust score disabled
-      const first = await servers.fetchDayZServers(1);
+      const { servers: first } = await servers.fetchDayZServers(1);
       expect(first).toHaveLength(3);
       expect(first.filter((s) => s.isFavoritePlaceholder)).toHaveLength(1);
       expect(first.find((s) => s.ip === "9.9.9.9").name).toBe("Fav One");
@@ -277,7 +347,7 @@ describe("servers", () => {
       });
       mockGet.mockClear();
 
-      const second = await servers.fetchDayZServers(2);
+      const { servers: second } = await servers.fetchDayZServers(2);
       expect(second).toHaveLength(3);
       expect(second.find((s) => s.ip === "9.9.9.9")).toBeUndefined();
       expect(second.find((s) => s.ip === "8.8.8.8")).toMatchObject({
@@ -305,7 +375,7 @@ describe("servers", () => {
       });
       mockGet.mockClear();
 
-      const third = await servers.fetchDayZServers(3);
+      const { servers: third } = await servers.fetchDayZServers(3);
       expect(third).toHaveLength(2);
       expect(third.some((s) => s.isFavoritePlaceholder)).toBe(false);
       expect(third.find((s) => s.ip === "1.2.3.4").verifiedCommunity).toBeUndefined();
@@ -348,7 +418,7 @@ describe("servers", () => {
       );
 
       const servers = require("../../src/main/servers");
-      const result = await servers.fetchDayZServers(1);
+      const { servers: result } = await servers.fetchDayZServers(1);
       expect(result).toHaveLength(1);
       expect(result[0].ip).toBe("1.2.3.4");
       expect(result[0].verifiedCommunity).toBeUndefined();

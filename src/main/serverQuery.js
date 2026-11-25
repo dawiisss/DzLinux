@@ -117,7 +117,7 @@ function deleteQueryPortCacheEntry(cacheKey) {
 module.exports = {
   // Population/ping sweeps do not need the player roster or Workshop rules.
   pingServer: (ip, port, queryPort, signal, discover = false) =>
-    queryServerGameDig(ip, port, queryPort, signal, true, discover),
+    queryServerGameDig(ip, port, queryPort, signal, { infoOnly: true, discover }),
   queryServerGameDig,
   getCacheWriteQueue: () => {
     if (writeTimeout) {
@@ -133,7 +133,9 @@ module.exports = {
 // offsets +1/+2/+3, then Steam query fallback 27016. On success the working port
 // is atomically persisted; on cached-port failure the stale entry is evicted.
 // Uses a module-level singleton cache to survive parallel batch pinging.
-async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false, discover = false) {
+async function queryServerGameDig(ip, port, queryPort, signal, {
+  infoOnly = false, discover = false, requireMods = false,
+} = {}) {
   if (signal?.aborted) return null;
   const settings = await require("./settings").loadSettingsAsync();
   const concurrency = settings.queryConcurrency;
@@ -214,6 +216,7 @@ async function queryServerGameDig(ip, port, queryPort, signal, infoOnly = false,
         // GameDig uses an empty object for an empty, successfully read payload.
         mods = [];
       }
+      if (requireMods && mods === null) continue;
 
       let time = "";
       const tags = raw.tags || {};

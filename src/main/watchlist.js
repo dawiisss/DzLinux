@@ -77,7 +77,7 @@ async function readDocument() {
   catch (error) { if (error.code !== "EEXIST") throw error; }
   const document = validateDocument({ schemaVersion: 2, revision: 1, entries });
   await writeJsonAtomically(file, document);
-  if (legacySettings) await settingsManager.saveSettings({ ...legacySettings, watchlist: [] });
+  if (legacySettings) await settingsManager.saveSettings({ watchlist: [] });
   return document;
 }
 

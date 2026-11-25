@@ -19,9 +19,22 @@ export function initUpdater() {
   if (!elements.modal) return;
 
   let downloadInProgress = false;
-  let downloaded = false;
+  let downloadedVersion = null;
+  let offeredVersion = null;
   let fallbackDownloadUrl = null;
   let latestResult = null;
+
+  const updateAction = () => {
+    if (fallbackDownloadUrl) return "release";
+    return offeredVersion && downloadedVersion === offeredVersion ? "install" : "download";
+  };
+  const syncUpdateAction = () => {
+    elements.downloadBtn.textContent = {
+      install: "Install & Restart", release: "Open release page", download: "Download",
+    }[updateAction()];
+    elements.downloadBtn.style.display = downloadInProgress ? "none" : "inline-flex";
+    elements.progressContainer.style.display = downloadInProgress ? "block" : "none";
+  };
 
   const dismiss = () => {
     elements.modal.style.display = "none";
@@ -30,15 +43,16 @@ export function initUpdater() {
   elements.dismissBtn.addEventListener("click", dismiss);
 
   elements.downloadBtn.addEventListener("click", () => {
-    if (downloaded) {
+    if (downloadInProgress) return;
+    const action = updateAction();
+    if (action === "install") {
       window.api.updater.install().catch((err) => {
         console.error("Update installation failed:", err);
         showToast("Update installation failed.", "#ff5a5f", "alert");
       });
       return;
     }
-    if (downloadInProgress) return;
-    if (fallbackDownloadUrl) {
+    if (action === "release") {
       window.api.ui.openExternal(fallbackDownloadUrl).catch((err) => {
         console.error("Failed to open release page:", err);
         showToast("Could not open the release page.", "#ff5a5f", "alert");
@@ -46,8 +60,7 @@ export function initUpdater() {
       return;
     }
     downloadInProgress = true;
-    elements.downloadBtn.style.display = "none";
-    elements.progressContainer.style.display = "block";
+    syncUpdateAction();
     window.api.updater.download()
       .then((success) => {
         if (!success) throw new Error("The update could not be downloaded");
@@ -55,8 +68,7 @@ export function initUpdater() {
       .catch((err) => {
         console.error("Update download failed:", err);
         downloadInProgress = false;
-        elements.progressContainer.style.display = "none";
-        elements.downloadBtn.style.display = "inline-flex";
+        syncUpdateAction();
         showToast(`Update download failed: ${err.message}`, "#ff5a5f", "alert");
       });
   });
@@ -67,19 +79,17 @@ export function initUpdater() {
     elements.progressText.textContent = `Downloading... ${pct}% (${(progress.bytesPerSecond / 1024 / 1024).toFixed(1)} MB/s)`;
   });
 
-  window.api.updater.onDownloaded(() => {
-    downloaded = true;
+  window.api.updater.onDownloaded((info) => {
+    downloadedVersion = info?.version || offeredVersion;
+    downloadInProgress = false;
     elements.progressText.textContent = "Download complete.";
-    elements.downloadBtn.textContent = "Install & Restart";
-    elements.downloadBtn.style.display = "inline-flex";
-    elements.progressContainer.style.display = "none";
+    syncUpdateAction();
   });
 
   window.api.updater.onError((err) => {
     console.error("Update error:", err.message);
     downloadInProgress = false;
-    elements.progressContainer.style.display = "none";
-    elements.downloadBtn.style.display = "inline-flex";
+    syncUpdateAction();
     showToast("Update download failed. Please try again.", "#ff5a5f", "alert");
   });
 
@@ -90,7 +100,8 @@ export function initUpdater() {
       'This installation is managed by your system package manager. Use "apt upgrade" or "dnf update" to update, or download the latest release manually.';
     fallbackDownloadUrl =
       info.releaseUrl || "https://github.com/dawiisss/DzLinux/releases/latest";
-    elements.downloadBtn.textContent = "Open release page";
+    offeredVersion = null;
+    syncUpdateAction();
     elements.modal.style.display = "flex";
   };
 
@@ -109,11 +120,8 @@ export function initUpdater() {
     elements.releaseNotes.textContent =
       cleanNotes || "No release notes provided.";
     fallbackDownloadUrl = info.downloadUrl || null;
-    if (fallbackDownloadUrl) {
-      elements.downloadBtn.textContent = "Open release page";
-    } else {
-      elements.downloadBtn.textContent = "Download";
-    }
+    offeredVersion = info.version;
+    syncUpdateAction();
 
     elements.modal.style.display = "flex";
     elements.modal.style.animation = "fadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)";

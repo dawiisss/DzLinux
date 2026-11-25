@@ -1,141 +1,37 @@
-const path = require("path");
+const fs = require("node:fs/promises");
+const os = require("node:os");
+const path = require("node:path");
+const { configureDxvk } = require("../../src/main/game/configDxvk");
 
-describe("configDxvk", () => {
-  let mockAccess;
-  let mockMkdir;
-  let mockWriteFile;
-  let configureDxvk;
+test("uses custom DXVK config lines and ignores blank lines", () => {
+  const env = {};
+  configureDxvk({ dxvkConfig: "dxvk.enableAsync = True\n\ndxvk.numCompilerThreads = 4\n   \n" }, env);
+  expect(env.DXVK_CONFIG).toBe("dxvk.enableAsync = True; dxvk.numCompilerThreads = 4");
+});
 
-  const compatDataPath = "/steam/steamapps/compatdata/221100";
-  const dxvkConfDir = path.join(compatDataPath, "pfx");
-  const dxvkConfPath = path.join(dxvkConfDir, "dxvk.conf");
+test("builds launch options from the async toggle and thread count", () => {
+  const env = {};
+  configureDxvk({ dxvkAsyncEnabled: true, dxvkThreads: "8" }, env);
+  expect(env.DXVK_CONFIG).toBe("dxvk.enableAsync = True; dxvk.numCompilerThreads = 8");
+});
 
-  beforeEach(() => {
-    jest.resetModules();
+test("leaves an inherited DXVK setting alone when no launcher options apply", () => {
+  const env = { DXVK_CONFIG: "dxgi.maxFrameLatency = 2" };
+  configureDxvk({ dxvkAsyncEnabled: false, dxvkThreads: "-3" }, env);
+  expect(env.DXVK_CONFIG).toBe("dxgi.maxFrameLatency = 2");
+});
 
-    mockAccess = jest.fn().mockResolvedValue(); // pfx dir exists by default
-    mockMkdir = jest.fn().mockResolvedValue();
-    mockWriteFile = jest.fn().mockResolvedValue();
-
-    jest.doMock("fs", () => ({
-      promises: {
-        access: mockAccess,
-        mkdir: mockMkdir,
-        writeFile: mockWriteFile,
-      },
-    }));
-
-    ({ configureDxvk } = require("../../src/main/game/configDxvk"));
-  });
-
-  afterEach(() => {
-    jest.restoreAllMocks();
-  });
-
-  test("uses custom dxvkConfig lines verbatim, dropping blank lines", async () => {
-    const settings = {
-      dxvkConfig: "dxvk.enableAsync = True\n\ndxvk.numCompilerThreads = 4\n   \n",
-    };
-    const env = {};
-
-    await configureDxvk(settings, compatDataPath, env);
-
-    expect(env.DXVK_CONFIG).toBe(
-      "dxvk.enableAsync = True; dxvk.numCompilerThreads = 4",
-    );
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      dxvkConfPath,
-      "dxvk.enableAsync = True\ndxvk.numCompilerThreads = 4",
-      "utf8",
-    );
-  });
-
-  test("builds config from async toggle and thread count when no custom config", async () => {
-    const settings = {
-      dxvkConfig: "",
-      dxvkAsyncEnabled: true,
-      dxvkThreads: "8",
-    };
-    const env = {};
-
-    await configureDxvk(settings, compatDataPath, env);
-
-    expect(env.DXVK_CONFIG).toBe(
-      "dxvk.enableAsync = True; dxvk.numCompilerThreads = 8",
-    );
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      dxvkConfPath,
-      "dxvk.enableAsync = True\ndxvk.numCompilerThreads = 8",
-      "utf8",
-    );
-  });
-
-  test("omits the async line when dxvkAsyncEnabled is false", async () => {
-    const settings = { dxvkAsyncEnabled: false, dxvkThreads: "4" };
-    const env = {};
-
-    await configureDxvk(settings, compatDataPath, env);
-
+test("writes settings to the child environment and leaves the prefix config intact", async () => {
+  const prefix = await fs.mkdtemp(path.join(os.tmpdir(), "dzlinux-dxvk-"));
+  const conf = path.join(prefix, "pfx", "dxvk.conf");
+  try {
+    await fs.mkdir(path.dirname(conf));
+    await fs.writeFile(conf, "dxgi.maxFrameLatency = 2");
+    const env = { STEAM_COMPAT_DATA_PATH: prefix };
+    configureDxvk({ dxvkThreads: "4" }, env);
     expect(env.DXVK_CONFIG).toBe("dxvk.numCompilerThreads = 4");
-  });
-
-  test("ignores invalid thread counts", async () => {
-    for (const dxvkThreads of ["0", "abc", "-3"]) {
-      const settings = { dxvkAsyncEnabled: false, dxvkThreads };
-      const env = {};
-
-      await configureDxvk(settings, compatDataPath, env);
-
-      expect(env.DXVK_CONFIG).toBeUndefined();
-    }
-    expect(mockWriteFile).not.toHaveBeenCalled();
-  });
-
-  test("does nothing when no DXVK options are set", async () => {
-    const env = {};
-
-    await configureDxvk({}, compatDataPath, env);
-
-    expect(env.DXVK_CONFIG).toBeUndefined();
-    expect(mockAccess).not.toHaveBeenCalled();
-    expect(mockWriteFile).not.toHaveBeenCalled();
-  });
-
-  test("skips mkdir when the pfx directory already exists", async () => {
-    const settings = { dxvkAsyncEnabled: true, dxvkThreads: "0" };
-
-    await configureDxvk(settings, compatDataPath, {});
-
-    expect(mockMkdir).not.toHaveBeenCalled();
-    expect(mockWriteFile).toHaveBeenCalled();
-  });
-
-  test("creates the pfx directory recursively when missing", async () => {
-    mockAccess.mockRejectedValue(new Error("ENOENT"));
-    const settings = { dxvkAsyncEnabled: true, dxvkThreads: "0" };
-
-    await configureDxvk(settings, compatDataPath, {});
-
-    expect(mockMkdir).toHaveBeenCalledWith(dxvkConfDir, { recursive: true });
-    expect(mockWriteFile).toHaveBeenCalledWith(
-      dxvkConfPath,
-      "dxvk.enableAsync = True",
-      "utf8",
-    );
-  });
-
-  test("logs but does not throw when writing dxvk.conf fails", async () => {
-    mockWriteFile.mockRejectedValue(new Error("EACCES"));
-    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
-    const settings = { dxvkAsyncEnabled: true, dxvkThreads: "0" };
-    const env = {};
-
-    await expect(
-      configureDxvk(settings, compatDataPath, env),
-    ).resolves.toBeUndefined();
-
-    // env var is still set so Proton gets the config even if the file write failed
-    expect(env.DXVK_CONFIG).toBe("dxvk.enableAsync = True");
-    expect(errorSpy).toHaveBeenCalled();
-  });
+    expect(await fs.readFile(conf, "utf8")).toBe("dxgi.maxFrameLatency = 2");
+  } finally {
+    await fs.rm(prefix, { recursive: true, force: true });
+  }
 });

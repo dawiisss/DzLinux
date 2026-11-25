@@ -91,7 +91,7 @@ test("expansion and joining are explicit and do not trigger each other", async (
   expect(connectToServer).not.toHaveBeenCalled();
   action("join").click();
   await flush();
-  expect(connectToServer).toHaveBeenCalledWith("1.2.3.4", 2302, { serverContext: fixture[0], forceModQuery: true });
+  expect(connectToServer).toHaveBeenCalledWith("1.2.3.4", 2302, { serverContext: fixture[0] });
   expect(createHistoryDetails).toHaveBeenCalledTimes(1);
 });
 

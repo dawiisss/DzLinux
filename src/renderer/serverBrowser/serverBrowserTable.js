@@ -321,7 +321,6 @@ export async function connectToServer(ip, port, options = {}) {
     name: live?.name || historical?.name,
     map: live?.map || historical?.map,
     queryPort: live?.queryPort || historical?.queryPort,
-    mods: live?.mods?.length ? live.mods : (historical?.mods || []),
     reportedPlayers: source.reportedPlayers,
     reportedCapacity: source.reportedCapacity,
     realPing: source.realPing,
@@ -342,30 +341,24 @@ export async function connectToServer(ip, port, options = {}) {
     await addToHistory(ip, port, serverObj);
     if (checkGeneration !== state.currentModCheckGeneration) return;
 
-  let requiredMods = [];
+  let requiredMods;
   const launchGame = () => connectionId
     ? window.api.game.launch(ip, port, requiredMods, connectionId)
     : window.api.game.launch(ip, port, requiredMods);
 
-  if (!options.forceModQuery && serverObj && serverObj.mods && serverObj.mods.length > 0) {
-    requiredMods = serverObj.mods;
-  } else {
-    console.log("Querying server for detailed rules via GameDig...");
-    showToast("Querying server for detailed rules...", "#ff9f1c", "signal");
-    const requestId = options.forceModQuery ? "connection-" + checkGeneration : null;
-    if (requestId) state.currentModQueryRequestId = requestId;
-    try {
-      requiredMods = requestId
-        ? await window.api.servers.queryMods(ip, port, serverObj?.queryPort, requestId)
-        : await window.api.servers.queryMods(ip, port, serverObj?.queryPort);
-    } finally {
-      if (state.currentModQueryRequestId === requestId) state.currentModQueryRequestId = null;
-    }
+  console.log("Querying server for detailed rules via GameDig...");
+  showToast("Querying server for detailed rules...", "#ff9f1c", "signal");
+  const requestId = `connection-${checkGeneration}`;
+  state.currentModQueryRequestId = requestId;
+  try {
+    requiredMods = await window.api.servers.queryMods(ip, port, serverObj?.queryPort, requestId);
+  } finally {
+    if (state.currentModQueryRequestId === requestId) state.currentModQueryRequestId = null;
   }
 
   if (checkGeneration !== state.currentModCheckGeneration) return;
   if (!Array.isArray(requiredMods)) {
-    showToast("Server appears to be offline or unreachable", "#ef233c", "alert");
+    showToast("Could not verify the server's mod requirements", "#ef233c", "alert");
     finishConnection(connectionId);
     return;
   }
@@ -402,8 +395,9 @@ export async function connectToServer(ip, port, options = {}) {
 
     const renderModalList = (currentMissingMods) => {
       list.replaceChildren();
+      const missingIds = new Set(currentMissingMods.map((m) => m.id));
       requiredMods.forEach((mod) => {
-        const isMissing = currentMissingMods.some((m) => m.id === mod.id);
+        const isMissing = missingIds.has(mod.id);
         const li = document.createElement("li");
         li.className = `mod-item ${isMissing ? "missing" : "installed"}`;
 

@@ -27,32 +27,24 @@ const { isValidIpOrHost, isValidPort } = require("./validation");
  * @param {Error|null} error - The error object returned by the child process, or null if successful exit.
  */
 function handleGameExit(error) {
-  if (error) {
-    console.log(
-      `Game exited with error or non-zero code (${error.code}). Parsing logs...`
-    );
-    const { BrowserWindow } = require("electron");
-    const windows = BrowserWindow.getAllWindows();
-    if (windows.length > 0) {
-      logParser
-        .getRecentLogs()
-        .then((logs) => {
-          const latestLog = logs[0];
-          // A log older than this launch belongs to an earlier run, so it says
-          // nothing about why this process ended.
-          const isFromThisRun =
-            latestLog && (!error.startedAt || latestLog.mtime >= error.startedAt);
-          if (isFromThisRun && latestLog.status !== "CLEAN") {
-            if (!windows[0].isDestroyed()) {
-              windows[0].webContents.send("game-crashed", latestLog);
-            }
-          }
-        })
-        .catch((err) =>
-          console.error("Failed to parse logs after crash:", err)
-        );
+  if (!error) return;
+  console.log(`Game exited with error or non-zero code (${error.code}). Parsing logs...`);
+  publishExitDiagnostic(error.startedAt);
+}
+
+function publishExitDiagnostic(startedAt, requireCrashSignature = false) {
+  const { BrowserWindow } = require("electron");
+  const window = BrowserWindow.getAllWindows()[0];
+  if (!window) return;
+  logParser.getRecentLogs().then((logs) => {
+    const isFresh = (log) => log && (!startedAt || log.mtime >= startedAt);
+    const log = requireCrashSignature
+      ? logs.find((entry) => isFresh(entry) && entry.status === "CRASH")
+      : logs[0];
+    if (isFresh(log) && log.status !== "CLEAN" && !window.isDestroyed()) {
+      window.webContents.send("game-crashed", log);
     }
-  }
+  }).catch((err) => console.error("Failed to parse logs after crash:", err));
 }
 
 async function isModFolderValid(modPath) {
@@ -185,7 +177,11 @@ async function prepareLaunch(ip, port, mods, assertCurrent) {
         `Ignoring launch option environment variables (${envAssignments.map((a) => a.split("=")[0]).join(", ")}): they only apply when a custom Proton version is selected.`,
       );
     }
-    await launchViaSteam(ip, port, modString, extraParams, handleGameExit, assertCurrent);
+    await launchViaSteam(ip, port, modString, extraParams, {
+      handleGameExit,
+      inspectGameLogs: (startedAt) => publishExitDiagnostic(startedAt, true),
+      assertCurrent,
+    });
   }
 }
 

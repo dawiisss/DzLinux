@@ -27,7 +27,7 @@ modules:
     sources:
       - type: archive
         url: https://github.com/dawiisss/DzLinux/releases/download/v2.1.2/dzlinux-2.1.2.tar.gz
-        sha256: SKIP
+        sha256: 55b14cb080692c40d4af7992515c63fdc0e081f13fc277e9c391391411236628
       - type: script
         dest-filename: dzlinux.sh
         commands:

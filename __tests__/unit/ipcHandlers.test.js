@@ -31,7 +31,7 @@ describe("ipcHandlers", () => {
       getDefaultSettings: jest.fn(() => ({ theme: "tactical-dark" })),
     };
     mockServers = {
-      fetchDayZServers: jest.fn().mockResolvedValue([]),
+      fetchDayZServers: jest.fn().mockResolvedValue({ servers: [], hostedAvailable: true }),
       refreshServerModCache: jest
         .fn()
         .mockResolvedValue({ mods: [{ id: "1", name: "M" }] }),
@@ -72,6 +72,7 @@ describe("ipcHandlers", () => {
       },
       checkForUpdates: jest.fn().mockResolvedValue({ kind: "none" }),
       isSystemInstall: jest.fn(() => false),
+      canUpdateAppImage: jest.fn().mockResolvedValue(true),
     };
     mockLogParser = {
       getRecentLogs: jest.fn().mockResolvedValue([{ status: "CLEAN" }]),
@@ -162,7 +163,7 @@ describe("ipcHandlers", () => {
     registerIpcHandlers();
 
     event = {
-      sender: { id: 1, on: jest.fn(), once: jest.fn(), isDestroyed: jest.fn(() => false), send: jest.fn() },
+      sender: { id: 1, on: jest.fn(), once: jest.fn(), removeListener: jest.fn(), isDestroyed: jest.fn(() => false), send: jest.fn() },
     };
   });
 
@@ -219,11 +220,12 @@ describe("ipcHandlers", () => {
 
   describe("server query handlers", () => {
     test("fetch-servers returns the authoritative server list without duplicate servers-batch emission", async () => {
-      mockServers.fetchDayZServers.mockResolvedValue([{ ip: "1.1.1.1" }]);
+      const data = { servers: [{ ip: "1.1.1.1" }], hostedAvailable: true };
+      mockServers.fetchDayZServers.mockResolvedValue(data);
 
       const result = await handlers.get("fetch-servers")(event, 7);
 
-      expect(result).toEqual([{ ip: "1.1.1.1" }]);
+      expect(result).toEqual(data);
       expect(mockServers.fetchDayZServers).toHaveBeenCalledWith(7);
       expect(event.sender.send).not.toHaveBeenCalledWith(
         "servers-batch",
@@ -255,6 +257,8 @@ describe("ipcHandlers", () => {
         "1.2.3.4",
         2302,
         2303,
+        undefined,
+        { requireMods: true },
       );
     });
 
@@ -567,15 +571,28 @@ describe("ipcHandlers", () => {
       expect(mockDepResolver.resolveDependencies).toHaveBeenCalledWith("12345");
     });
 
-    test("resolve-mod-dependencies-batch filters invalid ids and caps at 1000", async () => {
+    test("resolve-mod-dependencies-batch reports invalid and omitted roots", async () => {
       const ids = Array.from({ length: 1005 }, (_, i) => String(i + 1));
       ids.push("bad", null);
-      await handlers.get("resolve-mod-dependencies-batch")(event, ids);
+      expect(await handlers.get("resolve-mod-dependencies-batch")(event, ids, 1)).toMatchObject({ omittedRoots: 7 });
 
       const calledWith = mockDepResolver.resolveBatchDependencies.mock.calls[0][0];
       expect(calledWith).toHaveLength(1000);
       expect(calledWith.every((id) => typeof id === "string")).toBe(true);
       expect(calledWith).not.toContain("bad");
+    });
+
+    test("superseded dependency scans abort and cancellation matches the active request", async () => {
+      mockDepResolver.resolveBatchDependencies.mockImplementation((_ids, { signal }) =>
+        new Promise(resolve => signal.addEventListener("abort", resolve, { once: true })));
+      const resolveBatch = handlers.get("resolve-mod-dependencies-batch");
+      const first = resolveBatch(event, ["123"], 1);
+      const second = resolveBatch(event, ["234"], 2);
+      await expect(first).resolves.toBeNull();
+      listeners.get("cancel-mod-dependency-scan")(event, 1);
+      expect(mockDepResolver.resolveBatchDependencies.mock.calls[1][1].signal.aborted).toBe(false);
+      listeners.get("cancel-mod-dependency-scan")(event, 2);
+      await expect(second).resolves.toBeNull();
     });
   });
 
@@ -668,9 +685,17 @@ describe("ipcHandlers", () => {
       logSpy.mockRestore();
     });
 
-    test("install-update calls quitAndInstall", () => {
-      handlers.get("install-update")();
+    test("install-update calls quitAndInstall", async () => {
+      await handlers.get("install-update")();
       expect(mockUpdater.autoUpdater.quitAndInstall).toHaveBeenCalled();
+    });
+
+    test("update actions reject if the running image can no longer be replaced", async () => {
+      mockUpdater.canUpdateAppImage.mockResolvedValue(false);
+      await expect(handlers.get("download-update")()).rejects.toThrow("release page");
+      await expect(handlers.get("install-update")()).rejects.toThrow("release page");
+      expect(mockUpdater.autoUpdater.downloadUpdate).not.toHaveBeenCalled();
+      expect(mockUpdater.autoUpdater.quitAndInstall).not.toHaveBeenCalled();
     });
   });
 
@@ -714,7 +739,7 @@ describe("ipcHandlers", () => {
     });
 
     test("check-path-exists returns false when the file is missing", async () => {
-      mockFsAccess.mockRejectedValue(new Error("ENOENT"));
+      mockRealpath.mockRejectedValueOnce(new Error("ENOENT"));
       const result = await handlers.get("check-path-exists")(
         event,
         "/home/test/missing",
@@ -736,9 +761,10 @@ describe("ipcHandlers", () => {
         bfree: 750,
       });
 
-      const result = await handlers.get("get-disk-space")(event, "/home/test");
+      mockRealpath.mockResolvedValueOnce("/home/test/real");
+      const result = await handlers.get("get-disk-space")(event, "/home/test/link");
 
-      expect(mockFsStatfs).toHaveBeenCalledWith("/home/test");
+      expect(mockFsStatfs).toHaveBeenCalledWith("/home/test/real");
       expect(result).toEqual({ total: 1024000, used: 256000, free: 768000 });
     });
 

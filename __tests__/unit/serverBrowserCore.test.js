@@ -8,6 +8,7 @@ describe("serverBrowserCore - serverPassesFilters", () => {
   beforeEach(() => {
     context = {
       state: {
+        hostedListAvailable: true,
         filters: {
           name: "",
           nameLower: "",
@@ -53,6 +54,15 @@ describe("serverBrowserCore - serverPassesFilters", () => {
       country: "US",
     };
     expect(serverPassesFilters(server)).toBe(true);
+  });
+
+  test("uncached measurements do not hide saved servers during a hosted-list outage", () => {
+    const server = { name: "Local DayZ", ip: "192.0.2.15", port: 2302 };
+    expect(serverPassesFilters(server)).toBe(false);
+    state.hostedListAvailable = false;
+    expect(serverPassesFilters(server)).toBe(true);
+    state.filters.nameLower = "different";
+    expect(serverPassesFilters(server)).toBe(false);
   });
 
   test("search matches a full ip:port address, including the query port", () => {

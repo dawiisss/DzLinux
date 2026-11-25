@@ -45,7 +45,7 @@ describe("server mod-cache refresh", () => {
       servers.refreshServerModCache("2.3.4.5", 2302),
     ]);
     const cache = JSON.parse(await fs.readFile(cacheFile, "utf8"));
-    expect(cache.entries[key].mods).toEqual([{ id: "111" }]);
-    expect(cache.entries["2.3.4.5:2302"].mods).toEqual([{ id: "222" }]);
+    expect(cache.entries[key].mods).toEqual([{ id: "111", name: "Mod 111" }]);
+    expect(cache.entries["2.3.4.5:2302"].mods).toEqual([{ id: "222", name: "Mod 222" }]);
   });
 });

@@ -7,6 +7,7 @@ const steamDependencyResolver = require("../steamDependencyResolver");
 const { isValidModId } = require("../validation");
 
 function registerModHandlers() {
+  const dependencyScans = new WeakMap();
   ipcMain.handle("subscribe-mod", (_event, modId) => {
     if (!isValidModId(modId)) return Promise.reject(new Error("Invalid modId"));
     return shell.openExternal(
@@ -53,12 +54,30 @@ function registerModHandlers() {
     }
     return steamDependencyResolver.resolveDependencies(String(modId));
   });
-  ipcMain.handle("resolve-mod-dependencies-batch", (_event, modIds) => {
-    const validIds = (Array.isArray(modIds) ? modIds : [])
-      .filter(isValidModId)
-      .map(String)
-      .slice(0, 1000);
-    return steamDependencyResolver.resolveBatchDependencies(validIds);
+  ipcMain.handle("resolve-mod-dependencies-batch", async ({ sender }, modIds, requestId) => {
+    if (!Array.isArray(modIds)) throw new Error("Invalid mod IDs");
+    const validIds = [...new Set(modIds.filter(isValidModId).map(String))];
+    const roots = validIds.slice(0, 1000);
+    const omittedRoots = modIds.filter(id => !isValidModId(id)).length + validIds.length - roots.length;
+    dependencyScans.get(sender)?.controller.abort();
+    const scan = { requestId, controller: new AbortController() };
+    const abort = () => scan.controller.abort();
+    dependencyScans.set(sender, scan);
+    sender.once("destroyed", abort);
+    try {
+      const trees = await steamDependencyResolver.resolveBatchDependencies(roots, { signal: scan.controller.signal });
+      return scan.controller.signal.aborted ? null : { trees, omittedRoots };
+    } catch (error) {
+      if (scan.controller.signal.aborted) return null;
+      throw error;
+    } finally {
+      sender.removeListener("destroyed", abort);
+      if (dependencyScans.get(sender) === scan) dependencyScans.delete(sender);
+    }
+  });
+  ipcMain.on("cancel-mod-dependency-scan", ({ sender }, requestId) => {
+    const scan = dependencyScans.get(sender);
+    if (scan && scan.requestId === requestId) scan.controller.abort();
   });
 }
 

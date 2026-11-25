@@ -38,18 +38,40 @@ if [ "$ARCH" != "x86_64" ]; then
     exit 1
 fi
 
-# Fetch release JSON
-echo -e "${BLUE}Fetching latest release info from GitHub...${NC}"
-RELEASE_JSON=$(curl -s "https://api.github.com/repos/dawiisss/DzLinux/releases/latest")
-
-if echo "$RELEASE_JSON" | grep -q '"message":'; then
-    MSG=$(echo "$RELEASE_JSON" | grep '"message":' | sed -E 's/.*"message": "([^"]+)".*/\1/')
-    echo -e "${RED}GitHub API Error: $MSG${NC}"
-    echo -e "${YELLOW}This usually happens if the release hasn't been published yet, or if you've hit GitHub's unauthenticated API rate limit.${NC}"
+fail() {
+    echo -e "${RED}$1${NC}" >&2
     exit 1
-fi
+}
 
-VERSION=$(echo "$RELEASE_JSON" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+# Decode the tag and each asset together so its digest stays tied to its URL.
+parse_release() {
+    if command -v jq &> /dev/null; then
+        jq -er '
+            (.tag_name // error("Missing release tag")),
+            (.assets[] | [.name, .browser_download_url, (.digest // "-")] | @tsv)
+        '
+    elif command -v python3 &> /dev/null; then
+        python3 -c '
+import json, sys
+
+release = json.load(sys.stdin)
+print(release["tag_name"])
+for asset in release["assets"]:
+    print(asset["name"], asset["browser_download_url"], asset.get("digest") or "-", sep="\t")
+'
+    else
+        fail "DzLinux needs jq or Python 3 to read and verify release metadata."
+    fi
+}
+
+echo -e "${BLUE}Fetching latest release info from GitHub...${NC}"
+RELEASE_METADATA=$(curl -fsSL --proto '=https' --proto-redir '=https' \
+    "https://api.github.com/repos/dawiisss/DzLinux/releases/latest" | parse_release) ||
+    fail "Could not read the latest DzLinux release from GitHub."
+mapfile -t RELEASE_ROWS <<< "$RELEASE_METADATA"
+VERSION=${RELEASE_ROWS[0]:-}
+[[ $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+([-+][a-zA-Z0-9.-]+)?$ ]] ||
+    fail "GitHub returned an invalid DzLinux release tag."
 echo -e "${GREEN}Detected latest version: ${BOLD}${VERSION}${NC}"
 
 # Temporary download directory
@@ -77,69 +99,43 @@ else
     OS_TYPE="appimage"
 fi
 
-# Helper function to extract download url
-get_download_url() {
-    local file_ext=$1
-    # Match the file extension exactly before the closing quote to avoid downloading .zsync or .sha256 files
-    echo "$RELEASE_JSON" | grep "browser_download_url" | grep -E "${file_ext}\"" | head -n 1 | cut -d '"' -f 4 || echo ""
-}
-
-# Helper function to extract sha256 digest from github api
-get_download_digest() {
-    local file_ext=$1
-    local asset_name=$(echo "$RELEASE_JSON" | grep "\"name\":" | grep -E "${file_ext}\"" | head -n 1 | cut -d '"' -f 4)
-    if [ -n "$asset_name" ]; then
-        if command -v jq &> /dev/null; then
-            echo "$RELEASE_JSON" | jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .digest // empty' | sed -E 's/^sha256://'
-        elif command -v python3 &> /dev/null; then
-            python3 -c "
-import json, sys
-data = json.loads(sys.argv[1])
-for a in data.get('assets', []):
-    if a.get('name') == sys.argv[2]:
-        d = a.get('digest', '')
-        if d.startswith('sha256:'): d = d[7:]
-        print(d)
-        break
-" "$RELEASE_JSON" "$asset_name"
-        else
-            echo "$RELEASE_JSON" | grep -A 30 "\"name\": \"$asset_name\"" | grep "\"digest\":" | head -n 1 | sed -E 's/.*"sha256:([^"]+)".*/\1/'
+find_release_asset() {
+    local suffix=$1 row name url digest
+    for row in "${RELEASE_ROWS[@]:1}"; do
+        IFS=$'\t' read -r name url digest <<< "$row"
+        if [[ $name == *"$suffix" ]]; then
+            [[ $url == "https://github.com/dawiisss/DzLinux/releases/download/$VERSION/$name" ]] ||
+                fail "Invalid download URL for $name."
+            ASSET_URL=$url
+            ASSET_DIGEST=$digest
+            return 0
         fi
-    fi
+    done
+    return 1
 }
 
-# Helper function to download and optionally verify checksum
 download_and_verify() {
-    local ext=$1
-    local output_name=$2
-    local url=$3
-    
-    echo -e "${BLUE}Downloading ${output_name} from: $url${NC}"
-    curl -L -o "$TEMP_DIR/$output_name" "$url"
-    
-    local expected_hash=$(get_download_digest "$ext")
-    if [ -n "$expected_hash" ]; then
-        echo -e "${BLUE}Verifying checksum...${NC}"
-        local actual_hash=$(sha256sum "$TEMP_DIR/$output_name" | awk '{print $1}')
-        if [ "$expected_hash" != "$actual_hash" ]; then
-            echo -e "${RED}Error: Checksum verification failed!${NC}"
-            echo -e "${RED}Expected: $expected_hash${NC}"
-            echo -e "${RED}Actual:   $actual_hash${NC}"
-            exit 1
-        fi
-        echo -e "${GREEN}Checksum verified successfully.${NC}"
-    else
-        echo -e "${YELLOW}Warning: No checksum found for verification. Skipping...${NC}"
+    local output_name=$1
+    local output_path="$TEMP_DIR/$output_name"
+    local expected_hash=${ASSET_DIGEST#sha256:}
+    [[ $ASSET_DIGEST == sha256:* && $expected_hash =~ ^[0-9a-fA-F]{64}$ ]] ||
+        fail "GitHub did not provide a valid SHA-256 checksum for $output_name."
+
+    echo -e "${BLUE}Downloading ${output_name} from: $ASSET_URL${NC}"
+    curl -fsSL --proto '=https' --proto-redir '=https' -o "$output_path" "$ASSET_URL" ||
+        fail "Download failed for $output_name."
+    if ! printf '%s  %s\n' "${expected_hash,,}" "$output_path" | sha256sum --check --status; then
+        fail "Checksum verification failed for $output_name."
     fi
+    echo -e "${GREEN}Checksum verified successfully.${NC}"
 }
 
 case "$OS_TYPE" in
     "debian")
         echo -e "${GREEN}Debian/Ubuntu-based system detected.${NC}"
-        URL=$(get_download_url "\.deb")
-        if [ -n "$URL" ]; then
+        if find_release_asset ".deb"; then
             FILE_NAME="dzlinux.deb"
-            download_and_verify "\.deb" "$FILE_NAME" "$URL"
+            download_and_verify "$FILE_NAME"
             echo -e "${BLUE}Installing package via apt (requires sudo)...${NC}"
             sudo apt-get update
             sudo apt-get install -y "$TEMP_DIR/$FILE_NAME"
@@ -151,10 +147,9 @@ case "$OS_TYPE" in
         ;;
     "redhat")
         echo -e "${GREEN}Fedora/RHEL/CentOS-based system detected.${NC}"
-        URL=$(get_download_url "\.rpm")
-        if [ -n "$URL" ]; then
+        if find_release_asset ".rpm"; then
             FILE_NAME="dzlinux.rpm"
-            download_and_verify "\.rpm" "$FILE_NAME" "$URL"
+            download_and_verify "$FILE_NAME"
             echo -e "${BLUE}Installing package via dnf (requires sudo)...${NC}"
             if command -v dnf &> /dev/null; then
                 sudo dnf install -y "$TEMP_DIR/$FILE_NAME"
@@ -171,29 +166,29 @@ esac
 
 if [ "$OS_TYPE" = "appimage" ]; then
     echo -e "${GREEN}Using AppImage fallback installation...${NC}"
-    URL=$(get_download_url "\.AppImage")
-    if [ -z "$URL" ]; then
+    if ! find_release_asset ".AppImage"; then
         # Try finding a tar.gz as ultimate fallback
-        URL=$(get_download_url "\.tar\.gz")
-        if [ -z "$URL" ]; then
+        if ! find_release_asset ".tar.gz"; then
             echo -e "${RED}Error: No suitable installer format (.deb, .rpm, .AppImage, or .tar.gz) was found in the release assets.${NC}"
             exit 1
         fi
         
         # Tar.gz installation
         FILE_NAME="dzlinux.tar.gz"
-        download_and_verify "\.tar\.gz" "$FILE_NAME" "$URL"
+        download_and_verify "$FILE_NAME"
         echo -e "${BLUE}Extracting archive to /opt/dzlinux...${NC}"
-        sudo mkdir -p /opt/dzlinux
-        sudo tar -xzf "$TEMP_DIR/$FILE_NAME" -C /opt/dzlinux --strip-components=1
+        mkdir -p "$TEMP_DIR/opt-dzlinux"
+        tar -xzf "$TEMP_DIR/$FILE_NAME" -C "$TEMP_DIR/opt-dzlinux" --strip-components=1 --no-same-owner --no-same-permissions
+        sudo rm -rf /opt/dzlinux
+        sudo mv "$TEMP_DIR/opt-dzlinux" /opt/dzlinux
+        sudo chown -R root:root /opt/dzlinux
         sudo ln -sf /opt/dzlinux/dzlinux /usr/local/bin/dzlinux
     else
         # AppImage installation
         FILE_NAME="dzlinux.AppImage"
-        download_and_verify "\.AppImage" "$FILE_NAME" "$URL"
-        echo -e "${BLUE}Moving executable to /usr/local/bin/dzlinux...${NC}"
-        sudo mv "$TEMP_DIR/$FILE_NAME" /usr/local/bin/dzlinux
-        sudo chmod +x /usr/local/bin/dzlinux
+        download_and_verify "$FILE_NAME"
+        echo -e "${BLUE}Installing executable to /usr/local/bin/dzlinux...${NC}"
+        sudo install -o root -g root -m 0755 "$TEMP_DIR/$FILE_NAME" /usr/local/bin/dzlinux
     fi
 
     # Create desktop shortcut for AppImage/tar.gz fallback
@@ -201,10 +196,9 @@ if [ "$OS_TYPE" = "appimage" ]; then
     
     # Download icon
     ICON_DIR="/usr/share/icons/hicolor/512x512/apps"
-    curl -s -L -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux/main/src/assets/icon.png" || true
-    if [ -f "$TEMP_DIR/dzlinux.png" ]; then
+    if curl -fsSL --proto '=https' --proto-redir '=https' -o "$TEMP_DIR/dzlinux.png" "https://raw.githubusercontent.com/dawiisss/DzLinux/main/src/assets/icon.png"; then
         sudo mkdir -p "$ICON_DIR"
-        sudo mv "$TEMP_DIR/dzlinux.png" "$ICON_DIR/"
+        sudo install -o root -g root -m 0644 "$TEMP_DIR/dzlinux.png" "$ICON_DIR/dzlinux.png"
     fi
     
     # Create desktop file globally
@@ -228,8 +222,7 @@ EOF
     if [ -f "$DESKTOP_DIR/dzlinux.desktop" ]; then
         sudo rm -f "$DESKTOP_DIR/dzlinux.desktop"
     fi
-    sudo mv "$TEMP_DIR/DzLinux.desktop" "$DESKTOP_DIR/"
-    sudo chmod +x "$DESKTOP_DIR/DzLinux.desktop"
+    sudo install -o root -g root -m 0644 "$TEMP_DIR/DzLinux.desktop" "$DESKTOP_DIR/DzLinux.desktop"
     
     # Update desktop database so the menu picks it up immediately
     if command -v update-desktop-database &> /dev/null; then
