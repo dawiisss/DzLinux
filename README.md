@@ -9,7 +9,7 @@ DzLinux is a high-performance, native launcher, server browser, and mod manager 
 
 Play modded and vanilla DayZ on Linux with a zero-setup, optimized launcher.
 
-Version **2.1.2** fixes Steam launches, the Steamworks launch lock, crash diagnostics, server search by address, and malformed server list handling. See the [changelog](changelog.md#212---2026-11-04) for release notes.
+Version **2.1.3** hardens server list outages and mod verification on Connect, improves Workshop dependency scanning, Proton/DXVK settings, AppImage updates, keyboard accessibility, and installer/checksum security. See the [changelog](changelog.md#213---2026-11-25) for release notes.
 
 <img width="1398" height="796" alt="DzLinux DayZ Server Browser and Mod Manager Interface on Linux" src="https://github.com/user-attachments/assets/8eeb2bd4-b6a2-4978-828e-16c671e88a52" />
 
@@ -112,39 +112,39 @@ The installer uses `jq` or Python 3 to read GitHub release metadata and requires
 If you prefer not to use the automated install script, you can manually download the binaries from our [Releases Page](https://github.com/dawiisss/DzLinux/releases/latest) and launch them using the instructions below.
 
 ### AppImage (Portable)
-1. Download `DzLinux-2.1.2.AppImage`.
+1. Download `DzLinux-2.1.3.AppImage`.
 2. Make it executable:
    ```bash
-   chmod +x DzLinux-2.1.2.AppImage
+   chmod +x DzLinux-2.1.3.AppImage
    ```
 3. Run or double-click to launch.
 
 ### Portable Archive (tar.gz)
-1. Download `dzlinux-2.1.2.tar.gz`.
+1. Download `dzlinux-2.1.3.tar.gz`.
 2. Extract to your games directory:
    ```bash
    mkdir -p ~/Games
-   tar -xzf dzlinux-2.1.2.tar.gz -C ~/Games/
+   tar -xzf dzlinux-2.1.3.tar.gz -C ~/Games/
    ```
 3. Run the binary:
    ```bash
-   cd ~/Games/dzlinux-2.1.2
+   cd ~/Games/dzlinux-2.1.3
    ./dzlinux
    ```
 
 ### Debian Package (deb) - Ubuntu, Debian, Pop!_OS, Mint
-1. Download `dzlinux_2.1.2_amd64.deb`.
+1. Download `dzlinux_2.1.3_amd64.deb`.
 2. Install via terminal:
    ```bash
-   sudo dpkg -i dzlinux_2.1.2_amd64.deb
+   sudo dpkg -i dzlinux_2.1.3_amd64.deb
    sudo apt install -f
    ```
 
 ### RPM Package (rpm) - Fedora, RHEL, openSUSE
-1. Download `dzlinux-2.1.2.x86_64.rpm`.
+1. Download `dzlinux-2.1.3.x86_64.rpm`.
 2. Install via terminal:
    ```bash
-   sudo rpm -i dzlinux-2.1.2.x86_64.rpm
+   sudo rpm -i dzlinux-2.1.3.x86_64.rpm
    ```
 
 ### Arch Linux (PKGBUILD)
