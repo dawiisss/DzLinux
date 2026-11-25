@@ -46,3 +46,27 @@ jobs:
         run: pnpm exec electron-builder --linux --publish always
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pin Published Archive Checksums
+        if: startsWith(github.ref, 'refs/tags/v') && !contains(github.ref, '-')
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          ARCHIVE="dist/dzlinux-${VERSION}.tar.gz"
+          if [ ! -f "$ARCHIVE" ]; then
+            echo "Expected release archive not found: $ARCHIVE" >&2
+            exit 1
+          fi
+          git fetch origin main --depth=1
+          git checkout -B main origin/main
+          node build/sync-versions.js "$ARCHIVE"
+          if git diff --quiet -- build/PKGBUILD build/com.dawiisss.dzlinux.yml; then
+            echo "Build manifests already up to date."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add build/PKGBUILD build/com.dawiisss.dzlinux.yml
+          HUSKY=0 git commit -m "chore: pin release checksums for v${VERSION}"
+          git pull --rebase origin main
+          git push origin main
