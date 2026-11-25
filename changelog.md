@@ -10,6 +10,31 @@ All notable changes to the DzLinux launcher project will be documented in this f
 
 ### Fixed
 
+## [2.1.3] - 2026-11-25
+
+### Fixed
+
+- **Hosted server list outages:** The launcher tries the fallback source when the primary returns invalid or empty data. If both sources fail, the browser keeps the last successful list or shows local servers on a first run. Live pings continue without changing the last successful list refresh time.
+- **Server list data:** Malformed optional metadata is ignored in fetched and cached lists so one bad entry cannot break server filters or row rendering.
+- **Fresh Workshop requirements on Connect:** Every server connection checks the current mod list before launching DayZ. The launcher tries alternate query ports when a response omits the rules and stops the connection if the mod requirements cannot be verified.
+- **Workshop dependency checks:** Scans cancel when replaced or when leaving the Mods tab, reuse shared dependencies, and show when part of a scan could not be verified. Details render when expanded.
+- **Favorites and filter preferences:** Changing a view preference or toggling filter auto-save preserves other settings being saved at the same time.
+- **Watchlist edits:** A rejected edit or failed write leaves an active auto-join offer available.
+- **Proton settings:** Testing a detected Proton installation works across Steam libraries, and DXVK options apply to the launch without overwriting the prefix configuration.
+- **AppImage updates in system directories:** When the running AppImage cannot be replaced by the current user, DzLinux opens the release page for updates.
+- **AppImage restart action:** Reopening a downloaded update still shows the install and restart action.
+- **Steam launch crash diagnostics:** The launcher checks for new DayZ crash logs after detecting that the game has exited, including when Steam was already running. Diagnostics select the newest logs across Steam libraries.
+- **Keyboard access:** Server table sorting and Workshop row details are accessible through buttons that announce their current state.
+- **Flatpak manifest and PKGBUILD:** Both build definitions pin the source archive to its published SHA-256 digest. Version sync updates the release version, archive URL, and checksum together when given the release archive.
+- **Steamworks worker recovery:** Worker startup and IPC errors settle pending requests so the launcher can recover and start a replacement worker.
+- **Legacy Watchlist migration:** Migration clears only the legacy Watchlist field, preserving preference edits saved while the migration runs.
+
+### Security
+
+- **System-wide installer:** Downloads must pass SHA-256 verification before installation. The installer sets explicit root ownership and permissions on the shared AppImage, icon, and desktop entry. Archive extraction also ignores stored owner IDs and permissions.
+- **Dependency updates:** Updated `glob`, `minimatch`, and `fast-xml-parser` to versions that address the reported pnpm audit advisories.
+- **Filesystem checks from the launcher:** Path and disk diagnostics validate the resolved target against the allowed directories, including symlinked Workshop roots.
+
 ## [2.1.2] - 2026-11-04
 
 ### Fixed
