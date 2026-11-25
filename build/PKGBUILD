@@ -1,6 +1,6 @@
 # Maintainer: DzLinux Team <dawiisss@github.com>
 pkgname=dzlinux-bin
-pkgver=2.1.2
+pkgver=2.1.3
 pkgrel=1
 pkgdesc="A high-performance DayZ Server Browser and Mod Manager for Linux."
 arch=('x86_64')
@@ -10,7 +10,7 @@ depends=('libxss' 'nss' 'gtk3' 'libnotify')
 provides=('dzlinux')
 conflicts=('dzlinux')
 source=("https://github.com/dawiisss/DzLinux/releases/download/v${pkgver}/dzlinux-${pkgver}.tar.gz")
-sha256sums=('55b14cb080692c40d4af7992515c63fdc0e081f13fc277e9c391391411236628')
+sha256sums=('6998a45e636e99d8a02de9d5a2ee2ab9500b01ba54946ee8d151eeb31a651861')
 
 package() {
   install -d "${pkgdir}/opt/dzlinux"
